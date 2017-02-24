@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace SS
 {
 
-	class Spreadsheet : AbstractSpreadsheet
+	public class Spreadsheet : AbstractSpreadsheet
 	{
 		private Dictionary<string, Cell> cells;
 		private DependencyGraph deeptree;
@@ -79,7 +79,7 @@ namespace SS
 		{
 			return cells.Keys.AsEnumerable();
 		}
-		protected override ISet<string> SetCellContents(string name, double number)
+		public override ISet<string> SetCellContents(string name, double number)
 		{
 
 			Cell temp;
@@ -125,7 +125,7 @@ namespace SS
 			}
 
 		}
-		protected override ISet<string> SetCellContents(string name, Formula formula)
+		public override ISet<string> SetCellContents(string name, Formula formula)
 		{
 			Cell temp;
 			if (!cells.TryGetValue(name, out temp))
@@ -150,7 +150,7 @@ namespace SS
 
 		}
 
-		protected override ISet<string> SetCellContents(string name, string text)
+		public override ISet<string> SetCellContents(string name, string text)
 		{
 			Cell temp;
 			if (!cells.TryGetValue(name, out temp))
