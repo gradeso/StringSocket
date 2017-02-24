@@ -14,7 +14,13 @@ namespace SS
 		private DependencyGraph deeptree;
 		private int lastStateHash;
 		//if the hash code changes the object changes.
-	
+
+		public Spreadsheet()
+		{
+			cells = new Dictionary<string, Cell>();
+			deeptree = new DependencyGraph();
+		}
+
 		public override bool Changed
 		{
 			get

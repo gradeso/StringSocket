@@ -46,7 +46,6 @@
     <Compile Include="Formula.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Spreadsheet.cs">
-      <DependentUpon>Spreadsheet.xsd</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
