@@ -14,7 +14,6 @@ namespace SS
 		private SortedSet<Cell> cells;
 		private DependencyGraph deeptree;
 		private int lastStateHash;
-
 		private string validPattern;
 
 		//if the hash code changes the object changes.
@@ -24,6 +23,7 @@ namespace SS
 			cells = new SortedSet<Cell>(new CellComparer());
 			deeptree = new DependencyGraph();
 			validPattern = "[a-zA-Z][0-9a-zA-Z]*";
+			
 		}
 
 		/// <summary>
@@ -121,7 +121,7 @@ namespace SS
 			{
 				throw new InvalidNameException();
 			}
-
+			name = name);
 			return updateDependencies(name, formula);
 
 
@@ -139,17 +139,7 @@ namespace SS
 			return updateDependencies(name, text);
 
 		}
-
-		private ISet<string> updateDependencies(string name, object contents)
-		{
-			if (contents is string)
-			{
-			}
-			else if (contents is double)
-			{
-			}
-		}
-
+		
 		//saves the state of the spreadsheet to XML format, 
 		public override void Save(TextWriter dest)
 		{
@@ -175,6 +165,8 @@ namespace SS
 	}
 	struct Cell
 	{
+		private const string unevaluatedFlag = "";
+
 		public string name;
 		public object contents;
 		public object value;
@@ -182,7 +174,7 @@ namespace SS
 		{
 			name = namein;
 			contents = contentsin;
-			value = "";
+			value = unevaluatedFlag;
 		}
 	}
 	class CellComparer : IComparer<Cell>
@@ -222,33 +214,98 @@ namespace SS
 		/// <param name="contents"></param>
 		public HashSet<string> setContentsOrAddCell(string name, object contents)
 		{
+			Cell cellOfInterest = new Cell(); 
+			
 			//if cell doesent exist create it,
-			if (getCellWithName(name).Equals(new Cell()))
+			if (!getCellWithName(name, ref cellOfInterest))
 			{
-
+				//if were here we need to add the cell.
+				cellOfInterest.name = name;
+				cellOfInterest.contents = contents;
 			}
 			//once we have it initialized we interpret contents
+			var solvedCell = new Solver(contents);
+			cellOfInterest.contents = solvedCell.
 
-			//then we operate on contents adding to the dependency tree
+			
+			//then we operate on contents adding/removing to/from the dependency tree
 
-			//get out nested dependencies
+			//return the nested dependencies in a set
 
 		}
-		public Cell getCellWithName(string name)
+		public bool getCellWithName(string name, ref Cell output)
 		{
 			Cell reference = new Cell(name, 0);
 			foreach (Cell c in cells) {
 				if (cells.Comparer.Compare(c, reference) == 0)
 				{
-					return c;
+					output = c;
+					return true;
 				}
 				
 			}
-			return new Cell();
+			output = new Cell();
+			return false;
 		}
 		public DependencyGraph getDependencyGraph()
 		{
 			return deeptree;
+		}
+		public object returnValueOfFormula(Cell cellOfInterest)
+		{
+			if (cellOfInterest.value is string)
+			{
+				return cellOfInterest.value;
+
+			}
+			if (cellOfInterest.value is double)
+			{
+				return cellOfInterest.value;
+
+			}
+			return cellOfInterest.Evaluate(cells.ToLookup(cel => cel.name,  cel => SolveFormula(cel)));
+		}
+		private double SolveFormula(object o)
+		{
+			Convert.ToDouble(cel.value)
+
+		}
+		
+		private class Solver
+		{
+			
+			public object contents;
+			public	ISet<string> whatThisDependsOn;
+			public Solver(object contents)
+			{
+				
+				if (contents is string)
+				{
+					whatThisDependsOn = new HashSet<string>();
+					this.contents = contents;
+					
+				}
+				else if (contents is double)
+				{
+					whatThisDependsOn = new HashSet<string>();
+					this.contents = contents;
+					
+				}
+				else if (contents is Formula)
+				{
+					whatThisDependsOn = ((Formula)contents).GetVariables();
+
+					this.contents = contents;
+				}
+				else
+				{
+					whatThisDependsOn = new HashSet<string>();
+
+					this.contents =  new FormulaError("bad data Format");
+				}
+			}
+
+			
 		}
 	}
 }
