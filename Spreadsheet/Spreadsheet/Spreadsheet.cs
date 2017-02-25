@@ -46,7 +46,7 @@ namespace SS
 		//helper method for changed
 		private void SetHash()
 		{
-			lastStateHash = this.GetHashCode();
+			lastStateHash = cells.GetHashCode();
 		}
 		/// <summary>
 		/// gets the contents of the cell
@@ -55,53 +55,35 @@ namespace SS
 		/// <returns></returns>
 		public override object GetCellContents(string name)
 		{
-			Cell temp;
-			if (!cells.TryGetValue(name, out temp))
-			{
-				throw new InvalidNameException();
-			}
-			return temp.contents;
+			throw new NotImplementedException();
 
 		}
 
 		protected override IEnumerable<string> GetDirectDependents(string name)
 		{
-			if (name == null)
-			{
-				throw new InvalidNameException();
-
-			}
-			Cell temp;
-			if (!cells.TryGetValue(name, out temp))
+			if (!checkIfValidName(name))
 			{
 				throw new InvalidNameException();
 			}
-			return deeptree.GetDependents(name);
+			return deeptree.GetDependents(name).AsEnumerable();
 
 
 		}
-		private void calculate()
-		{
-
-		}
+		
+	
 		public override IEnumerable<string> GetNamesOfAllNonemptyCells()
 		{
-			return cells.Keys.AsEnumerable();
-		}
-		public override ISet<string> SetCellContents(string name, double number)
-		{
-			
-			if (name == null || !Regex.IsMatch(name, validPattern))
+			LinkedList<string> toReturn = new LinkedList<string>();
+
+			foreach (Cell c in cells)
 			{
-				throw new InvalidNameException();
+				toReturn.AddLast(c.name);
 			}
+			return toReturn.AsEnumerable();
 
-			
-			cells
-			
 		}
-
-		private LinkedList<string> getNestedDependencies(string current, LinkedList<string> allDependants)
+		
+		private LinkedList<string> getNestedDependencies(string current, LinkedList<string> allDependants, int offset)
 		{
 		
 			bool changed = false;
@@ -123,17 +105,26 @@ namespace SS
 			}
 			else
 			{
-				return getNestedDependencies(allDependants.ElementAt(allDependants.Count - 2), allDependants);
-			}
-				
-			
-			
-			
+				return getNestedDependencies(allDependants.ElementAt(allDependants.Count + --offset), allDependants, offset);
+			}	
 
 		}
+		public override ISet<string> SetCellContents(string name, double number)
+		{
+
+		}
+
+
 		public override ISet<string> SetCellContents(string name, Formula formula)
 		{
-			
+			if (!checkIfValidName(name))
+			{
+				throw new InvalidNameException();
+			}
+			GetCellsToRecalculate(cells.);
+			updateDependencies(name, formula);
+
+			return new HashSet<string>(getNestedDependencies(name, new LinkedList<string>(), 0));
 
 		}
 
@@ -142,7 +133,7 @@ namespace SS
 			
 
 		}
-
+		//saves the state of the spreadsheet to XML format, 
 		public override void Save(TextWriter dest)
 		{
 			throw new NotImplementedException();
@@ -186,4 +177,5 @@ namespace SS
 
 		}
 	}
+	
 }
