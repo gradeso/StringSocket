@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SS
@@ -10,27 +11,35 @@ namespace SS
 
 	public class Spreadsheet : AbstractSpreadsheet
 	{
-		private Dictionary<string, Cell> cells;
+		private SortedSet<Cell> cells;
 		private DependencyGraph deeptree;
 		private int lastStateHash;
+
+		private string validPattern;
+
 		//if the hash code changes the object changes.
 
 		public Spreadsheet()
 		{
-			cells = new Dictionary<string, Cell>();
+			cells = new SortedSet<Cell>(new CellComparer());
 			deeptree = new DependencyGraph();
+			validPattern = "[a-zA-Z][0-9a-zA-Z]*";
 		}
 
+		/// <summary>
+		/// represents if the ss has been changed since last save, 
+		/// get does work for checking if changed 
+		/// </summary>
 		public override bool Changed
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return (cells.GetHashCode() != lastStateHash || Changed);
 			}
 
 			protected set
 			{
-				throw new NotImplementedException();
+				Changed = value;
 			}
 		}
 
@@ -81,97 +90,56 @@ namespace SS
 		}
 		public override ISet<string> SetCellContents(string name, double number)
 		{
-
-			Cell temp;
-			if (!cells.TryGetValue(name, out temp))
+			
+			if (name == null || !Regex.IsMatch(name, validPattern))
 			{
 				throw new InvalidNameException();
 			}
-			temp.contents = number;
-			var templist = new HashSet<string>();
 
-			foreach (string s in GetNamesOfAllNonemptyCells())
-			{
-				if (temp.contents.ToString().Contains(s))
-				{
-					templist.Add(s);
-				}
-			}
-
-			deeptree.ReplaceDependents(name, templist);
-			templist.Add(name);
-
-			return (ISet<string>)RecursiveGetDependencies(name, templist);
-
+			
+			cells
+			
 		}
 
-		private HashSet<string> RecursiveGetDependencies(string name, HashSet<string> allDependants)
+		private LinkedList<string> getNestedDependencies(string current, LinkedList<string> allDependants)
 		{
-			var toReturn = new HashSet<string>(allDependants);
-			foreach (string s in allDependants)
+		
+			bool changed = false;
+			string last = current;
+			do
 			{
-				foreach (string t in deeptree.GetDependents(s))
+				foreach (string s in deeptree.GetDependents(current))
 				{
-					toReturn.Add(t);
+					//set up for the next iterationa
+					allDependants.AddLast(s);
+					if(!changed) current = s;
+					changed = true;
+					
 				}
-			}
-			if (toReturn.Count == 0)
+			} while (changed);
+			if (current == last)
 			{
-				return toReturn;
+				return allDependants;
 			}
 			else
 			{
-				return RecursiveGetDependencies(name, allDependants);
+				return getNestedDependencies(allDependants.ElementAt(allDependants.Count - 2), allDependants);
 			}
+				
+			
+			
+			
 
 		}
 		public override ISet<string> SetCellContents(string name, Formula formula)
 		{
-			Cell temp;
-			if (!cells.TryGetValue(name, out temp))
-			{
-				throw new InvalidNameException();
-			}
-			temp.contents = formula;
-			var templist = new HashSet<string>();
-
-			foreach (string s in GetNamesOfAllNonemptyCells())
-			{
-				if (temp.contents.ToString().Contains(s))
-				{
-					templist.Add(s);
-				}
-			}
-
-			deeptree.ReplaceDependents(name, templist);
-			templist.Add(name);
-
-			return (ISet<string>)RecursiveGetDependencies(name, templist);
+			
 
 		}
 
 		public override ISet<string> SetCellContents(string name, string text)
 		{
-			Cell temp;
-			if (!cells.TryGetValue(name, out temp))
-			{
-				throw new InvalidNameException();
-			}
-			temp.contents = text;
-			var templist = new HashSet<string>();
-
-			foreach (string s in GetNamesOfAllNonemptyCells())
-			{
-				if (temp.contents.ToString().Contains(s))
-				{
-					templist.Add(s);
-				}
-			}
-
-			deeptree.ReplaceDependents(name, templist);
-			templist.Add(name);
-
-			return (ISet<string>)RecursiveGetDependencies(name, templist);
+			
 
 		}
 
@@ -189,6 +157,13 @@ namespace SS
 		{
 			throw new NotImplementedException();
 		}
+		private bool checkIfValidName(string name)
+		{
+			//check null.
+			if (name == null) return false;
+			//check if regex agrees.
+			return (Regex.IsMatch(name, "[a-zA-Z][0-9a-zA-Z]*") && Regex.IsMatch(name, validPattern)); 
+		}
 	}
 	struct Cell
 	{
@@ -199,19 +174,16 @@ namespace SS
 		{
 			name = namein;
 			contents = contentsin;
-			if (contentsin is string || contentsin is double)
-			{
-				value = contentsin;
-			}
-			else if (contentsin is Formula)
-			{
-				value = "";
-			}
-			else
-			{
-				value = new FormulaError();
+			value = "";
+		}
+	}
+	class CellComparer : IComparer<Cell>
+	{
+		public int Compare(Cell x, Cell y)
+		{
+			
+			return x.name.CompareTo(y.name);
 
-			}
 		}
 	}
 }
