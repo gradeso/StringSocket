@@ -51,6 +51,10 @@ namespace SS
 		public override object GetCellContents(string name)
 		{
 			Cell toReturn = new Cell();
+			if (!checkIfValidNameAndNormalize(ref name))
+			{
+				throw new InvalidNameException();
+			}
 			cds.getCellWithName(name, ref toReturn);
 			return toReturn.contents;
 
@@ -74,35 +78,29 @@ namespace SS
 			return Solver.SummonNames(cds);
 		}
 
-		
+
 		public override ISet<string> SetCellContents(string name, double number)
 		{
-			throw new NotImplementedException();
+			
 		}
 
 
 		public override ISet<string> SetCellContents(string name, Formula formula)
 		{
-			if (!checkIfValidName(name))
+			if (!checkIfValidNameAndNormalize(ref name))
 			{
 				throw new InvalidNameException();
 			}
+			var 
 			
-			
 
-
-
+				//left off herre
 
 		}
 
 		public override ISet<string> SetCellContents(string name, string text)
 		{
-			if (!checkIfValidName(name))
-			{
-				throw new InvalidNameException();
-			}
-
-			return updateDependencies(name, text);
+		
 
 		}
 		
@@ -116,7 +114,37 @@ namespace SS
 		{
 			throw new NotImplementedException();
 		}
-
+		/// <summary>
+		/// If content is null, throws an ArgumentNullException.
+		///
+		/// Otherwise, if name is null or invalid, throws an InvalidNameException.
+		///
+		/// Otherwise, if content parses as a double, the contents of the named
+		/// cell becomes that double.
+		///
+		/// Otherwise, if content begins with the character '=', an attempt is made
+		/// to parse the remainder of content into a Formula f using the Formula
+		/// constructor with s => s.ToUpper() as the normalizer and a validator that
+		/// checks that s is a valid cell name as defined in the AbstractSpreadsheet
+		/// class comment.  There are then three possibilities:
+		///
+		///   (1) If the remainder of content cannot be parsed into a Formula, a
+		///       Formulas.FormulaFormatException is thrown.
+		///
+		///   (2) Otherwise, if changing the contents of the named cell to be f
+		///       would cause a circular dependency, a CircularException is thrown.
+		///
+		///   (3) Otherwise, the contents of the named cell becomes f.
+		///
+		/// Otherwise, the contents of the named cell becomes content.
+		///
+		/// If an exception is not thrown, the method returns a set consisting of
+		/// name plus the names of all other cells whose value depends, directly
+		/// or indirectly, on the named cell.
+		///
+		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+		/// set {A1, B1, C1} is returned.
+		/// </summary>
 		public override System.Collections.Generic.ISet<string> SetContentsOfCell(string name, string content)
 		{
 			throw new NotImplementedException();
@@ -181,7 +209,7 @@ namespace SS
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="newContents"></param>
-		public HashSet<string> setContentsOrAddCell(string name, object newContents)
+		public void setContentsOrAddCell(string name, object newContents)
 		{
 			Cell cellOfInterest = new Cell(); 
 
@@ -197,21 +225,17 @@ namespace SS
 
 			else if (newContents == cellOfInterest.contents)
 			{
-				return new HashSet<string>();
+				return;
 			}
-			//if PC gets here we have made a change.
+			//if PC gets here we will soon have made a change.
 			unsavedChanges = true;
 
-			//once we have it initialized we interpret contents
-			
+			//once we have it initialized
+			// we operate on contents adding/removing to/from the dependency tree
+			getDependencyGraph().ReplaceDependents(name, Solver.RetrieveVariablesFromFormula(newContents));
+
+			//finally update contents
 			cellOfInterest.contents = newContents;
-			
-			
-
-			
-			//then we operate on contents adding/removing to/from the dependency tree
-
-			//return the nested dependencies in a set
 
 
 
@@ -300,7 +324,7 @@ namespace SS
 			return n(toBeNormalized);
 		}
 
-		public static ISet<string> NormalizeAndRetrieveVariables(object contents)
+		public static ISet<string> RetrieveVariablesFromFormula(object contents)
 		{
 			ISet<string> whatThisDependsOn;
 			if (contents is string)
