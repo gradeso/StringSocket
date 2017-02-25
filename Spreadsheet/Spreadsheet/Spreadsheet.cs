@@ -11,30 +11,30 @@ namespace SS
 
 	public class Spreadsheet : AbstractSpreadsheet
 	{
-		private SortedSet<Cell> cells;
-		private DependencyGraph deeptree;
-		private int lastStateHash;
+		private CellDS cds;
 		private string validPattern;
+		
 
-		//if the hash code changes the object changes.
+		//dont forget to add the other constructors.
+
+
 
 		public Spreadsheet()
 		{
-			cells = new SortedSet<Cell>(new CellComparer());
-			deeptree = new DependencyGraph();
+			cds = new CellDS();
 			validPattern = "[a-zA-Z][0-9a-zA-Z]*";
 			
 		}
 
 		/// <summary>
 		/// represents if the ss has been changed since last save, 
-		/// get does work for checking if changed 
+		
 		/// </summary>
 		public override bool Changed
 		{
 			get
 			{
-				return (cells.GetHashCode() != lastStateHash || Changed);
+				return cds.unsavedChanges;
 			}
 
 			protected set
@@ -43,11 +43,6 @@ namespace SS
 			}
 		}
 
-		//helper method for changed
-		private void SetHash()
-		{
-			lastStateHash = cells.GetHashCode();
-		}
 		/// <summary>
 		/// gets the contents of the cell
 		/// </summary>
@@ -55,17 +50,20 @@ namespace SS
 		/// <returns></returns>
 		public override object GetCellContents(string name)
 		{
-			throw new NotImplementedException();
+			Cell toReturn = new Cell();
+			cds.getCellWithName(name, ref toReturn);
+			return toReturn.contents;
 
 		}
 
 		protected override IEnumerable<string> GetDirectDependents(string name)
 		{
-			if (!checkIfValidName(name))
+			
+			if (!checkIfValidNameAndNormalize(ref name))
 			{
 				throw new InvalidNameException();
 			}
-			return deeptree.GetDependents(name).AsEnumerable();
+			return cds.getDependencyGraph().GetDependents(name).AsEnumerable();
 
 
 		}
@@ -73,45 +71,13 @@ namespace SS
 
 		public override IEnumerable<string> GetNamesOfAllNonemptyCells()
 		{
-			LinkedList<string> toReturn = new LinkedList<string>();
-
-			foreach (Cell c in cells)
-			{
-				toReturn.AddLast(c.name);
-			}
-			return toReturn.AsEnumerable();
-
+			return Solver.SummonNames(cds);
 		}
 
-		private LinkedList<string> getNestedDependencies(string current, LinkedList<string> allDependants, int offset)
-		{
-
-			bool changed = false;
-			string last = current;
-			do
-			{
-				foreach (string s in deeptree.GetDependents(current))
-				{
-					//set up for the next iterationa
-					allDependants.AddLast(s);
-					if (!changed) current = s;
-					changed = true;
-
-				}
-			} while (changed);
-			if (current == last)
-			{
-				return allDependants;
-			}
-			else
-			{
-				return getNestedDependencies(allDependants.ElementAt(allDependants.Count + --offset), allDependants, offset);
-			}
-
-		}
+		
 		public override ISet<string> SetCellContents(string name, double number)
 		{
-
+			throw new NotImplementedException();
 		}
 
 
@@ -121,8 +87,8 @@ namespace SS
 			{
 				throw new InvalidNameException();
 			}
-			name = name);
-			return updateDependencies(name, formula);
+			
+			
 
 
 
@@ -155,10 +121,12 @@ namespace SS
 		{
 			throw new NotImplementedException();
 		}
-		private bool checkIfValidName(string name)
+		private bool checkIfValidNameAndNormalize(ref string name)
 		{
 			//check null.
 			if (name == null) return false;
+			name = Solver.Normalize(name);
+
 			//check if regex agrees.
 			return (Regex.IsMatch(name, "[a-zA-Z][0-9a-zA-Z]*") && Regex.IsMatch(name, validPattern));
 		}
@@ -200,37 +168,52 @@ namespace SS
 			}
 		}
 		private DependencyGraph deeptree;
-		
+		internal bool unsavedChanges;
 
 		public CellDS()
 		{
 			cells = new SortedSet<Cell>(new CellComparer());
 			deeptree = new DependencyGraph();
+			unsavedChanges = false;
 		}
 		/// <summary>
 		/// adds a cell or replaces the contents of a cell and then recalculates dependency graph.
 		/// </summary>
 		/// <param name="name"></param>
-		/// <param name="contents"></param>
-		public HashSet<string> setContentsOrAddCell(string name, object contents)
+		/// <param name="newContents"></param>
+		public HashSet<string> setContentsOrAddCell(string name, object newContents)
 		{
 			Cell cellOfInterest = new Cell(); 
+
 			
 			//if cell doesent exist create it,
 			if (!getCellWithName(name, ref cellOfInterest))
 			{
+				
 				//if were here we need to add the cell.
 				cellOfInterest.name = name;
-				cellOfInterest.contents = contents;
+				cellOfInterest.contents = newContents;
 			}
+
+			else if (newContents == cellOfInterest.contents)
+			{
+				return new HashSet<string>();
+			}
+			//if PC gets here we have made a change.
+			unsavedChanges = true;
+
 			//once we have it initialized we interpret contents
-			var solvedCell = new Solver(contents);
-			cellOfInterest.contents = solvedCell.
+			
+			cellOfInterest.contents = newContents;
+			
+			
 
 			
 			//then we operate on contents adding/removing to/from the dependency tree
 
 			//return the nested dependencies in a set
+
+
 
 		}
 		public bool getCellWithName(string name, ref Cell output)
@@ -251,62 +234,99 @@ namespace SS
 		{
 			return deeptree;
 		}
-		public object returnValueOfFormula(Cell cellOfInterest)
+		//solves the formula and returns the value it evaluated to.
+		public object solve(Cell firstCell)
 		{
+			//access the cell for maipulation
+			var cellOfInterest = new Cell();
+		
+			getCellWithName(name, ref cellOfInterest);
+			//
 			if (cellOfInterest.value is string)
-			{
-				return cellOfInterest.value;
+				{
+					return cellOfInterest.value;
 
-			}
+				}
+
 			if (cellOfInterest.value is double)
-			{
-				return cellOfInterest.value;
+				{
+					return cellOfInterest.value;
+
+				}
+
+			if (cellOfInterest.value is Formula) {
+
+					var luf = cells.ToLookup(cel => SolveFormula(cel.value), cel => cel.name);
+					foreach (IGrouping<> in luf[])
+					{
+
+					}
+					return ((Formula)cellOfInterest).contents.Evaluate(luf);
+				}
+			else {
 
 			}
-			return cellOfInterest.Evaluate(cells.ToLookup(cel => cel.name,  cel => SolveFormula(cel)));
-		}
-		private double SolveFormula(object o)
-		{
-			Convert.ToDouble(cel.value)
-
 		}
 		
-		private class Solver
+		private double recursiveSolve()
 		{
-			
-			public object contents;
-			public	ISet<string> whatThisDependsOn;
-			public Solver(object contents)
-			{
-				
-				if (contents is string)
-				{
-					whatThisDependsOn = new HashSet<string>();
-					this.contents = contents;
-					
-				}
-				else if (contents is double)
-				{
-					whatThisDependsOn = new HashSet<string>();
-					this.contents = contents;
-					
-				}
-				else if (contents is Formula)
-				{
-					whatThisDependsOn = ((Formula)contents).GetVariables();
-
-					this.contents = contents;
-				}
-				else
-				{
-					whatThisDependsOn = new HashSet<string>();
-
-					this.contents =  new FormulaError("bad data Format");
-				}
-			}
-
-			
 		}
+		///helps the get cell value method
+		public object returnValueOfFormula(Cell cellOfInterest)
+		{
+			return cellOfInterest.value;
+		}
+
+		
+	}
+	static class Solver
+	{
+
+
+
+		private static Normalizer defaultNormailzer = (s => s.ToUpper());
+
+
+		public static IEnumerable<string> SummonNames(CellDS cds)
+		{
+			return (cds.cells).Select(c => c.name);
+		}
+		public static string Normalize(string toBeNormalized)
+		{
+			return Normalize(toBeNormalized, defaultNormailzer);
+		}
+		public static string Normalize(string toBeNormalized, Normalizer n)
+		{
+			return n(toBeNormalized);
+		}
+
+		public static ISet<string> NormalizeAndRetrieveVariables(object contents)
+		{
+			ISet<string> whatThisDependsOn;
+			if (contents is string)
+			{
+				whatThisDependsOn = new HashSet<string>();
+
+			}
+			else if (contents is double)
+			{
+				whatThisDependsOn = new HashSet<string>();
+
+			}
+			else if (contents is Formula)
+			{
+				whatThisDependsOn = ((Formula)contents).GetVariables();
+
+			}
+			else
+			{
+				whatThisDependsOn = new HashSet<string>();
+
+			}
+			return whatThisDependsOn;
+		}
+
+
 	}
 }
 	
