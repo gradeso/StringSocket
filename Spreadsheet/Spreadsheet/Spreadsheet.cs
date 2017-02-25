@@ -69,8 +69,8 @@ namespace SS
 
 
 		}
-		
-	
+
+
 		public override IEnumerable<string> GetNamesOfAllNonemptyCells()
 		{
 			LinkedList<string> toReturn = new LinkedList<string>();
@@ -82,10 +82,10 @@ namespace SS
 			return toReturn.AsEnumerable();
 
 		}
-		
+
 		private LinkedList<string> getNestedDependencies(string current, LinkedList<string> allDependants, int offset)
 		{
-		
+
 			bool changed = false;
 			string last = current;
 			do
@@ -94,9 +94,9 @@ namespace SS
 				{
 					//set up for the next iterationa
 					allDependants.AddLast(s);
-					if(!changed) current = s;
+					if (!changed) current = s;
 					changed = true;
-					
+
 				}
 			} while (changed);
 			if (current == last)
@@ -106,7 +106,7 @@ namespace SS
 			else
 			{
 				return getNestedDependencies(allDependants.ElementAt(allDependants.Count + --offset), allDependants, offset);
-			}	
+			}
 
 		}
 		public override ISet<string> SetCellContents(string name, double number)
@@ -121,18 +121,35 @@ namespace SS
 			{
 				throw new InvalidNameException();
 			}
-			GetCellsToRecalculate(cells.);
-			updateDependencies(name, formula);
 
-			return new HashSet<string>(getNestedDependencies(name, new LinkedList<string>(), 0));
+			return updateDependencies(name, formula);
+
+
+
 
 		}
 
 		public override ISet<string> SetCellContents(string name, string text)
 		{
-			
+			if (!checkIfValidName(name))
+			{
+				throw new InvalidNameException();
+			}
+
+			return updateDependencies(name, text);
 
 		}
+
+		private ISet<string> updateDependencies(string name, object contents)
+		{
+			if (contents is string)
+			{
+			}
+			else if (contents is double)
+			{
+			}
+		}
+
 		//saves the state of the spreadsheet to XML format, 
 		public override void Save(TextWriter dest)
 		{
@@ -153,7 +170,7 @@ namespace SS
 			//check null.
 			if (name == null) return false;
 			//check if regex agrees.
-			return (Regex.IsMatch(name, "[a-zA-Z][0-9a-zA-Z]*") && Regex.IsMatch(name, validPattern)); 
+			return (Regex.IsMatch(name, "[a-zA-Z][0-9a-zA-Z]*") && Regex.IsMatch(name, validPattern));
 		}
 	}
 	struct Cell
@@ -172,10 +189,67 @@ namespace SS
 	{
 		public int Compare(Cell x, Cell y)
 		{
-			
 			return x.name.CompareTo(y.name);
+		}
+		
+	}
+	class CellDS
+	{
+
+		public SortedSet<Cell> cells
+		{
+			get
+			{
+				return cells; 
+			}
+			private set
+			{
+				cells = value;
+			}
+		}
+		private DependencyGraph deeptree;
+		
+
+		public CellDS()
+		{
+			cells = new SortedSet<Cell>(new CellComparer());
+			deeptree = new DependencyGraph();
+		}
+		/// <summary>
+		/// adds a cell or replaces the contents of a cell and then recalculates dependency graph.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="contents"></param>
+		public HashSet<string> setContentsOrAddCell(string name, object contents)
+		{
+			//if cell doesent exist create it,
+			if (getCellWithName(name).Equals(new Cell()))
+			{
+
+			}
+			//once we have it initialized we interpret contents
+
+			//then we operate on contents adding to the dependency tree
+
+			//get out nested dependencies
 
 		}
+		public Cell getCellWithName(string name)
+		{
+			Cell reference = new Cell(name, 0);
+			foreach (Cell c in cells) {
+				if (cells.Comparer.Compare(c, reference) == 0)
+				{
+					return c;
+				}
+				
+			}
+			return new Cell();
+		}
+		public DependencyGraph getDependencyGraph()
+		{
+			return deeptree;
+		}
 	}
-	
 }
+	
