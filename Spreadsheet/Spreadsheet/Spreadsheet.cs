@@ -62,14 +62,11 @@ namespace SS
 
 		protected override IEnumerable<string> GetDirectDependents(string name)
 		{
-			
 			if (!checkIfValidNameAndNormalize(ref name))
 			{
 				throw new InvalidNameException();
 			}
 			return cds.getDependencyGraph().GetDependents(name).AsEnumerable();
-
-
 		}
 
 
@@ -81,29 +78,47 @@ namespace SS
 
 		public override ISet<string> SetCellContents(string name, double number)
 		{
-			
+			return SetCellContentsMaster(name, number);
 		}
+		/// <summary>
+		/// heper method for all three SetCellContents.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="contents"></param>
+		/// <returns></returns>
+		private ISet<string> SetCellContentsMaster(string name, object contents)
+		{
+			//error check and normalize
+			if (!checkIfValidNameAndNormalize(ref name))
+				{
+					throw new InvalidNameException();
+				}
 
+			//set contents, update deeptree(DG).
+				cds.setContentsOrAddCell(name, contents);
+
+			//after we fix the dependency graph we get the set ready with the method that was so kindly provided.
+			HashSet<string> toReturn = new HashSet<string>();
+			foreach (string s in GetCellsToRecalculate(name)) {
+				toReturn.Add(s);
+			}
+
+			//and return for later use
+			return toReturn;
+
+		}
 
 		public override ISet<string> SetCellContents(string name, Formula formula)
 		{
-			if (!checkIfValidNameAndNormalize(ref name))
-			{
-				throw new InvalidNameException();
-			}
-			var 
-			
-
-				//left off herre
+			return SetCellContentsMaster(name, formula);
 
 		}
 
 		public override ISet<string> SetCellContents(string name, string text)
 		{
-		
-
+			return SetCellContentsMaster(name, text);
 		}
-		
+
 		//saves the state of the spreadsheet to XML format, 
 		public override void Save(TextWriter dest)
 		{
