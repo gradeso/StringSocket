@@ -29,7 +29,7 @@ namespace SS
 		public Spreadsheet()
 		{
 			cds = new CellDS();
-			validPattern = "[a-zA-Z][0-9a-zA-Z]*";
+			validPattern = "^[a-zA-z][1-9][0-9]?$";
 
 		}
 
@@ -62,7 +62,7 @@ namespace SS
 			{
 				throw new InvalidNameException();
 			}
-			cds.getCellWithName(name, ref toReturn);
+			cds.getCellWithName(name, out toReturn);
 			return toReturn.contents;
 
 		}
@@ -127,6 +127,7 @@ namespace SS
 		/// <returns></returns>
 		private ISet<string> SetCellContentsMaster(string name, object contents)
 		{
+			if (contents == null) { throw new ArgumentNullException(); }
 			//error check and normalize
 			if (!checkIfValidNameAndNormalize(ref name))
 			{
@@ -185,7 +186,20 @@ namespace SS
 			return SetCellContentsMaster(name, text);
 		}
 
-		//saves the state of the spreadsheet to XML format, 
+		
+		/// <summary>
+		/// Writes the contents of this spreadsheet to dest using an XML format.
+		/// The XML elements should be structured as follows:
+		/// <spreadsheet IsValid="IsValid regex goes here"><cell name="cell name goes here" contents="cell contents go here"></cell><cell name="cell name goes here" contents="cell contents go here"></cell><cell name="cell name goes here" contents="cell contents go here"></cell></spreadsheet>
+		/// The value of the IsValid attribute should be IsValid.ToString()
+		/// There should be one cell element for each non-empty cell in the spreadsheet.
+		/// If the cell contains a string, the string (without surrounding double quotes) should be written as the contents.
+		/// If the cell contains a double d, d.ToString() should be written as the contents.
+		/// If the cell contains a Formula f, f.ToString() with "=" prepended should be written as the contents.
+		/// If there are any problems writing to dest, the method should throw an IOException.
+		/// </summary>
+		/// <param name="dest"></param>
+		/// <exception cref="System.NotImplementedException"></exception>
 		public override void Save(TextWriter dest)
 		{
 			throw new NotImplementedException();
@@ -234,7 +248,7 @@ namespace SS
 		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
 		/// set {A1, B1, C1} is returned.
 		/// </summary>
-		public override System.Collections.Generic.ISet<string> SetContentsOfCell(string name, string content)
+		public override ISet<string> SetContentsOfCell(string name, string content)
 		{
 			throw new NotImplementedException();
 		}
@@ -266,38 +280,33 @@ namespace SS
 	/// <summary>
 	/// comparator used for the setup of the set.
 	/// </summary>
-	class CellComparer : IComparer<Cell>
+	class CellComparer : IEqualityComparer<Cell>
 	{
-		public int Compare(Cell x, Cell y)
+		public bool Equals(Cell x, Cell y)
 		{
-			return x.name.CompareTo(y.name);
+			return x.name == y.name;
 		}
-		
+
+		public int GetHashCode(Cell obj)
+		{
+			return obj.name.GetHashCode();
+		}
 	}
 	/// <summary>
 	/// The data structure to hold the guts of the spreadsheet
-	/// works by tying a dependency graph with a Sorted Set.
+	/// works by tying a dependency graph with a Hash Set.
 	/// </summary>
 	class CellDS
 	{
 		//the location of the cells
-		public SortedSet<Cell> cells
-		{
-			get
-			{
-				return cells; 
-			}
-			private set
-			{
-				cells = value;
-			}
-		}
+		private HashSet<Cell> cells;
+		
 		private DependencyGraph deeptree;
 		internal bool unsavedChanges;
 
 		public CellDS()
 		{
-			cells = new SortedSet<Cell>(new CellComparer());
+			cells = new HashSet<Cell>(new CellComparer());
 			deeptree = new DependencyGraph();
 			unsavedChanges = false;
 		}
@@ -312,12 +321,13 @@ namespace SS
 
 			
 			//if cell doesent exist create it,
-			if (!getCellWithName(name, ref cellOfInterest))
+			if (!getCellWithName(name, out cellOfInterest))
 			{
 				
 				//if were here we need to add the cell.
 				cellOfInterest.name = name;
 				cellOfInterest.contents = newContents;
+				cells.Add(cellOfInterest);
 			}
 
 			else if (newContents == cellOfInterest.contents)
@@ -329,19 +339,19 @@ namespace SS
 
 			//once we have it initialized
 			// we operate on contents adding/removing to/from the dependency tree
-			getDependencyGraph().ReplaceDependents(name, Solver.RetrieveVariablesFromFormula(newContents));
+			getDependencyGraph().ReplaceDependents(name, Solver.RetrieveVariablesFromContents(newContents));
 
 			//finally update contents
 			cellOfInterest.contents = newContents;
+			replaceCell(cellOfInterest);
 
 
 
 		}
-		public bool getCellWithName(string name, ref Cell output)
+		public bool getCellWithName(string name, out Cell output)
 		{
-			Cell reference = new Cell(name, 0);
 			foreach (Cell c in cells) {
-				if (cells.Comparer.Compare(c, reference) == 0)
+				if (c.name == name)
 				{
 					output = c;
 					return true;
@@ -350,6 +360,11 @@ namespace SS
 			}
 			output = new Cell();
 			return false;
+		}
+		public void replaceCell(Cell c)
+		{
+			cells.Remove(c);
+			cells.Add(c);
 		}
 		public DependencyGraph getDependencyGraph()
 		{
@@ -362,7 +377,10 @@ namespace SS
 			return cellOfInterest.value;
 		}
 
-		
+		internal HashSet<Cell> getCells()
+		{
+			return cells;
+		}
 	}
 	static class Solver
 	{
@@ -374,7 +392,8 @@ namespace SS
 
 		public static IEnumerable<string> SummonNames(CellDS cds)
 		{
-			return (cds.cells).Select(c => c.name);
+			//this overly complicated statement returns all nonempty cell names
+			return (cds.getCells()).Select(c => c.contents is string ? ((string)c.contents == "" ? "" : c.name) : c.name).Except(new HashSet<string>() { "" });
 		}
 		public static string Normalize(string toBeNormalized)
 		{
@@ -385,12 +404,14 @@ namespace SS
 			return n(toBeNormalized);
 		}
 
-		public static ISet<string> RetrieveVariablesFromFormula(object contents)
+		public static ISet<string> RetrieveVariablesFromContents(object contents)
 		{
 			ISet<string> whatThisDependsOn;
 			if (contents is string)
 			{
-				whatThisDependsOn = new HashSet<string>();
+				
+			whatThisDependsOn = new HashSet<string>();
+				
 
 			}
 			else if (contents is double)

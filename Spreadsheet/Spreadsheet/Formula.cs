@@ -382,10 +382,14 @@ namespace SS
 		}
 
 
+		/// <summary>
+		/// Gets the variables.
+		/// </summary>
+		/// <returns></returns>
 		public ISet<string> GetVariables()
 		{
 			fixDefualtConstructor();
-			var toReturn = new List<string>();
+			var toReturn = new HashSet<string>();
 			var en = keyList.GetEnumerator();
 			while (en.MoveNext())
 			{
@@ -394,7 +398,7 @@ namespace SS
 					toReturn.Add(en.Current.Key);
 				}
 			}
-			return (ISet<string>)toReturn;
+			return toReturn;
 		}
 		/// <summary>
 		/// Given a formula, enumerates the tokens that compose it.  Tokens are left paren,
