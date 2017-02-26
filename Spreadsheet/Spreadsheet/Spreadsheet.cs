@@ -9,26 +9,33 @@ using System.Threading.Tasks;
 namespace SS
 {
 
+	/// <summary>
+	/// this class represents an implementation of a spreadsheet.
+	/// </summary>
+	/// <seealso cref="SS.AbstractSpreadsheet" />
 	public class Spreadsheet : AbstractSpreadsheet
 	{
 		private CellDS cds;
 		private string validPattern;
-		
+
 
 		//dont forget to add the other constructors.
 
 
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Spreadsheet"/> class.
+		/// </summary>
 		public Spreadsheet()
 		{
 			cds = new CellDS();
 			validPattern = "[a-zA-Z][0-9a-zA-Z]*";
-			
+
 		}
 
 		/// <summary>
 		/// represents if the ss has been changed since last save, 
-		
+
 		/// </summary>
 		public override bool Changed
 		{
@@ -60,6 +67,23 @@ namespace SS
 
 		}
 
+		/// <summary>
+		/// If name is null, throws an ArgumentNullException.
+		/// Otherwise, if name isn't a valid cell name, throws an InvalidNameException.
+		/// Otherwise, returns an enumeration, without duplicates, of the names of all cells whose
+		/// values depend directly on the value of the named cell.  In other words, returns
+		/// an enumeration, without duplicates, of the names of all cells that contain
+		/// formulas containing name.
+		/// For example, suppose that
+		/// A1 contains 3
+		/// B1 contains the formula A1 * A1
+		/// C1 contains the formula B1 + A1
+		/// D1 contains the formula B1 - C1
+		/// The direct dependents of A1 are B1 and C1
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidNameException"></exception>
 		protected override IEnumerable<string> GetDirectDependents(string name)
 		{
 			if (!checkIfValidNameAndNormalize(ref name))
@@ -70,12 +94,27 @@ namespace SS
 		}
 
 
+		/// <summary>
+		/// Enumerates the names of all the non-empty cells in the spreadsheet.
+		/// </summary>
+		/// <returns></returns>
 		public override IEnumerable<string> GetNamesOfAllNonemptyCells()
 		{
 			return Solver.SummonNames(cds);
 		}
 
 
+		/// <summary>
+		/// If name is null or invalid, throws an InvalidNameException.
+		/// Otherwise, the contents of the named cell becomes number.  The method returns a
+		/// set consisting of name plus the names of all other cells whose value depends,
+		/// directly or indirectly, on the named cell.
+		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+		/// set {A1, B1, C1} is returned.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="number"></param>
+		/// <returns></returns>
 		public override ISet<string> SetCellContents(string name, double number)
 		{
 			return SetCellContentsMaster(name, number);
@@ -90,16 +129,17 @@ namespace SS
 		{
 			//error check and normalize
 			if (!checkIfValidNameAndNormalize(ref name))
-				{
-					throw new InvalidNameException();
-				}
+			{
+				throw new InvalidNameException();
+			}
 
 			//set contents, update deeptree(DG).
-				cds.setContentsOrAddCell(name, contents);
+			cds.setContentsOrAddCell(name, contents);
 
 			//after we fix the dependency graph we get the set ready with the method that was so kindly provided.
 			HashSet<string> toReturn = new HashSet<string>();
-			foreach (string s in GetCellsToRecalculate(name)) {
+			foreach (string s in GetCellsToRecalculate(name))
+			{
 				toReturn.Add(s);
 			}
 
@@ -108,12 +148,38 @@ namespace SS
 
 		}
 
+		/// <summary>
+		/// Requires that all of the variables in formula are valid cell names.
+		/// If name is null or invalid, throws an InvalidNameException.
+		/// Otherwise, if changing the contents of the named cell to be the formula would cause a
+		/// circular dependency, throws a CircularException.
+		/// Otherwise, the contents of the named cell becomes formula.  The method returns a
+		/// Set consisting of name plus the names of all other cells whose value depends,
+		/// directly or indirectly, on the named cell.
+		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+		/// set {A1, B1, C1} is returned.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="formula"></param>
+		/// <returns></returns>
 		public override ISet<string> SetCellContents(string name, Formula formula)
 		{
 			return SetCellContentsMaster(name, formula);
 
 		}
 
+		/// <summary>
+		/// If text is null, throws an ArgumentNullException.
+		/// Otherwise, if name is null or invalid, throws an InvalidNameException.
+		/// Otherwise, the contents of the named cell becomes text.  The method returns a
+		/// set consisting of name plus the names of all other cells whose value depends,
+		/// directly or indirectly, on the named cell.
+		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+		/// set {A1, B1, C1} is returned.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="text"></param>
+		/// <returns></returns>
 		public override ISet<string> SetCellContents(string name, string text)
 		{
 			return SetCellContentsMaster(name, text);
@@ -125,6 +191,14 @@ namespace SS
 			throw new NotImplementedException();
 		}
 
+		/// <summary>
+		/// If name is null or invalid, throws an InvalidNameException.
+		/// Otherwise, returns the value (as opposed to the contents) of the named cell.  The return
+		/// value should be either a string, a double, or a FormulaError.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		/// <exception cref="System.NotImplementedException"></exception>
 		public override object GetCellValue(string name)
 		{
 			throw new NotImplementedException();
@@ -188,6 +262,10 @@ namespace SS
 			value = unevaluatedFlag;
 		}
 	}
+
+	/// <summary>
+	/// comparator used for the setup of the set.
+	/// </summary>
 	class CellComparer : IComparer<Cell>
 	{
 		public int Compare(Cell x, Cell y)
@@ -196,9 +274,13 @@ namespace SS
 		}
 		
 	}
+	/// <summary>
+	/// The data structure to hold the guts of the spreadsheet
+	/// works by tying a dependency graph with a Sorted Set.
+	/// </summary>
 	class CellDS
 	{
-
+		//the location of the cells
 		public SortedSet<Cell> cells
 		{
 			get
@@ -273,43 +355,7 @@ namespace SS
 		{
 			return deeptree;
 		}
-		//solves the formula and returns the value it evaluated to.
-		public object solve(Cell firstCell)
-		{
-			//access the cell for maipulation
-			var cellOfInterest = new Cell();
 		
-			getCellWithName(name, ref cellOfInterest);
-			//
-			if (cellOfInterest.value is string)
-				{
-					return cellOfInterest.value;
-
-				}
-
-			if (cellOfInterest.value is double)
-				{
-					return cellOfInterest.value;
-
-				}
-
-			if (cellOfInterest.value is Formula) {
-
-					var luf = cells.ToLookup(cel => SolveFormula(cel.value), cel => cel.name);
-					foreach (IGrouping<> in luf[])
-					{
-
-					}
-					return ((Formula)cellOfInterest).contents.Evaluate(luf);
-				}
-			else {
-
-			}
-		}
-		
-		private double recursiveSolve()
-		{
-		}
 		///helps the get cell value method
 		public object returnValueOfFormula(Cell cellOfInterest)
 		{
