@@ -29,7 +29,7 @@ namespace SS
 		public Spreadsheet()
 		{
 			cds = new CellDS();
-			validPattern = "^[a-zA-z][1-9][0-9]?$";
+			validPattern = "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*";
 
 		}
 
@@ -57,14 +57,19 @@ namespace SS
 		/// <returns></returns>
 		public override object GetCellContents(string name)
 		{
-			Cell toReturn = new Cell();
+			Cell toReturn;
 			if (!checkIfValidNameAndNormalize(ref name))
 			{
 				throw new InvalidNameException();
 			}
-			cds.getCellWithName(name, out toReturn);
-			return toReturn.contents;
-
+			if (!cds.getCellWithName(name, out toReturn))
+			{
+				return "";
+			}
+			else
+			{
+				return toReturn.contents;
+			}
 		}
 
 		/// <summary>
@@ -86,10 +91,7 @@ namespace SS
 		/// <exception cref="InvalidNameException"></exception>
 		protected override IEnumerable<string> GetDirectDependents(string name)
 		{
-			if (!checkIfValidNameAndNormalize(ref name))
-			{
-				throw new InvalidNameException();
-			}
+			
 			return cds.getDependencyGraph().GetDependents(name).AsEnumerable();
 		}
 
@@ -104,21 +106,6 @@ namespace SS
 		}
 
 
-		/// <summary>
-		/// If name is null or invalid, throws an InvalidNameException.
-		/// Otherwise, the contents of the named cell becomes number.  The method returns a
-		/// set consisting of name plus the names of all other cells whose value depends,
-		/// directly or indirectly, on the named cell.
-		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
-		/// set {A1, B1, C1} is returned.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="number"></param>
-		/// <returns></returns>
-		public override ISet<string> SetCellContents(string name, double number)
-		{
-			return SetCellContentsMaster(name, number);
-		}
 		/// <summary>
 		/// heper method for all three SetCellContents.
 		/// </summary>
@@ -135,15 +122,22 @@ namespace SS
 			}
 
 			//set contents, update deeptree(DG).
-			cds.setContentsOrAddCell(name, contents);
+			object previousContents = cds.setContentsOrAddCell(name, contents);
 
 			//after we fix the dependency graph we get the set ready with the method that was so kindly provided.
 			HashSet<string> toReturn = new HashSet<string>();
-			foreach (string s in GetCellsToRecalculate(name))
+			try
 			{
-				toReturn.Add(s);
+				foreach (string s in GetCellsToRecalculate(name))
+				{
+					toReturn.Add(s);
+				}
 			}
-
+			catch (CircularException e)
+			{
+				cds.setContentsOrAddCell(name, previousContents);
+				throw e;
+			}
 			//and return for later use
 			return toReturn;
 
@@ -167,6 +161,22 @@ namespace SS
 		{
 			return SetCellContentsMaster(name, formula);
 
+		}
+
+		/// <summary>
+		/// If name is null or invalid, throws an InvalidNameException.
+		/// Otherwise, the contents of the named cell becomes number.  The method returns a
+		/// set consisting of name plus the names of all other cells whose value depends,
+		/// directly or indirectly, on the named cell.
+		/// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+		/// set {A1, B1, C1} is returned.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="number"></param>
+		/// <returns></returns>
+		public override ISet<string> SetCellContents(string name, double number)
+		{
+			return SetCellContentsMaster(name, number);
 		}
 
 		/// <summary>
@@ -259,7 +269,7 @@ namespace SS
 			name = Solver.Normalize(name);
 
 			//check if regex agrees.
-			return (Regex.IsMatch(name, "[a-zA-Z][0-9a-zA-Z]*") && Regex.IsMatch(name, validPattern));
+			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, validPattern));
 		}
 	}
 	struct Cell
@@ -274,6 +284,12 @@ namespace SS
 			name = namein;
 			contents = contentsin;
 			value = unevaluatedFlag;
+		}
+		public Cell(Cell c)
+		{
+			name = c.name;
+			contents = c.contents;
+			value = c.value;
 		}
 	}
 
@@ -300,7 +316,7 @@ namespace SS
 	{
 		//the location of the cells
 		private HashSet<Cell> cells;
-		
+
 		private DependencyGraph deeptree;
 		internal bool unsavedChanges;
 
@@ -312,51 +328,62 @@ namespace SS
 		}
 		/// <summary>
 		/// adds a cell or replaces the contents of a cell and then recalculates dependency graph.
+		/// retrns the previous cell in case of a circular exception fatrher down the line.
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="newContents"></param>
-		public void setContentsOrAddCell(string name, object newContents)
+		public object setContentsOrAddCell(string name, object newContents)
 		{
-			Cell cellOfInterest = new Cell(); 
+			Cell cellOfInterest = new Cell();
 
-			
+			object previousContents;
 			//if cell doesent exist create it,
 			if (!getCellWithName(name, out cellOfInterest))
 			{
-				
+
 				//if were here we need to add the cell.
 				cellOfInterest.name = name;
 				cellOfInterest.contents = newContents;
 				cells.Add(cellOfInterest);
+				previousContents = "";
 			}
 
 			else if (newContents == cellOfInterest.contents)
 			{
-				return;
+				return cellOfInterest.contents;
 			}
+			else
+			{
+				previousContents = cellOfInterest.contents;
+			}
+
+
 			//if PC gets here we will soon have made a change.
 			unsavedChanges = true;
 
 			//once we have it initialized
 			// we operate on contents adding/removing to/from the dependency tree
-			getDependencyGraph().ReplaceDependents(name, Solver.RetrieveVariablesFromContents(newContents));
+
+			deeptree.ReplaceDependees(name, Solver.RetrieveVariablesFromContents(newContents));
 
 			//finally update contents
 			cellOfInterest.contents = newContents;
 			replaceCell(cellOfInterest);
-
+			return previousContents;
 
 
 		}
+
 		public bool getCellWithName(string name, out Cell output)
 		{
-			foreach (Cell c in cells) {
+			foreach (Cell c in cells)
+			{
 				if (c.name == name)
 				{
 					output = c;
 					return true;
 				}
-				
+
 			}
 			output = new Cell();
 			return false;
@@ -370,7 +397,7 @@ namespace SS
 		{
 			return deeptree;
 		}
-		
+
 		///helps the get cell value method
 		public object returnValueOfFormula(Cell cellOfInterest)
 		{

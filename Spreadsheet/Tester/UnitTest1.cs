@@ -30,7 +30,7 @@ namespace GradingTests
 			{
 				set2.Add(s.ToUpper());
 			}
-
+		
 			Assert.IsTrue(new HashSet<string>(set1).SetEquals(set2));
 		}
 
