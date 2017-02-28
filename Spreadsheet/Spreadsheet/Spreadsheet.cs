@@ -74,7 +74,7 @@ namespace SS
 		/// <exception cref="System.NotImplementedException"></exception>
 		public override void Save(TextWriter dest)
 		{
-			throw new NotImplementedException();
+			
 		}
 
 		/// <summary>
@@ -87,8 +87,21 @@ namespace SS
 		/// <exception cref="System.NotImplementedException"></exception>
 		public override object GetCellValue(string name)
 		{
-			throw new NotImplementedException();
-		}
+			Cell toReturn;
+			if (!checkIfValidNameAndNormalize(ref name))
+			{
+				throw new InvalidNameException();
+			}
+			if (!cds.getCellWithName(name, out toReturn))
+			{
+				return "";
+			}
+			else
+			{
+				return toReturn.value;
+			}
+		
+	}
 		/// <summary>
 		/// If content is null, throws an ArgumentNullException.
 		///
@@ -122,7 +135,38 @@ namespace SS
 		/// </summary>
 		public override ISet<string> SetContentsOfCell(string name, string content)
 		{
-			throw new NotImplementedException();
+			
+			if (content == null) throw new ArgumentNullException();
+			
+			if(!checkIfValidName(name) )throw new InvalidNameException();
+
+
+			double newContentsDub;
+			if (double.TryParse(name, out newContentsDub))
+			{
+				
+				return recalculate(SetCellContents(name, newContentsDub));
+			}
+			if (Regex.IsMatch(name, "[=]+")){
+				return recalculate(
+						SetCellContents(name, 
+								new Formula(content, (s => s.ToUpper()), (n => Regex.IsMatch(n, validPattern)))));
+			}
+			return recalculate(SetCellContents(name, content));
+		}
+
+		/// <summary>
+		/// Recalculates the specified set.
+		/// </summary>
+		/// <param name="set">The set.</param>
+		/// <returns></returns>
+		private ISet<string> recalculate(ISet<string> set)
+		{
+
+			foreach (
+			{
+
+			}
 		}
 
 
@@ -271,7 +315,10 @@ namespace SS
 		{
 			return SetCellContentsMaster(name, text);
 		}
-
+		private bool checkIfValidName(string name) {
+			if (name == null) return false;
+			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, validPattern));
+		}
 
 		private bool checkIfValidNameAndNormalize(ref string name)
 		{
