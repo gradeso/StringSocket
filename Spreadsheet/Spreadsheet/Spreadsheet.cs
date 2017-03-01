@@ -302,11 +302,22 @@ namespace SS
 		{
 			return SetCellContentsMaster(name, text);
 		}
+
+		/// <summary>
+		/// Checks the name of if valid.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
 		private bool checkIfValidName(string name) {
 			if (name == null) return false;
 			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, validPattern));
 		}
 
+		/// <summary>
+		/// Checks if valid name and normalizes the string paramether.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
 		private bool checkIfValidNameAndNormalize(ref string name)
 		{
 			//check null.
@@ -317,13 +328,30 @@ namespace SS
 			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, validPattern));
 		}
 	}
+	/// <summary>
+	/// The cell class that represents a cell in the spreadsheet.
+	/// </summary>
 	struct Cell
 	{
 		private const string unevaluatedFlag = "";
 
+		/// <summary>
+		/// The name
+		/// </summary>
 		public string name;
+		/// <summary>
+		/// The contents
+		/// </summary>
 		public object contents;
+		/// <summary>
+		/// The value
+		/// </summary>
 		public object value;
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Cell"/> struct.
+		/// </summary>
+		/// <param name="namein">The namein.</param>
+		/// <param name="contentsin">The contentsin.</param>
 		public Cell(string namein, object contentsin)
 		{
 			name = namein;
@@ -421,6 +449,12 @@ namespace SS
 
 		}
 
+		/// <summary>
+		/// Gets the name of the cell with.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <param name="output">The output.</param>
+		/// <returns></returns>
 		public bool getCellWithName(string name, out Cell output)
 		{
 			foreach (Cell c in cells)
@@ -435,11 +469,20 @@ namespace SS
 			output = new Cell();
 			return false;
 		}
+
+		/// <summary>
+		/// Replaces the cell.
+		/// </summary>
+		/// <param name="c">The c.</param>
 		public void replaceCell(Cell c)
 		{
 			cells.Remove(c);
 			cells.Add(c);
 		}
+		/// <summary>
+		/// Gets the dependency graph.
+		/// </summary>
+		/// <returns></returns>
 		public DependencyGraph getDependencyGraph()
 		{
 			return deeptree;
@@ -450,39 +493,15 @@ namespace SS
 		{
 			return cellOfInterest.value;
 		}
-		
+
+		/// <summary>
+		/// Gets the cells.
+		/// </summary>
+		/// <returns></returns>
 		internal HashSet<Cell> getCells()
 		{
 			return cells;
 		}
-		
-
-		internal void recalculate(IEnumerable<string> cellsToRecalculate)
-		{
-			//set up a set to contain solved values, 
-			
-			//iterate through the cellstoRecalculate, 
-			
-			//as we iterate we turn the dictionary into a lookup that maps Func<string, duoule> to name
-			//get variables out of contents
-			//if contents of a cell is a double, add name to set of solved values update value then continue
-
-			
-			//if contents is a formula
-			//we then pass the lookup with [s] as parameter to evaluate contents of s and save it to the value
-			//add the current cell name to a list of solved values
-
-			
-			
-		}
-		//Posiblie stratagey would be get the lookup built and try and solve all formulas
-		//if we cant solve a formula we move on
-		//if we can we solve it and add it to the lookupmethod
-
-		
-	}
-	static class Solver
-	{
 
 		/// <summary>
 		/// Generates the lookup used by recalculate. takes the solved cells as a parameter
@@ -490,11 +509,61 @@ namespace SS
 		/// </summary>
 		/// <param name="cellsSolved">The cells solved.</param>
 		/// <returns></returns>
-		private Func<string, double> generateLookup(HashSet<Cell> cellsSolved)
+		private Lookup generateLookup(HashSet<Cell> cellsSolved)
 		{
 			var lookup = cellsSolved.ToLookup(c => c.name, c => (double)c.value);
-				lookup.Select<IGrouping<string, double>, Func<string, double>>(gp => (s => (s == gp.Key ? ));
+			return (s => lookup[s].First());
+		}
 
+
+		/// <summary>
+		/// Recalculates the specified cells to recalculate.
+		/// </summary>
+		/// <param name="cellsToRecalculate">The cells to recalculate.</param>
+		internal void recalculate(IEnumerable<string> cellsToRecalculate)
+		{
+			//set up a set to contain solved values, 
+			HashSet<Cell> solved = new HashSet<Cell>(new CellComparer());
+			//iterate through the cellstoRecalculate, 
+			foreach (string s in cellsToRecalculate)
+			{
+				Cell cel;
+				getCellWithName(s, out cel); //will return true, error checking done else where.
+				
+				//if contents of a cell is a double, add name to set of solved values update value then continue
+				if (cel.contents is double)
+				{
+					cel.value = cel.contents;
+
+				}
+				//if contents is a formula
+			//we then pass the lookup with [s] as parameter to evaluate contents of s and save it to the value
+			//add the current cell name to a list of solved values
+
+				else if (cel.contents is Formula)
+				{
+					try
+					{
+						//as we iterate we turn solved into a lookup that maps Lookup to name
+						cel.value = ((Formula)cel.contents).Evaluate(generateLookup(solved));
+						solved.Add(cel);
+					}
+					catch (FormulaEvaluationException e)
+					{
+						Console.WriteLine(e.Message);
+						throw e;
+					}
+				}
+				
+			}
+		}
+
+		
+	}
+	static class Solver
+	{
+
+		
 			
 		private static Normalizer defaultNormailzer = (s => s.ToUpper());
 
