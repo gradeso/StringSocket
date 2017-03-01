@@ -280,7 +280,7 @@ namespace GradingTests
 			s.SetCellContents("A4", new Formula("A2+A5"));
 			HashSet<string> result = new HashSet<string>(s.SetCellContents("A5", 82.5));
 			AssertSetEqualsIgnoreCase(result, new string[] { "A5", "A4", "A3", "A1" });
-			Assert.AreEqual(100.5, (double)s.GetCellValue("A1");
+			Assert.AreEqual(100.5, (double)s.GetCellValue("A1"));
 		}
 
 		// CHANGING CELLS

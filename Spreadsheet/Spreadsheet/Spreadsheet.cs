@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace SS
 {
@@ -15,8 +16,14 @@ namespace SS
 	/// <seealso cref="SS.AbstractSpreadsheet" />
 	public class Spreadsheet : AbstractSpreadsheet
 	{
+		/// <summary>
+		/// The central data structure for the spreadsheet
+		/// </summary>
 		private CellDS cds;
-		private string validPattern;
+		/// <summary>
+		/// is valid string for regex purposes.
+		/// </summary>
+		private string IsValid;
 
 
 		//dont forget to add the other constructors.
@@ -29,7 +36,7 @@ namespace SS
 		public Spreadsheet()
 		{
 			cds = new CellDS();
-			validPattern = "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*";
+			IsValid = "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*";
 
 		}
 
@@ -40,7 +47,7 @@ namespace SS
 		public Spreadsheet(Regex isValid)
 		{
 			cds = new CellDS();
-			validPattern = isValid.ToString();
+			this.IsValid = isValid.ToString();
 
 		}
 		/// <summary>
@@ -74,7 +81,40 @@ namespace SS
 		/// <exception cref="System.NotImplementedException"></exception>
 		public override void Save(TextWriter dest)
 		{
-			
+			using (var sw = new StringWriter())
+			{
+				using (var xw = XmlWriter.Create(sw))
+				{
+					xw.WriteStartDocument();
+					xw.WriteStartElement("", "Spreadsheet", "SS");
+					xw.WriteElementString("IsValid", IsValid.ToString());
+					foreach(Cell c in cds.getCells())
+					{
+						xw.WriteStartElement("cell");
+						xw.WriteAttributeString("name",c.name.ToString());
+						//gotta <3 lambdas!
+						xw.WriteAttributeString("contents", 
+							(c.contents is string ? (string)c.contents : 
+							(c.contents is double ? c.contents.ToString() :
+							(c.contents is Formula ? "=" + c.contents.ToString() :
+							pretendToReturnStringButActuallyThrowAnException()))));
+						xw.WriteEndElement();
+					}
+
+					xw.WriteEndElement();
+					xw.WriteEndDocument();
+
+				}
+				dest.Write(sw.ToString());
+			}
+		}
+		/// <summary>
+		/// Pretends to return string but actually throw an exception.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="System.IO.IOException"></exception>
+		private string pretendToReturnStringButActuallyThrowAnException() {
+			throw new IOException();
 		}
 
 		/// <summary>
@@ -149,7 +189,7 @@ namespace SS
 			}
 			if (Regex.IsMatch(name, "[=]+")){
 				return SetCellContents(name, 
-								new Formula(content, (s => s.ToUpper()), (n => Regex.IsMatch(n, validPattern))));
+								new Formula(content, (s => s.ToUpper()), (n => Regex.IsMatch(n, IsValid))));
 			}
 			return SetCellContents(name, content);
 		}
@@ -310,7 +350,7 @@ namespace SS
 		/// <returns></returns>
 		private bool checkIfValidName(string name) {
 			if (name == null) return false;
-			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, validPattern));
+			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, IsValid));
 		}
 
 		/// <summary>
@@ -325,7 +365,7 @@ namespace SS
 			name = Solver.Normalize(name);
 
 			//check if regex agrees.
-			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, validPattern));
+			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, IsValid));
 		}
 	}
 	/// <summary>
