@@ -103,14 +103,23 @@ namespace SS
 								break;
 
 								case "cell":
+							
 								var temp = xmr["name"];
-								if (!Regex.IsMatch(temp, IsValid)) throw new SpreadsheetReadException("source file unreadable");
+								if (names.Contains(temp)) throw new SpreadsheetReadException("duplicite cell names");
+								try
+								{
+									if (!Regex.IsMatch(temp, IsValid)) throw new SpreadsheetReadException("source file unreadable");
+								}
+								catch(ArgumentException e)
+								{
+									throw new SpreadsheetReadException( e.Message);
+								}
 								names.AddLast(temp);
-								if (temp == null) throw new SpreadsheetReadException("is valid didnt read properly");
+								if (temp == null) throw new SpreadsheetReadException("a name didnt read properly");
 
 								//deal with the contents
 								string form = xmr["contents"];
-								if (form == null) throw new SpreadsheetReadException("is valid didnt read properly");
+								if (form == null) throw new SpreadsheetReadException("contents didnt read properly");
 
 								if (form.Substring(0, 1).Equals("="))
 								{

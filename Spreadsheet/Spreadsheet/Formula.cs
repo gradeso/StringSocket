@@ -197,7 +197,7 @@ namespace SS
 				}
 			}
 			//if var
-			if ("abcdefghigklmnopqrstuvwxyz".Contains(s.Substring(0, 1).ToLower()))
+			if ("abcdefghijklmnopqrstuvwxyz".Contains(s.Substring(0, 1).ToLower()))
 			{
 				keyList.Add(new KeyValuePair<string, char>(s, varKey));
 				if (nextCondition.Contains("&"))
