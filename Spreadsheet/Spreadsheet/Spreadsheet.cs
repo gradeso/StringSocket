@@ -97,7 +97,7 @@ namespace SS
 							
 							switch (xmr.Name)
 							{
-							case "Spreadsheet":
+							case "spreadsheet":
 								IsValid = xmr["IsValid"];
 								break;
 
@@ -112,7 +112,7 @@ namespace SS
 								{
 									try
 									{
-										new Formula(form, (s => s), checkIfValidName);
+										new Formula(form.Substring(1), (s => s), checkIfValidName);
 									}
 									catch (FormulaFormatException e)
 									{
@@ -136,6 +136,7 @@ namespace SS
 				foreach (string s in names)
 				{
 					SetContentsOfCell(s, contentsList.ElementAt(i));
+					i++;
 				}
 			}
 			catch (Exception)
@@ -143,6 +144,8 @@ namespace SS
 				throw new SpreadsheetVersionException("bad regex on new file");
 
 			}
+			if(names.Count != contentsList.Count) throw new SpreadsheetVersionException("uneven data matches");
+
 
 
 		}
@@ -183,7 +186,7 @@ namespace SS
 				using (var xw = XmlWriter.Create(sw))
 				{
 					xw.WriteStartDocument();
-					xw.WriteStartElement("Spreadsheet");
+					xw.WriteStartElement("spreadsheet");
 					
 					xw.WriteAttributeString("IsValid", IsValid.ToString());
 					foreach(Cell c in cds.getCells())
@@ -474,7 +477,7 @@ namespace SS
 	/// </summary>
 	struct Cell
 	{
-		private const string unevaluatedFlag = "";
+		
 
 		/// <summary>
 		/// The name
@@ -488,7 +491,7 @@ namespace SS
 		/// The value
 		/// </summary>
 		public object value;
-		private string s;
+
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Cell"/> struct.
@@ -499,7 +502,7 @@ namespace SS
 		{
 			name = namein;
 			contents = contentsin;
-			value = unevaluatedFlag;
+			value = "";
 		}
 		public Cell(Cell c)
 		{
@@ -508,7 +511,7 @@ namespace SS
 			value = c.value;
 		}
 
-		public Cell(string s) : this()
+		public Cell(string s) 
 		{
 			name = s;
 			contents = null;
@@ -686,7 +689,7 @@ namespace SS
 			{
 				Cell cel;
 				getCellWithName(s, out cel); //will return true, error checking done else where.
-				
+
 				//if contents of a cell is a double, add name to set of solved values update value then continue
 				if (cel.contents is double)
 				{
@@ -694,8 +697,8 @@ namespace SS
 					solved.Add(cel);
 				}
 				//if contents is a formula
-			//we then pass the lookup with [s] as parameter to evaluate contents of s and save it to the value
-			//add the current cell name to a list of solved values
+				//we then pass the lookup with [s] as parameter to evaluate contents of s and save it to the value
+				//add the current cell name to a list of solved values
 
 				else if (cel.contents is Formula)
 				{
@@ -709,8 +712,12 @@ namespace SS
 					catch (FormulaEvaluationException e)
 					{
 						cel.value = new FormulaError(e.Message);
-						
+
 					}
+				}
+				else if (cel.contents is string)
+				{
+					cel.value = cel.contents;
 				}
 				replaceCell(cel);
 			}
