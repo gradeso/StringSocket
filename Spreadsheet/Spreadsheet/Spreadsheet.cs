@@ -83,29 +83,31 @@ namespace SS
 		/// the new Spreadsheet's IsValid regular expression should be newIsValid.
 		public Spreadsheet(TextReader source, Regex newIsValid)
 		{
+			cds = new CellDS();
 			LinkedList<string> names = new LinkedList<string>();
 			LinkedList<string> contentsList = new LinkedList<string>();
 			using (var xmr = XmlReader.Create(source))
 				{
+				
 					while (xmr.Read())
 					{
 						if (xmr.IsStartElement())
 						{
+							
 							switch (xmr.Name)
 							{
-								case "IsValid":
+							case "Spreadsheet":
 								IsValid = xmr["IsValid"];
 								break;
 
-								case "name":
+								case "cell":
 								var temp = xmr["name"];
 								if (!Regex.IsMatch(temp, IsValid)) throw new SpreadsheetReadException("source file unreadable");
 								names.AddLast(temp);
-									break;
 
-								case "contents":
+								//deal with the contents
 								string form = xmr["contents"];
-								if (Regex.IsMatch(form, "[=]+"))
+								if (form.Substring(0, 1).Equals("="))
 								{
 									try
 									{
@@ -127,13 +129,21 @@ namespace SS
 				}
 			IsValid = newIsValid.ToString();
 			int i = 0;
-			foreach (string s in names)
+			try
 			{
-				SetContentsOfCell( s,   contentsList.ElementAt(i));
-			}
-			
 
-			
+				foreach (string s in names)
+				{
+					SetContentsOfCell(s, contentsList.ElementAt(i));
+				}
+			}
+			catch (Exception)
+			{
+				throw new SpreadsheetVersionException("bad regex on new file");
+
+			}
+
+
 		}
 		/// <summary>
 		/// represents if the ss has been changed since last save,
@@ -172,12 +182,13 @@ namespace SS
 				using (var xw = XmlWriter.Create(sw))
 				{
 					xw.WriteStartDocument();
-					xw.WriteStartElement("", "Spreadsheet", "SS");
-					xw.WriteElementString("IsValid", IsValid.ToString());
+					xw.WriteStartElement("Spreadsheet");
+					
+					xw.WriteAttributeString("IsValid", IsValid.ToString());
 					foreach(Cell c in cds.getCells())
 					{
 						xw.WriteStartElement("cell");
-						xw.WriteAttributeString("name",c.name.ToString());
+						xw.WriteAttributeString("name",c.name);
 						//gotta <3 lambdas!
 						xw.WriteAttributeString("contents", 
 							(c.contents is string ? (string)c.contents : 
@@ -269,14 +280,14 @@ namespace SS
 
 
 			double newContentsDub;
-			if (double.TryParse(name, out newContentsDub))
+			if (double.TryParse(content, out newContentsDub))
 			{
 				
 				return SetCellContents(name, newContentsDub);
 			}
-			if (Regex.IsMatch(name, "[=]+")){
+			if (content.Substring(0, 1).Equals("=")){
 				return SetCellContents(name, 
-								new Formula(content, (s => s.ToUpper()), (n => Regex.IsMatch(n, IsValid))));
+								new Formula(content.Substring(1), (s => s.ToUpper()), (n => Regex.IsMatch(n, IsValid))));
 			}
 			return SetCellContents(name, content);
 		}
@@ -678,12 +689,13 @@ namespace SS
 					}
 					catch (FormulaEvaluationException e)
 					{
-						Console.WriteLine(e.Message);
-						throw e;
+						cel.value = new FormulaError(e.Message);
+						
 					}
 				}
-				
+				replaceCell(cel);
 			}
+			
 		}
 
 		
