@@ -41,7 +41,7 @@ namespace SS
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Spreadsheet"/> class.
+		/// Creates an empty Spreadsheet whose IsValid regular expression accepts every string.
 		/// </summary>
 		/// <param name="isValid">The is valid.</param>
 		public Spreadsheet(Regex isValid)
@@ -50,9 +50,95 @@ namespace SS
 			this.IsValid = isValid.ToString();
 
 		}
-		/// <summary>
-		/// represents if the ss has been changed since last save, 
 
+
+		/// Creates a Spreadsheet that is a duplicate of the spreadsheet saved in source.
+		///
+		/// See the AbstractSpreadsheet.Save method and Spreadsheet.xsd for the file format 
+		/// specification.  
+		///
+		/// If there's a problem reading source, throws an IOException.
+		///
+		/// Else if the contents of source are not consistent with the schema in Spreadsheet.xsd, 
+		/// throws a SpreadsheetReadException.  
+		///
+		/// Else if the IsValid string contained in source is not a valid C# regular expression, throws
+		/// a SpreadsheetReadException.  (If the exception is not thrown, this regex is referred to
+		/// below as oldIsValid.)
+		///
+		/// Else if there is a duplicate cell name in the source, throws a SpreadsheetReadException.
+		/// (Two cell names are duplicates if they are identical after being converted to upper case.)
+		///
+		/// Else if there is an invalid cell name or an invalid formula in the source, throws a 
+		/// SpreadsheetReadException.  (Use oldIsValid in place of IsValid in the definition of 
+		/// cell name validity.)
+		///
+		/// Else if there is an invalid cell name or an invalid formula in the source, throws a
+		/// SpreadsheetVersionException.  (Use newIsValid in place of IsValid in the definition of
+		/// cell name validity.)
+		///
+		/// Else if there's a formula that causes a circular dependency, throws a SpreadsheetReadException. 
+		///
+		/// Else, create a Spreadsheet that is a duplicate of the one encoded in source except that
+		/// the new Spreadsheet's IsValid regular expression should be newIsValid.
+		public Spreadsheet(TextReader source, Regex newIsValid)
+		{
+			LinkedList<string> names = new LinkedList<string>();
+			LinkedList<string> contentsList = new LinkedList<string>();
+			using (var xmr = XmlReader.Create(source))
+				{
+					while (xmr.Read())
+					{
+						if (xmr.IsStartElement())
+						{
+							switch (xmr.Name)
+							{
+								case "IsValid":
+								IsValid = xmr["IsValid"];
+								break;
+
+								case "name":
+								var temp = xmr["name"];
+								if (!Regex.IsMatch(temp, IsValid)) throw new SpreadsheetReadException("source file unreadable");
+								names.AddLast(temp);
+									break;
+
+								case "contents":
+								string form = xmr["contents"];
+								if (Regex.IsMatch(form, "[=]+"))
+								{
+									try
+									{
+										new Formula(form, (s => s), checkIfValidName);
+									}
+									catch (FormulaFormatException e)
+									{
+										throw new SpreadsheetReadException("source file unreadable, bad formula");
+									}
+								}
+								contentsList.AddLast(form);
+									break;
+								default:
+									throw new IOException();
+							
+							}
+						}
+					}
+				}
+			IsValid = newIsValid.ToString();
+			int i = 0;
+			foreach (string s in names)
+			{
+				SetContentsOfCell( s,   contentsList.ElementAt(i));
+			}
+			
+
+			
+		}
+		/// <summary>
+		/// represents if the ss has been changed since last save,
+		/// PS I know this is bad practice if you could comment
+		/// on how i should handle protection levels when i need 2way communication with a field and a dependent class.
 		/// </summary>
 		public override bool Changed
 		{
@@ -63,7 +149,7 @@ namespace SS
 
 			protected set
 			{
-				Changed = value;
+				cds.unsavedChanges = value;
 			}
 		}
 		/// <summary>
@@ -107,6 +193,7 @@ namespace SS
 				}
 				dest.Write(sw.ToString());
 			}
+			Changed = false;
 		}
 		/// <summary>
 		/// Pretends to return string but actually throw an exception.
@@ -352,6 +439,7 @@ namespace SS
 			if (name == null) return false;
 			return (Regex.IsMatch(name, "[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*") && Regex.IsMatch(name, IsValid));
 		}
+
 
 		/// <summary>
 		/// Checks if valid name and normalizes the string paramether.
