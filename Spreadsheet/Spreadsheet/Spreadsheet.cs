@@ -84,6 +84,7 @@ namespace SS
 		public Spreadsheet(TextReader source, Regex newIsValid)
 		{
 			cds = new CellDS();
+			
 			LinkedList<string> names = new LinkedList<string>();
 			LinkedList<string> contentsList = new LinkedList<string>();
 			using (var xmr = XmlReader.Create(source))
@@ -368,6 +369,7 @@ namespace SS
 			//set contents, update deeptree(DG).
 			object previousContents = cds.setContentsOrAddCell(name, contents);
 
+			var solved = new HashSet<Cell>(new CellComparer());
 			//after we fix the dependency graph we get the set ready with the method that was so kindly provided.
 			HashSet<string> toReturn = new HashSet<string>();
 			IEnumerable<string> cellsToRecalculate;
@@ -486,6 +488,8 @@ namespace SS
 		/// The value
 		/// </summary>
 		public object value;
+		private string s;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Cell"/> struct.
 		/// </summary>
@@ -502,6 +506,13 @@ namespace SS
 			name = c.name;
 			contents = c.contents;
 			value = c.value;
+		}
+
+		public Cell(string s) : this()
+		{
+			name = s;
+			contents = null;
+			value = null;
 		}
 	}
 
@@ -531,9 +542,11 @@ namespace SS
 
 		private DependencyGraph deeptree;
 		internal bool unsavedChanges;
-
+		private HashSet<Cell> solved;
 		public CellDS()
 		{
+			solved = new HashSet<Cell>(new CellComparer());
+
 			cells = new HashSet<Cell>(new CellComparer());
 			deeptree = new DependencyGraph();
 			unsavedChanges = false;
@@ -628,10 +641,11 @@ namespace SS
 		}
 
 		///helps the get cell value method
-		public object returnValueOfFormula(Cell cellOfInterest)
+		 object returnValueOfFormula(Cell cellOfInterest)
 		{
 			return cellOfInterest.value;
 		}
+		
 
 		/// <summary>
 		/// Gets the cells.
@@ -661,8 +675,12 @@ namespace SS
 		/// <param name="cellsToRecalculate">The cells to recalculate.</param>
 		internal void recalculate(IEnumerable<string> cellsToRecalculate)
 		{
-			//set up a set to contain solved values, 
-			HashSet<Cell> solved = new HashSet<Cell>(new CellComparer());
+			foreach (string s in cellsToRecalculate)
+			{
+				solved.Remove(new Cell(s));
+			}	
+
+			
 			//iterate through the cellstoRecalculate, 
 			foreach (string s in cellsToRecalculate)
 			{
@@ -673,7 +691,7 @@ namespace SS
 				if (cel.contents is double)
 				{
 					cel.value = cel.contents;
-
+					solved.Add(cel);
 				}
 				//if contents is a formula
 			//we then pass the lookup with [s] as parameter to evaluate contents of s and save it to the value
@@ -683,8 +701,9 @@ namespace SS
 				{
 					try
 					{
+						var luf = generateLookup(solved);
 						//as we iterate we turn solved into a lookup that maps Lookup to name
-						cel.value = ((Formula)cel.contents).Evaluate(generateLookup(solved));
+						cel.value = ((Formula)cel.contents).Evaluate(luf);
 						solved.Add(cel);
 					}
 					catch (FormulaEvaluationException e)
