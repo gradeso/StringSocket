@@ -145,30 +145,16 @@ namespace SS
 			if (double.TryParse(name, out newContentsDub))
 			{
 				
-				return recalculate(SetCellContents(name, newContentsDub));
+				return SetCellContents(name, newContentsDub);
 			}
 			if (Regex.IsMatch(name, "[=]+")){
-				return recalculate(
-						SetCellContents(name, 
-								new Formula(content, (s => s.ToUpper()), (n => Regex.IsMatch(n, validPattern)))));
+				return SetCellContents(name, 
+								new Formula(content, (s => s.ToUpper()), (n => Regex.IsMatch(n, validPattern))));
 			}
-			return recalculate(SetCellContents(name, content));
+			return SetCellContents(name, content);
 		}
 
-		/// <summary>
-		/// Recalculates the specified set.
-		/// </summary>
-		/// <param name="set">The set.</param>
-		/// <returns></returns>
-		private ISet<string> recalculate(ISet<string> set)
-		{
-
-			foreach (
-			{
-
-			}
-		}
-
+		
 
 		/// <summary>
 		/// gets the contents of the cell
@@ -246,18 +232,19 @@ namespace SS
 
 			//after we fix the dependency graph we get the set ready with the method that was so kindly provided.
 			HashSet<string> toReturn = new HashSet<string>();
+			IEnumerable<string> cellsToRecalculate;
 			try
 			{
-				foreach (string s in GetCellsToRecalculate(name))
-				{
-					toReturn.Add(s);
-				}
+				cellsToRecalculate = GetCellsToRecalculate(name);
+				
 			}
 			catch (CircularException e)
 			{
 				cds.setContentsOrAddCell(name, previousContents);
 				throw e;
 			}
+
+			cds.recalculate(cellsToRecalculate);
 			//and return for later use
 			return toReturn;
 
@@ -384,6 +371,8 @@ namespace SS
 			deeptree = new DependencyGraph();
 			unsavedChanges = false;
 		}
+
+		
 		/// <summary>
 		/// adds a cell or replaces the contents of a cell and then recalculates dependency graph.
 		/// retrns the previous cell in case of a circular exception fatrher down the line.
@@ -461,17 +450,52 @@ namespace SS
 		{
 			return cellOfInterest.value;
 		}
-
+		
 		internal HashSet<Cell> getCells()
 		{
 			return cells;
 		}
+		
+
+		internal void recalculate(IEnumerable<string> cellsToRecalculate)
+		{
+			//set up a set to contain solved values, 
+			
+			//iterate through the cellstoRecalculate, 
+			
+			//as we iterate we turn the dictionary into a lookup that maps Func<string, duoule> to name
+			//get variables out of contents
+			//if contents of a cell is a double, add name to set of solved values update value then continue
+
+			
+			//if contents is a formula
+			//we then pass the lookup with [s] as parameter to evaluate contents of s and save it to the value
+			//add the current cell name to a list of solved values
+
+			
+			
+		}
+		//Posiblie stratagey would be get the lookup built and try and solve all formulas
+		//if we cant solve a formula we move on
+		//if we can we solve it and add it to the lookupmethod
+
+		
 	}
 	static class Solver
 	{
 
+		/// <summary>
+		/// Generates the lookup used by recalculate. takes the solved cells as a parameter
+		/// returns a function for all mappings name to value found so far with.
+		/// </summary>
+		/// <param name="cellsSolved">The cells solved.</param>
+		/// <returns></returns>
+		private Func<string, double> generateLookup(HashSet<Cell> cellsSolved)
+		{
+			var lookup = cellsSolved.ToLookup(c => c.name, c => (double)c.value);
+				lookup.Select<IGrouping<string, double>, Func<string, double>>(gp => (s => (s == gp.Key ? ));
 
-
+			
 		private static Normalizer defaultNormailzer = (s => s.ToUpper());
 
 
