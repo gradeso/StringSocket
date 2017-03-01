@@ -99,15 +99,19 @@ namespace SS
 							{
 							case "spreadsheet":
 								IsValid = xmr["IsValid"];
+								if(IsValid == null) throw new SpreadsheetReadException("is valid didnt read properly");
 								break;
 
 								case "cell":
 								var temp = xmr["name"];
 								if (!Regex.IsMatch(temp, IsValid)) throw new SpreadsheetReadException("source file unreadable");
 								names.AddLast(temp);
+								if (temp == null) throw new SpreadsheetReadException("is valid didnt read properly");
 
 								//deal with the contents
 								string form = xmr["contents"];
+								if (form == null) throw new SpreadsheetReadException("is valid didnt read properly");
+
 								if (form.Substring(0, 1).Equals("="))
 								{
 									try
@@ -289,6 +293,7 @@ namespace SS
 				
 				return SetCellContents(name, newContentsDub);
 			}
+			if (String.IsNullOrWhiteSpace(content)) return SetCellContents(name, content);
 			if (content.Substring(0, 1).Equals("=")){
 				return SetCellContents(name, 
 								new Formula(content.Substring(1), (s => s.ToUpper()), (n => Regex.IsMatch(n, IsValid))));
@@ -374,7 +379,6 @@ namespace SS
 
 			var solved = new HashSet<Cell>(new CellComparer());
 			//after we fix the dependency graph we get the set ready with the method that was so kindly provided.
-			HashSet<string> toReturn = new HashSet<string>();
 			IEnumerable<string> cellsToRecalculate;
 			try
 			{
@@ -387,9 +391,9 @@ namespace SS
 				throw e;
 			}
 
-			cds.recalculate(cellsToRecalculate);
+			return cds.recalculate(cellsToRecalculate);
 			//and return for later use
-			return toReturn;
+			 
 
 		}
 
@@ -504,6 +508,10 @@ namespace SS
 			contents = contentsin;
 			value = "";
 		}
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Cell"/> struct.
+		/// </summary>
+		/// <param name="c">The c.</param>
 		public Cell(Cell c)
 		{
 			name = c.name;
@@ -511,6 +519,10 @@ namespace SS
 			value = c.value;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Cell"/> struct.
+		/// </summary>
+		/// <param name="s">The s.</param>
 		public Cell(string s) 
 		{
 			name = s;
@@ -676,12 +688,14 @@ namespace SS
 		/// Recalculates the specified cells to recalculate.
 		/// </summary>
 		/// <param name="cellsToRecalculate">The cells to recalculate.</param>
-		internal void recalculate(IEnumerable<string> cellsToRecalculate)
+		internal ISet<string> recalculate(IEnumerable<string> cellsToRecalculate)
 		{
+			var toReturn = new HashSet<string>();
 			foreach (string s in cellsToRecalculate)
 			{
+				toReturn.Add(s);
 				solved.Remove(new Cell(s));
-			}	
+			}
 
 			
 			//iterate through the cellstoRecalculate, 
@@ -720,8 +734,9 @@ namespace SS
 					cel.value = cel.contents;
 				}
 				replaceCell(cel);
+				
 			}
-			
+			return toReturn;
 		}
 
 		
