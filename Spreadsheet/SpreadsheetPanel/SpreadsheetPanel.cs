@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace SSGui
+namespace SpreadsheetGui
 {
     /// <summary>
     /// The type of delegate used to register for SelectionChanged events
@@ -425,6 +425,11 @@ namespace SSGui
                 }
                 Invalidate();
             }
+        }
+
+        private void SpreadsheetPanel_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

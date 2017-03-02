@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 
 
-namespace SSGui
+namespace SpreadsheetGui
 {
     /// <summary>
     /// Runs a demo involving a SpreadsheetPanel

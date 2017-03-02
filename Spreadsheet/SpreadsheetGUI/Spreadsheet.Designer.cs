@@ -35,7 +35,7 @@
 			this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.spreadsheetCellArray = new SSGui.SpreadsheetPanel();
+			this.spreadsheetCellArray = new SpreadsheetGui.SpreadsheetPanel();
 			this.AddressBox = new System.Windows.Forms.TextBox();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.textBox3 = new System.Windows.Forms.TextBox();
@@ -149,7 +149,7 @@
 		private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
-		private SSGui.SpreadsheetPanel spreadsheetCellArray;
+		private SpreadsheetGui.SpreadsheetPanel spreadsheetCellArray;
 		private System.Windows.Forms.TextBox AddressBox;
 		private System.Windows.Forms.TextBox textBox2;
 		private System.Windows.Forms.TextBox textBox3;
