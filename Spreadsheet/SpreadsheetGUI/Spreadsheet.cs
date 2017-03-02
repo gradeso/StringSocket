@@ -30,12 +30,23 @@ namespace SpreadsheetGUI
 
 		private void ClickEvent(object sender, MouseEventArgs e)
 		{
-			
 			int x, y;
 			spreadsheetCellArray.GetSelection(out x, out y);
 			AddressBox.Text = x.ToString();
 			AddressBox.Update();
 			spreadsheetCellArray.SetValue(1,1,"Hello");
+            spreadsheetCellArray.Update();
 		}
-	}
+
+        private void ClickOnCells(object sender, MouseEventArgs e)
+        {
+            
+        }
+
+        private void AdressBoxClick(object sender, EventArgs e)
+        {
+            AddressBox.Text = "hello!";
+            AddressBox.Refresh();
+        }
+    }
 }
