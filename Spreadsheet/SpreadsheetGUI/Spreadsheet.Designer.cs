@@ -96,6 +96,7 @@
             this.AddressBox.Name = "AddressBox";
             this.AddressBox.Size = new System.Drawing.Size(233, 20);
             this.AddressBox.TabIndex = 1;
+            this.AddressBox.Text = "Test";
             this.AddressBox.Click += new System.EventHandler(this.AdressBoxClick);
             // 
             // spreadsheetCellArray
@@ -104,6 +105,8 @@
             this.spreadsheetCellArray.Name = "spreadsheetCellArray";
             this.spreadsheetCellArray.Size = new System.Drawing.Size(1147, 428);
             this.spreadsheetCellArray.TabIndex = 0;
+            this.spreadsheetCellArray.Load += new System.EventHandler(this.spreadsheetCellArray_Load);
+            this.spreadsheetCellArray.Click += new System.EventHandler(this.ClickOnCells);
             this.spreadsheetCellArray.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ClickOnCells);
             // 
             // Spreadsheet
