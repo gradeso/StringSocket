@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spreadsheet;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace SS
 	/// this class represents an implementation of a spreadsheet.
 	/// </summary>
 	/// <seealso cref="SS.AbstractSpreadsheet" />
-	public class Spreadsheet : AbstractSpreadsheet
+	public class Spreadsheet : AbstractSpreadsheet , SpreadsheetMethods
 	{
 		/// <summary>
 		/// The central data structure for the spreadsheet
@@ -239,7 +240,7 @@ namespace SS
 		/// </summary>
 		/// <param name="name"></param>
 		/// <returns></returns>
-		/// <exception cref="System.NotImplementedException"></exception>
+		/// <exception cref="InvalidNameException"></exception>
 		public override object GetCellValue(string name)
 		{
 			Cell toReturn;
@@ -420,7 +421,7 @@ namespace SS
 		/// <param name="name"></param>
 		/// <param name="formula"></param>
 		/// <returns></returns>
-		public override ISet<string> SetCellContents(string name, Formula formula)
+		protected override ISet<string> SetCellContents(string name, Formula formula)
 		{
 			return SetCellContentsMaster(name, formula);
 
@@ -437,7 +438,7 @@ namespace SS
 		/// <param name="name"></param>
 		/// <param name="number"></param>
 		/// <returns></returns>
-		public override ISet<string> SetCellContents(string name, double number)
+		protected override ISet<string> SetCellContents(string name, double number)
 		{
 			return SetCellContentsMaster(name, number);
 		}
@@ -454,7 +455,7 @@ namespace SS
 		/// <param name="name"></param>
 		/// <param name="text"></param>
 		/// <returns></returns>
-		public override ISet<string> SetCellContents(string name, string text)
+		protected override ISet<string> SetCellContents(string name, string text)
 		{
 			return SetCellContentsMaster(name, text);
 		}

@@ -15,6 +15,7 @@ namespace SpreadsheetGUI
 		public Spreadsheet()
 		{
 			InitializeComponent();
+
 		}
 
 		private void spreadsheetPanel1_Load(object sender, EventArgs e)
