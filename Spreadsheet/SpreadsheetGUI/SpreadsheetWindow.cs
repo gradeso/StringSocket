@@ -16,6 +16,7 @@ namespace SpreadsheetGUI
         StringBuilder s = new System.Text.StringBuilder("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 		private SpreadsheetPanel currentPannel;
 
+
 		public event Action<string> cellWithNameChagendContents;
 		public event Action<string> cellHighlighted;
 		public event Action ContentBoxUsed;
@@ -23,38 +24,13 @@ namespace SpreadsheetGUI
 		public event Action<string> loadSS;
 		public event Action saveSS;
 
-		public string message
-		{
-			set
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public string message { set { } }
 
-		public string currentValue
-		{
-			set
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public string currentValue { set { } }
 
-		public string currentContents
-		{
-			set
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public string currentContents { set { } }
 
-		public string currentName
-		{
-			set
-			{
-				throw new NotImplementedException();
-			}
-		}
-
+		public string currentName { set { } }
 
 		/// <summary>
 		///any time this value changes we update all cells that changed.
@@ -74,11 +50,14 @@ namespace SpreadsheetGUI
 		public SpreadsheetWindow()
 		{
 			InitializeComponent();
+			currentPannel = spreadsheetCellArray;
             spreadsheetCellArray.SelectionChanged += displaySelection;
         }
 
         private void displaySelection(SpreadsheetPanel ss)
         {
+			
+
             int row, col;
             
             ss.GetSelection(out col, out row);
@@ -149,12 +128,18 @@ namespace SpreadsheetGUI
 
 		private void ContentBox_Keypress(object sender, KeyPressEventArgs e)
 		{
+			int col, row;
+			currentPannel.GetSelection(out col, out row);
 
 			if (((char)Keys.Enter).Equals(e.KeyChar))
 			{
-				
-				Console.WriteLine("Works");
+				currentPannel.SetValue(col, row, ContentBox.Text);
 			}
+		}
+
+		private void ex(object sender, EventArgs e)
+		{
+
 		}
 	}
 }

@@ -141,6 +141,7 @@
 			this.spreadsheetCellArray.Name = "spreadsheetCellArray";
 			this.spreadsheetCellArray.Size = new System.Drawing.Size(1720, 658);
 			this.spreadsheetCellArray.TabIndex = 0;
+			this.spreadsheetCellArray.Load += new System.EventHandler(this.ex);
 			// 
 			// SpreadsheetWindow
 			// 
