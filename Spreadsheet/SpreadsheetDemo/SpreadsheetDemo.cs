@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace SSGui
+namespace SpreadsheetGui
 {
     /// <summary>
     /// Example of using a SpreadsheetPanel object

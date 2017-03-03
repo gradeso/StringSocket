@@ -1,4 +1,4 @@
-﻿namespace SSGui
+﻿namespace SpreadsheetGui
 {
     partial class SpreadsheetPanel
     {
@@ -28,8 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
+            this.SuspendLayout();
+            // 
+            // SpreadsheetPanel
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Name = "SpreadsheetPanel";
+            this.Load += new System.EventHandler(this.SpreadsheetPanel_Load);
+            this.ResumeLayout(false);
+
         }
 
         #endregion

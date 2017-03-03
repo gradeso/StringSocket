@@ -1,4 +1,4 @@
-﻿namespace SSGui
+﻿namespace SpreadsheetGui
 {
     partial class SpreadsheetDemo
     {
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-			this.spreadsheetPanel1 = new SSGui.SpreadsheetPanel();
+			this.spreadsheetPanel1 = new SpreadsheetGui.SpreadsheetPanel();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
