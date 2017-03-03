@@ -1,5 +1,4 @@
-﻿using Spreadsheet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace SS
 	/// this class represents an implementation of a spreadsheet.
 	/// </summary>
 	/// <seealso cref="SS.AbstractSpreadsheet" />
-	public class Spreadsheet : AbstractSpreadsheet , SpreadsheetMethods
+	public class Spreadsheet : AbstractSpreadsheet 
 	{
 		/// <summary>
 		/// The central data structure for the spreadsheet
