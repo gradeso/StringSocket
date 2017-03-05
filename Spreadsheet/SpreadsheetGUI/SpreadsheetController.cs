@@ -10,7 +10,6 @@ namespace SpreadsheetGUI
 	{
 		ISpreadsheetView view;
 		Spreadsheet model;
-		string currentCellname;
 
 		public SpreadsheetController(ISpreadsheetView view)
 		{
@@ -20,8 +19,7 @@ namespace SpreadsheetGUI
 			view.loadSS += HandleLoadSS;
 			view.cellWithNameChagendContents += HandleCellWithNameChangedContents;
 			view.cellHighlighted += HandleCellHighlighted;
-
-			currentCellname = null;
+			
 		}
 
 		private void HandleNewSS()
@@ -34,14 +32,50 @@ namespace SpreadsheetGUI
 			throw new NotImplementedException();
 		}
 
-		private void HandleCellWithNameChangedContents(string newContents)
+		private void HandleCellWithNameChangedContents(string name, string newContents)
 		{
-			throw new NotImplementedException();
+
+			var previousContents = model.GetCellContents(name);
+			var updateDict = new Dictionary<string, string>();
+			try
+			{
+				 var cellsChanged = model.SetContentsOfCell(name, newContents);
+				foreach (string s in cellsChanged)
+				{
+					updateDict.Add(s, model.GetCellValue(s).ToString());
+				}
+				view.toUpdate = updateDict;
+			}
+			catch (Exception e)
+			{
+				view.message = e.Message;
+				model.SetContentsOfCell(name, previousContents.ToString());
+			}
+			
 		}
 
+		/// <summary>
+		/// Handles the cell highlighted and set the variables for the view to display
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// 
 		private void HandleCellHighlighted(string name)
 		{
-			throw new NotImplementedException();
+			view.currentName = name;
+			try
+			{
+				
+				
+				view.currentContents = model.GetCellContents(name).ToString();
+				view.currentValue = model.GetCellValue(name) is FormulaError ? "Evaluation Error" : model.GetCellValue(name).ToString();
+			}
+			catch (InvalidNameException)
+			{
+
+				view.currentContents = "";
+				view.currentValue = "";
+			}
 		}
 	}
+	
 }

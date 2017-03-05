@@ -13,24 +13,39 @@ namespace SpreadsheetGUI
 {
 	public partial class SpreadsheetWindow : Form, ISpreadsheetView
 	{
-        StringBuilder s = new System.Text.StringBuilder("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-		private SpreadsheetPanel currentPannel;
 
+		StringBuilder colRefference = new StringBuilder("ABCDEFGHIJKLMNOPQRSTUZWXYZ");
 
-		public event Action<string> cellWithNameChagendContents;
 		public event Action<string> cellHighlighted;
-		public event Action ContentBoxUsed;
-		public event Action newSS;
 		public event Action<string> loadSS;
 		public event Action saveSS;
+		public event Action closeSS;
+		public event Action newSS;
+		public event Action<string, string> cellWithNameChagendContents;
+		public event Action<string> helpUpdate;
 
-		public string message { set { } }
+		public string message { set { MessageBox.Show(value); } }
 
-		public string currentValue { set { } }
+		public string currentValue {
+			set {
+				ValueBox.Text = value;
 
-		public string currentContents { set { } }
+			}
+		}
 
-		public string currentName { set { } }
+		public string currentContents { set { ContentBox.Text = value; } }
+
+		public string currentName { set { AddressBox.Text = value; } }
+
+		public Dictionary<string, string> toUpdate
+		{
+			set
+			{
+				UpdateAll(value);
+			}
+		}
+
+		
 
 		/// <summary>
 		///any time this value changes we update all cells that changed.
@@ -38,75 +53,81 @@ namespace SpreadsheetGUI
 		/// <value>
 		/// The cells2 change.
 		/// </value>
-		public ISet<string> cells2Change
-		{
-			set
-			{
-				cells2Change = value;
-				updateAll();
-			}
-		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SpreadsheetWindow"/> class.
+		/// </summary>
 		public SpreadsheetWindow()
 		{
 			InitializeComponent();
-			currentPannel = spreadsheetCellArray;
-            spreadsheetCellArray.SelectionChanged += displaySelection;
-        }
+			spreadsheetCellArray.SelectionChanged += HandleSelectionChanged;
+		}
 
-        private void displaySelection(SpreadsheetPanel ss)
-        {
-			
+		private void HandleSelectionChanged(SpreadsheetPanel ss)
+		{
 
-            int row, col;
-            
-            ss.GetSelection(out col, out row);
-            var val = s[col] + (row + 1).ToString();
-			ss.SetValue(col, row, AddressBox.Text);
-			currentPannel = ss;
+			//pull the name of sellection and fires cellhighlighted event.
+			int row, col;
+			ss.GetSelection(out col, out row);
+			var val = colRefference[col] + (row + 1).ToString();
 			cellHighlighted(val);
-        }
+
+
+		}
+
+		private void UpdateAll(Dictionary<string, string> value)
+		{
+			string temp;
+			foreach (string s in value.Keys)
+			{
+				value.TryGetValue(s, out temp);
+				int[] coords = convertNameToCoords(s);
+				spreadsheetCellArray.SetValue(coords[0], coords[1], temp);
+			}
+		}
+
+		private int[] convertNameToCoords(string s)
+		{
+			var toReturn = new int[2];
+			int i = 0;
+			while (s.Substring(0, 1) != "" + colRefference[i])
+			{
+			i++;
+				
+			}
+			toReturn[0] = i;
+			int j;
+			int.TryParse(s.Substring(1), out j);
+			toReturn[1] = j;
+			return toReturn;
+		}
+
 
 		/// <summary>
-		/// Updates all the vlaues of the cell,
-		/// called after the contents box has changed the value of calls2change
+		/// Handles the Load event of the spreadsheetPanel1 control.
 		/// </summary>
-		private void updateAll()
+		/// <param name="sender">The source of the event.</param>
+		/// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+		private void spreadsheetPanel1_Load(object sender, EventArgs e)
 		{
-			
-		}
-		
-        private void spreadsheetPanel1_Load(object sender, EventArgs e)
-		{
-			
+
 		}
 
+		/// <summary>
+		/// Handles the ItemClicked event of the menuStrip1 control.
+		/// </summary>
+		/// <param name="sender">The source of the event.</param>
+		/// <param name="e">The <see cref="ToolStripItemClickedEventArgs"/> instance containing the event data.</param>
 		private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
 		{
 
 		}
 
-		private void ClickEvent(object sender, MouseEventArgs e)
+
+		private void AdressBoxClick(object sender, EventArgs e)
 		{
-			int x, y;
-			spreadsheetCellArray.GetSelection(out x, out y);
-			AddressBox.Text = x.ToString();
-			AddressBox.Update();
-			spreadsheetCellArray.SetValue(1,1,"Hello");
-            spreadsheetCellArray.Update();
+
 		}
-
-        private void ClickOnCells(object sender, MouseEventArgs e)
-        {
-            spreadsheetCellArray.Select();
-            spreadsheetCellArray.SetValue(1, 1, "Click On Cells");
-        }
-
-        private void AdressBoxClick(object sender, EventArgs e)
-        {
-            AddressBox.Text = "hello!";
-            AddressBox.Refresh();
-        }
 
 		/// <summary>
 		/// Handles the Load event of the spreadsheetCellArray control. Load and New will access this method.
@@ -114,32 +135,56 @@ namespace SpreadsheetGUI
 		/// <param name="sender">The source of the event.</param>
 		/// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
 		private void spreadsheetCellArray_Load(object sender, EventArgs e)
-        {
-            spreadsheetCellArray.Select();
-        }
+		{
+			spreadsheetCellArray.Select();
+		}
 
-        private void ClickOnCells(object sender, EventArgs e)
-        {
-            spreadsheetCellArray.Select();
-            spreadsheetCellArray.SetValue(1, 1, "Click On Cells");
-            spreadsheetCellArray.Refresh();
-            spreadsheetCellArray.Update();
-        }
-
+		private void ClickOnCells(object sender, EventArgs e)
+		{
+		}
+		
 		private void ContentBox_Keypress(object sender, KeyPressEventArgs e)
 		{
 			int col, row;
-			currentPannel.GetSelection(out col, out row);
-
+			spreadsheetCellArray.GetSelection(out col, out row);
+			var name =  colRefference[col] + (row + 1).ToString();
 			if (((char)Keys.Enter).Equals(e.KeyChar))
 			{
-				currentPannel.SetValue(col, row, ContentBox.Text);
+				cellWithNameChagendContents(name, ContentBox.Text);
 			}
-		}
 
+		}
+		
 		private void ex(object sender, EventArgs e)
 		{
+			
+		}
 
+		private void HandleSelectNew(object sender, ToolStripItemClickedEventArgs e)
+		{
+			SpreadsheetApplicationContext.GetContext().RunNew();
+		}
+
+		private void LoadSelected(object sender, ToolStripItemClickedEventArgs e)
+		{
+			//DialogResult result = fileDialog.ShowDialog();
+			//if (result == DialogResult.Yes || result == DialogResult.OK)
+			//{
+				
+			//		loadSS(fileDialog.FileName);
+				
+			//}
+			
+		}
+
+		private void SaveSelected(object sender, ToolStripItemClickedEventArgs e)
+		{
+			saveSS();
+		}
+
+		private void CloseSelected(object sender, ToolStripItemClickedEventArgs e)
+		{
+			closeSS();
 		}
 	}
 }

@@ -71,26 +71,30 @@
 			// newToolStripMenuItem
 			// 
 			this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-			this.newToolStripMenuItem.Size = new System.Drawing.Size(144, 30);
+			this.newToolStripMenuItem.Size = new System.Drawing.Size(211, 30);
 			this.newToolStripMenuItem.Text = "New...";
+			this.newToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleSelectNew);
 			// 
 			// openToolStripMenuItem
 			// 
 			this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-			this.openToolStripMenuItem.Size = new System.Drawing.Size(144, 30);
+			this.openToolStripMenuItem.Size = new System.Drawing.Size(211, 30);
 			this.openToolStripMenuItem.Text = "Open";
+			this.openToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.LoadSelected);
 			// 
 			// saveToolStripMenuItem
 			// 
 			this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-			this.saveToolStripMenuItem.Size = new System.Drawing.Size(144, 30);
+			this.saveToolStripMenuItem.Size = new System.Drawing.Size(211, 30);
 			this.saveToolStripMenuItem.Text = "Save";
+			this.saveToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.SaveSelected);
 			// 
 			// closeToolStripMenuItem
 			// 
 			this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-			this.closeToolStripMenuItem.Size = new System.Drawing.Size(144, 30);
+			this.closeToolStripMenuItem.Size = new System.Drawing.Size(211, 30);
 			this.closeToolStripMenuItem.Text = "Close";
+			this.closeToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.CloseSelected);
 			// 
 			// helpToolStripMenuItem
 			// 
@@ -122,6 +126,7 @@
 			// 
 			this.ValueBox.Location = new System.Drawing.Point(122, 8);
 			this.ValueBox.Name = "ValueBox";
+			this.ValueBox.ReadOnly = true;
 			this.ValueBox.Size = new System.Drawing.Size(90, 26);
 			this.ValueBox.TabIndex = 2;
 			// 
@@ -130,6 +135,7 @@
 			this.AddressBox.Location = new System.Drawing.Point(18, 8);
 			this.AddressBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.AddressBox.Name = "AddressBox";
+			this.AddressBox.ReadOnly = true;
 			this.AddressBox.Size = new System.Drawing.Size(90, 26);
 			this.AddressBox.TabIndex = 1;
 			this.AddressBox.Click += new System.EventHandler(this.AdressBoxClick);
@@ -174,6 +180,7 @@
 		private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
 		private System.Windows.Forms.TextBox ContentBox;
 		private System.Windows.Forms.TextBox ValueBox;
+
 	}
 }
 

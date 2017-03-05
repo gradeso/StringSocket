@@ -12,14 +12,14 @@ namespace SpreadsheetGUI
 		string currentValue { set; }
 		string currentContents { set; }
 		string currentName { set; }
-		ISet<string> cells2Change { set; }
+		Dictionary<string, string> toUpdate { set; }
 
-		event Action<string> cellWithNameChagendContents;  //pass new contents
-		event Action<string> cellHighlighted;				//pass name
-
-
+		event Action<string, string> cellWithNameChagendContents;  //pass name and new contents
+		event Action<string> cellHighlighted;               //pass name
+		event Action<string> helpUpdate;
 		event Action newSS;
 		event Action<string> loadSS;						//pass filepath
 		event Action saveSS;
+		event Action closeSS;
 	}
 }
