@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SS;
+using System.IO;
+using System.Xml;
+
 namespace SpreadsheetGUI
 {
 	class SpreadsheetController 
@@ -26,9 +29,9 @@ namespace SpreadsheetGUI
 			this.view = view;
 			model = new Spreadsheet();
 			view.loadSS += HandleLoadSS;
+            view.saveSS += HandleSaveSS;
 			view.cellWithNameChagendContents += HandleCellWithNameChangedContents;
-			view.cellHighlighted += HandleCellHighlighted;
-			
+			view.cellHighlighted += HandleCellHighlighted;	
 		}
 
 		/// <summary>
@@ -39,6 +42,18 @@ namespace SpreadsheetGUI
 		{
 			
 		}
+
+        private void HandleSaveSS(string filename)
+        {
+            TextWriter write;
+            
+            if (model.Changed)
+            {
+                model.Save()
+            }
+            else
+                return;
+        }
 
 		/// <summary>
 		/// Handles the cell with name changed contents.
@@ -76,14 +91,11 @@ namespace SpreadsheetGUI
 			view.currentName = name;
 			try
 			{
-
-
 				view.currentContents = model.GetCellContents(name).ToString();
 				view.currentValue = model.GetCellValue(name) is FormulaError ? "Evaluation Error" : model.GetCellValue(name).ToString();
 			}
 			catch (InvalidNameException)
 			{
-
 				view.currentContents = "";
 				view.currentValue = "";
 			}

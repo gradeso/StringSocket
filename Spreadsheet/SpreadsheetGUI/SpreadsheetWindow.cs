@@ -18,7 +18,7 @@ namespace SpreadsheetGUI
 
 		public event Action<string> cellHighlighted;
 		public event Action<string> loadSS;
-		public event Action saveSS;
+		public event Action<string> saveSS;
 		public event Action closeSS;
 		public event Action<string, string> cellWithNameChagendContents;
 
@@ -63,7 +63,6 @@ namespace SpreadsheetGUI
 
 		private void HandleSelectionChanged(SpreadsheetPanel ss)
 		{
-
 			//pull the name of sellection and fires cellhighlighted event.
 			int row, col;
 			ss.GetSelection(out col, out row);
@@ -88,11 +87,12 @@ namespace SpreadsheetGUI
 		{
 			var toReturn = new int[2];
 			int i = 0;
+
 			while (s.Substring(0, 1) != "" + colRefference[i])
 			{
-			i++;
-				
+			    i++;
 			}
+
 			toReturn[0] = i;
 			int j;
 			int.TryParse(s.Substring(1), out j);
@@ -100,7 +100,7 @@ namespace SpreadsheetGUI
 			return toReturn;
 		}
 
-	private void ContentBox_Keypress(object sender, KeyPressEventArgs e)
+	    private void ContentBox_Keypress(object sender, KeyPressEventArgs e)
 		{
 			int col, row;
 			spreadsheetCellArray.GetSelection(out col, out row);
@@ -109,8 +109,8 @@ namespace SpreadsheetGUI
 			{
 				cellWithNameChagendContents(name, ContentBox.Text);
 			}
-
 		}
+
 		/// <summary>
 		/// Handles the Load event of the spreadsheetPanel1 control.
 		/// </summary>
@@ -168,19 +168,23 @@ namespace SpreadsheetGUI
 			
 			if (openFileDialog1.ShowDialog() == DialogResult.OK)
 			{
-				loadSS(openFileDialog1.FileName);
-					
+				loadSS(openFileDialog1.FileName);			
 			}
 		}
 
-		private void SaveSelected(object sender, ToolStripItemClickedEventArgs e)
-		{
-			saveSS();
-		}
-
-		private void CloseSelected(object sender, ToolStripItemClickedEventArgs e)
+        private void CloseSelected(object sender, ToolStripItemClickedEventArgs e)
 		{
 			closeSS();
 		}
-	}
+
+        private void SaveSelected(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Title = "Save the Current Spreadsheet";
+            //saveFileDialog1.AddExtension = true;
+            saveFileDialog1.ShowDialog();
+            if (saveFileDialog1.FileName != null)
+                saveSS(saveFileDialog1.FileName);
+        }
+    }
 }
