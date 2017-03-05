@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace SSGui
+namespace SpreadsheetGui
 {
     /// <summary>
     /// Example of using a SpreadsheetPanel object
@@ -27,6 +27,7 @@ namespace SSGui
             spreadsheetPanel1.SelectionChanged += displaySelection;
             spreadsheetPanel1.SetSelection(2, 3);
         }
+
         /// <summary>
         /// Every time the selection changes, this method is called with the
         /// Spreadsheet as its parameter.  We display the current time in the cell.

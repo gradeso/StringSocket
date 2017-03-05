@@ -138,7 +138,7 @@ namespace SS
     /// A1 depends on B1, which depends on C1, which depends on A1.  That's a circular
     /// dependency.
     /// </summary>
-    public abstract class AbstractSpreadsheet
+    public abstract class AbstractSpreadsheet 
     {
         // ADDED FOR PS6
         /// <summary>
@@ -236,7 +236,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
-        public abstract ISet<String> SetCellContents(String name, double number);
+        protected abstract ISet<String> SetCellContents(String name, double number);
 
         // MODIFIED PROTECTION FOR PS6
         /// <summary>
@@ -251,7 +251,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
-        public abstract ISet<String> SetCellContents(String name, String text);
+        protected abstract ISet<String> SetCellContents(String name, String text);
 
         // MODIFIED PROTECTION FOR PS6
         /// <summary>
@@ -269,7 +269,7 @@ namespace SS
         /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
         /// set {A1, B1, C1} is returned.
         /// </summary>
-        public abstract ISet<String> SetCellContents(String name, Formula formula);
+        protected abstract ISet<String> SetCellContents(String name, Formula formula);
 
         /// <summary>
         /// If name is null, throws an ArgumentNullException.
