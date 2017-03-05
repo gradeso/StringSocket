@@ -20,9 +20,7 @@ namespace SpreadsheetGUI
 		public event Action<string> loadSS;
 		public event Action saveSS;
 		public event Action closeSS;
-		public event Action newSS;
 		public event Action<string, string> cellWithNameChagendContents;
-		public event Action<string> helpUpdate;
 
 		public string message { set { MessageBox.Show(value); } }
 
@@ -98,11 +96,21 @@ namespace SpreadsheetGUI
 			toReturn[0] = i;
 			int j;
 			int.TryParse(s.Substring(1), out j);
-			toReturn[1] = j;
+			toReturn[1] = j - 1;
 			return toReturn;
 		}
 
+	private void ContentBox_Keypress(object sender, KeyPressEventArgs e)
+		{
+			int col, row;
+			spreadsheetCellArray.GetSelection(out col, out row);
+			var name =  colRefference[col] + (row + 1).ToString();
+			if (((char)Keys.Enter).Equals(e.KeyChar))
+			{
+				cellWithNameChagendContents(name, ContentBox.Text);
+			}
 
+		}
 		/// <summary>
 		/// Handles the Load event of the spreadsheetPanel1 control.
 		/// </summary>
@@ -143,17 +151,7 @@ namespace SpreadsheetGUI
 		{
 		}
 		
-		private void ContentBox_Keypress(object sender, KeyPressEventArgs e)
-		{
-			int col, row;
-			spreadsheetCellArray.GetSelection(out col, out row);
-			var name =  colRefference[col] + (row + 1).ToString();
-			if (((char)Keys.Enter).Equals(e.KeyChar))
-			{
-				cellWithNameChagendContents(name, ContentBox.Text);
-			}
-
-		}
+	
 		
 		private void ex(object sender, EventArgs e)
 		{
@@ -167,14 +165,12 @@ namespace SpreadsheetGUI
 
 		private void LoadSelected(object sender, ToolStripItemClickedEventArgs e)
 		{
-			//DialogResult result = fileDialog.ShowDialog();
-			//if (result == DialogResult.Yes || result == DialogResult.OK)
-			//{
-				
-			//		loadSS(fileDialog.FileName);
-				
-			//}
 			
+			if (openFileDialog1.ShowDialog() == DialogResult.OK)
+			{
+				loadSS(openFileDialog1.FileName);
+					
+			}
 		}
 
 		private void SaveSelected(object sender, ToolStripItemClickedEventArgs e)

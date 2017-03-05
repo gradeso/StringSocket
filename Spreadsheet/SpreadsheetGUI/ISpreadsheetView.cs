@@ -16,8 +16,6 @@ namespace SpreadsheetGUI
 
 		event Action<string, string> cellWithNameChagendContents;  //pass name and new contents
 		event Action<string> cellHighlighted;               //pass name
-		event Action<string> helpUpdate;
-		event Action newSS;
 		event Action<string> loadSS;						//pass filepath
 		event Action saveSS;
 		event Action closeSS;

@@ -40,6 +40,7 @@
 			this.ValueBox = new System.Windows.Forms.TextBox();
 			this.AddressBox = new System.Windows.Forms.TextBox();
 			this.spreadsheetCellArray = new SpreadsheetGui.SpreadsheetPanel();
+			this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
 			this.menuStrip1.SuspendLayout();
 			this.panel1.SuspendLayout();
 			this.SuspendLayout();
@@ -149,6 +150,10 @@
 			this.spreadsheetCellArray.TabIndex = 0;
 			this.spreadsheetCellArray.Load += new System.EventHandler(this.ex);
 			// 
+			// openFileDialog1
+			// 
+			this.openFileDialog1.FileName = "openFileDialog1";
+			// 
 			// SpreadsheetWindow
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -180,7 +185,7 @@
 		private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
 		private System.Windows.Forms.TextBox ContentBox;
 		private System.Windows.Forms.TextBox ValueBox;
-
+		private System.Windows.Forms.OpenFileDialog openFileDialog1;
 	}
 }
 
