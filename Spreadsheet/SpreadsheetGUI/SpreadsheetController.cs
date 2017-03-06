@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SS;
 using System.IO;
 using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace SpreadsheetGUI
 {
@@ -40,19 +41,36 @@ namespace SpreadsheetGUI
 		/// <param name="filename">The filename.</param>
 		private void HandleLoadSS(string filename)
 		{
-			
-		}
+            //Create a new Regex for the param of Spreadsheet(TextWriter dest, Regex isValid)
+            Regex reg = new Regex("^.*$");
+            TextReader read = File.OpenText(filename);
+
+            //Create a new Spreadsheet using the two params
+            model = new Spreadsheet(read, reg);
+
+            //Create a new dicitonary to pass to UpdateAll 
+            Dictionary<string, string> newVals = new Dictionary<string, string>();
+
+            //For each cell in the new Spreadsheet model, we update the view to reflect the addition
+            var newCells = model.GetNamesOfAllNonemptyCells();
+            foreach (string name in newCells)
+            {
+                newVals.Add(name, model.GetCellContents(name).ToString());
+            }
+            view.toUpdate = newVals;
+        }
 
         private void HandleSaveSS(string filename)
         {
-            TextWriter write;
-            
-            if (model.Changed)
+            using (TextWriter write = File.CreateText(filename))
             {
-                model.Save()
+                if (model.Changed)
+                {
+                    model.Save(write);
+                }
+                else
+                    return;
             }
-            else
-                return;
         }
 
 		/// <summary>
@@ -68,6 +86,7 @@ namespace SpreadsheetGUI
 			try
 			{
 				var cellsChanged = model.SetContentsOfCell(name, newContents);
+
 				foreach (string s in cellsChanged)
 				{
 					updateDict.Add(s, model.GetCellValue(s).ToString());

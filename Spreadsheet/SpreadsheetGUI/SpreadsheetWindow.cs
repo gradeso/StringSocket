@@ -35,13 +35,7 @@ namespace SpreadsheetGUI
 
 		public string currentName { set { AddressBox.Text = value; } }
 
-		public Dictionary<string, string> toUpdate
-		{
-			set
-			{
-				UpdateAll(value);
-			}
-		}
+		public Dictionary<string, string> toUpdate{ set { UpdateAll(value); } }
 
 		
 
@@ -68,8 +62,6 @@ namespace SpreadsheetGUI
 			ss.GetSelection(out col, out row);
 			var val = colRefference[col] + (row + 1).ToString();
 			cellHighlighted(val);
-
-
 		}
 
 		private void UpdateAll(Dictionary<string, string> value)
@@ -112,32 +104,6 @@ namespace SpreadsheetGUI
 		}
 
 		/// <summary>
-		/// Handles the Load event of the spreadsheetPanel1 control.
-		/// </summary>
-		/// <param name="sender">The source of the event.</param>
-		/// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-		private void spreadsheetPanel1_Load(object sender, EventArgs e)
-		{
-
-		}
-
-		/// <summary>
-		/// Handles the ItemClicked event of the menuStrip1 control.
-		/// </summary>
-		/// <param name="sender">The source of the event.</param>
-		/// <param name="e">The <see cref="ToolStripItemClickedEventArgs"/> instance containing the event data.</param>
-		private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-		{
-
-		}
-
-
-		private void AdressBoxClick(object sender, EventArgs e)
-		{
-
-		}
-
-		/// <summary>
 		/// Handles the Load event of the spreadsheetCellArray control. Load and New will access this method.
 		/// </summary>
 		/// <param name="sender">The source of the event.</param>
@@ -147,29 +113,9 @@ namespace SpreadsheetGUI
 			spreadsheetCellArray.Select();
 		}
 
-		private void ClickOnCells(object sender, EventArgs e)
-		{
-		}
-		
-	
-		
-		private void ex(object sender, EventArgs e)
-		{
-			
-		}
-
-		private void HandleSelectNew(object sender, ToolStripItemClickedEventArgs e)
+        private void HandleSelectNew(object sender, ToolStripItemClickedEventArgs e)
 		{
 			SpreadsheetApplicationContext.GetContext().RunNew();
-		}
-
-		private void LoadSelected(object sender, ToolStripItemClickedEventArgs e)
-		{
-			
-			if (openFileDialog1.ShowDialog() == DialogResult.OK)
-			{
-				loadSS(openFileDialog1.FileName);			
-			}
 		}
 
         private void CloseSelected(object sender, ToolStripItemClickedEventArgs e)
@@ -181,10 +127,21 @@ namespace SpreadsheetGUI
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Title = "Save the Current Spreadsheet";
-            //saveFileDialog1.AddExtension = true;
+            saveFileDialog1.AddExtension = true;
             saveFileDialog1.ShowDialog();
             if (saveFileDialog1.FileName != null)
                 saveSS(saveFileDialog1.FileName);
+        }
+
+        private void LoadSelected(object sender, EventArgs e)
+        {
+
+            FileDialog load = new OpenFileDialog();
+            load.Title = "Select the Spreadsheet File to Load";
+            // load.AddExtension = true;
+            load.ShowDialog();
+            if (load.FileName != null)
+                loadSS(load.FileName);
         }
     }
 }
