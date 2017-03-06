@@ -38,7 +38,12 @@ namespace SpreadsheetGUI
 
         private void HandleCloseSS()
         {
-            view.DoClose();
+            if (!model.Changed)
+                view.DoClose();
+            else
+            {
+                //Probably move this too the Window
+            }
         }
 
         /// <summary>
@@ -62,7 +67,7 @@ namespace SpreadsheetGUI
             var newCells = model.GetNamesOfAllNonemptyCells();
             foreach (string name in newCells)
             {
-                newVals.Add(name, model.GetCellContents(name).ToString());
+                newVals.Add(name, model.GetCellValue(name).ToString());
             }
 
             //Send all nonempty cells to be updated in view
