@@ -19,5 +19,7 @@ namespace SpreadsheetGUI
 		event Action<string> loadSS;                        //pass filepath
         event Action<string> saveSS;
         event Action closeSS;
-	}
+
+        void DoClose();
+    }
 }

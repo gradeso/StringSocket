@@ -55,14 +55,15 @@ namespace SpreadsheetGUI
 			spreadsheetCellArray.SelectionChanged += HandleSelectionChanged;
 		}
 
-		private void HandleSelectionChanged(SpreadsheetPanel ss)
-		{
-			//pull the name of sellection and fires cellhighlighted event.
-			int row, col;
-			ss.GetSelection(out col, out row);
-			var val = colRefference[col] + (row + 1).ToString();
-			cellHighlighted(val);
-		}
+        private void HandleSelectionChanged(SpreadsheetPanel ss)
+        {
+            //pull the name of sellection and fires cellhighlighted event.
+            int row, col;
+            ss.GetSelection(out col, out row);
+            var val = colRefference[col] + (row + 1).ToString();
+            cellHighlighted(val);
+        }
+
 
 		private void UpdateAll(Dictionary<string, string> value)
 		{
@@ -113,16 +114,6 @@ namespace SpreadsheetGUI
 			spreadsheetCellArray.Select();
 		}
 
-        private void HandleSelectNew(object sender, ToolStripItemClickedEventArgs e)
-		{
-			SpreadsheetApplicationContext.GetContext().RunNew();
-		}
-
-        private void CloseSelected(object sender, ToolStripItemClickedEventArgs e)
-		{
-			closeSS();
-		}
-
         private void SaveSelected(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
@@ -142,6 +133,21 @@ namespace SpreadsheetGUI
             load.ShowDialog();
             if (load.FileName != null)
                 loadSS(load.FileName);
+        }
+
+        private void HandleSelectNew(object sender, EventArgs e)
+        {
+            SpreadsheetApplicationContext.GetContext().RunNew();
+        }
+
+        private void CloseSelected(object sender, EventArgs e)
+        {
+            closeSS();
+        }
+
+        public void DoClose()
+        {
+            Close();
         }
     }
 }

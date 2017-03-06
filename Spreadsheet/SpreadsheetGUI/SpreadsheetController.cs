@@ -31,15 +31,21 @@ namespace SpreadsheetGUI
 			model = new Spreadsheet();
 			view.loadSS += HandleLoadSS;
             view.saveSS += HandleSaveSS;
+            view.closeSS += HandleCloseSS;
 			view.cellWithNameChagendContents += HandleCellWithNameChangedContents;
 			view.cellHighlighted += HandleCellHighlighted;	
 		}
 
-		/// <summary>
-		/// Handles the load ss.
-		/// </summary>
-		/// <param name="filename">The filename.</param>
-		private void HandleLoadSS(string filename)
+        private void HandleCloseSS()
+        {
+            view.DoClose();
+        }
+
+        /// <summary>
+        /// Handles the load ss.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        private void HandleLoadSS(string filename)
 		{
             //Create a new Regex for the param of Spreadsheet(TextWriter dest, Regex isValid)
             Regex reg = new Regex("^.*$");

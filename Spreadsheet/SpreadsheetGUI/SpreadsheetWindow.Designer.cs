@@ -74,7 +74,7 @@
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.newToolStripMenuItem.Text = "New...";
-            this.newToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.HandleSelectNew);
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.HandleSelectNew);
             // 
             // openToolStripMenuItem
             // 
@@ -95,7 +95,7 @@
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.closeToolStripMenuItem.Text = "Close";
-            this.closeToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.CloseSelected);
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.CloseSelected);
             // 
             // helpToolStripMenuItem
             // 
