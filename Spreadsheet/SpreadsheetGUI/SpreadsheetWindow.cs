@@ -18,6 +18,7 @@ namespace SpreadsheetGUI
 		public event Action<string> cellHighlighted;
 		public event Action<string> loadSS;
 		public event Action<string> saveSS;
+
 		public event Action closeSS;
 		public event Action<string, string> cellWithNameChagendContents;
 
@@ -89,11 +90,13 @@ namespace SpreadsheetGUI
 			int col, row;
 			spreadsheetCellArray.GetSelection(out col, out row);
 			var name =  colRefference[col] + (row + 1).ToString();
-			if (((char)Keys.Enter).Equals(e.KeyChar))
+
+            if (((char)Keys.Enter).Equals(e.KeyChar))
 			{
 				cellWithNameChagendContents(name, ContentBox.Text);
 			}
-		}
+
+        }
 
 		/// <summary>
 		/// Handles the Load event of the spreadsheetCellArray control. Load and New will access this method.
@@ -109,7 +112,7 @@ namespace SpreadsheetGUI
         {
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Title = "Save the Current Spreadsheet";
-            saveFileDialog1.AddExtension = true;
+            //saveFileDialog1.AddExtension = true;
             saveFileDialog1.Filter = "Spreadsheet Files (*.ss)|*.ss";
             saveFileDialog1.DefaultExt = "ss";
             saveFileDialog1.ShowDialog();
@@ -124,7 +127,7 @@ namespace SpreadsheetGUI
             load.Title = "Select the Spreadsheet File to Load";
             load.Filter = "Spreadsheet Files (*.ss)|*.ss";
             load.DefaultExt = "ss";
-            load.AddExtension = true;
+            //load.AddExtension = true;
             load.ShowDialog();
             if (load.FileName != null)
                 loadSS(load.FileName);
@@ -143,6 +146,58 @@ namespace SpreadsheetGUI
         public void DoClose()
         {
             Close();
+        }
+
+        private void KeyPress_Event(object sender, KeyPressEventArgs e)
+        {
+            int col, row;
+
+            if (((char)Keys.Right).Equals(e.KeyChar))
+            {
+                spreadsheetCellArray.GetSelection(out col, out row);
+
+                if (col != 0)
+                    spreadsheetCellArray.SetSelection(col - 1, row);
+            }
+            else if (((char)Keys.Left).Equals(e.KeyChar))
+            {
+
+            }
+            else if (((char)Keys.Up).Equals(e.KeyChar))
+            {
+
+            }
+            else if (((char)Keys.Down).Equals(e.KeyChar))
+            {
+
+            }
+            else return;
+        }
+
+        private void KeyPressEvent(object sender, KeyPressEventArgs e)
+        {
+            int col, row;
+
+            if (((char)Keys.Right).Equals(e.KeyChar))
+            {
+                spreadsheetCellArray.GetSelection(out col, out row);
+
+                if (col != 0)
+                    spreadsheetCellArray.SetSelection(col - 1, row);
+            }
+            else if (((char)Keys.Left).Equals(e.KeyChar))
+            {
+
+            }
+            else if (((char)Keys.Up).Equals(e.KeyChar))
+            {
+
+            }
+            else if (((char)Keys.Down).Equals(e.KeyChar))
+            {
+
+            }
+            else return;
         }
     }
 }

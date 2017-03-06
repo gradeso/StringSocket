@@ -153,6 +153,7 @@
             this.spreadsheetCellArray.Name = "spreadsheetCellArray";
             this.spreadsheetCellArray.Size = new System.Drawing.Size(1147, 428);
             this.spreadsheetCellArray.TabIndex = 0;
+            this.spreadsheetCellArray.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.KeyPress_Event);
             // 
             // openFileDialog1
             // 
@@ -168,6 +169,7 @@
             this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "SpreadsheetWindow";
             this.Text = "Spreadsheet";
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.KeyPressEvent);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.panel1.ResumeLayout(false);
