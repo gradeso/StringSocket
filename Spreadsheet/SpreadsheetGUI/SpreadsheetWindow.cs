@@ -13,7 +13,6 @@ namespace SpreadsheetGUI
 {
 	public partial class SpreadsheetWindow : Form, ISpreadsheetView
 	{
-
 		StringBuilder colRefference = new StringBuilder("ABCDEFGHIJKLMNOPQRSTUZWXYZ");
 
 		public event Action<string> cellHighlighted;
@@ -24,27 +23,19 @@ namespace SpreadsheetGUI
 
 		public string message { set { MessageBox.Show(value); } }
 
-		public string currentValue {
-			set {
-				ValueBox.Text = value;
-
-			}
-		}
+		public string currentValue { set { ValueBox.Text = value; } }
 
 		public string currentContents { set { ContentBox.Text = value; } }
 
 		public string currentName { set { AddressBox.Text = value; } }
 
-		public Dictionary<string, string> toUpdate{ set { UpdateAll(value); } }
-
-		
-
-		/// <summary>
-		///any time this value changes we update all cells that changed.
-		/// </summary>
-		/// <value>
-		/// The cells2 change.
-		/// </value>
+        /// <summary>
+        ///any time this value changes we update all cells that changed.
+        /// </summary>
+        /// <value>
+        /// The cells2 change.
+        /// </value>
+        public Dictionary<string, string> toUpdate{ set { UpdateAll(value); } }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SpreadsheetWindow"/> class.
@@ -119,6 +110,8 @@ namespace SpreadsheetGUI
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Title = "Save the Current Spreadsheet";
             saveFileDialog1.AddExtension = true;
+            saveFileDialog1.Filter = "Spreadsheet Files (*.ss)|*.ss";
+            saveFileDialog1.DefaultExt = "ss";
             saveFileDialog1.ShowDialog();
             if (saveFileDialog1.FileName != null)
                 saveSS(saveFileDialog1.FileName);
@@ -129,7 +122,9 @@ namespace SpreadsheetGUI
 
             FileDialog load = new OpenFileDialog();
             load.Title = "Select the Spreadsheet File to Load";
-            // load.AddExtension = true;
+            load.Filter = "Spreadsheet Files (*.ss)|*.ss";
+            load.DefaultExt = "ss";
+            load.AddExtension = true;
             load.ShowDialog();
             if (load.FileName != null)
                 loadSS(load.FileName);

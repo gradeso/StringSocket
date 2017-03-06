@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-16"?><spreadsheet IsValid="[A-Za-z]([A-Za-z][1-9]|[1-9][0-9]|[1-9]$)[0-9]*"><cell name="B2" contents="5" /><cell name="E8" contents="5" /><cell name="B7" contents="f" /><cell name="E3" contents="k" /><cell name="F7" contents="k" /><cell name="A6" contents="k" /></spreadsheet>

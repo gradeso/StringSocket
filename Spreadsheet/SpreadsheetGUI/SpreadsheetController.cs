@@ -49,9 +49,10 @@ namespace SpreadsheetGUI
 		{
             //Create a new Regex for the param of Spreadsheet(TextWriter dest, Regex isValid)
             Regex reg = new Regex("^.*$");
+
             TextReader read = File.OpenText(filename);
 
-            //Create a new Spreadsheet using the two params
+            //Create a new Spreadsheet model using the two params
             model = new Spreadsheet(read, reg);
 
             //Create a new dicitonary to pass to UpdateAll 
@@ -63,6 +64,8 @@ namespace SpreadsheetGUI
             {
                 newVals.Add(name, model.GetCellContents(name).ToString());
             }
+
+            //Send all nonempty cells to be updated in view
             view.toUpdate = newVals;
         }
 
