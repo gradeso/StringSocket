@@ -20,7 +20,7 @@ namespace SpreadsheetGUI
 		public event Action<string> saveSS;
 
 		public event Action closeSS;
-		public event Action<string, string> cellWithNameChagendContents;
+		public event Action<string, string> cellContentsChanged;
 
 		public string message { set { MessageBox.Show(value); } }
 
@@ -93,7 +93,7 @@ namespace SpreadsheetGUI
 
             if (((char)Keys.Enter).Equals(e.KeyChar))
 			{
-				cellWithNameChagendContents(name, ContentBox.Text);
+				cellContentsChanged(name, ContentBox.Text);
 			}
 
         }
@@ -113,7 +113,7 @@ namespace SpreadsheetGUI
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
             saveFileDialog1.Title = "Save the Current Spreadsheet";
             //saveFileDialog1.AddExtension = true;
-            saveFileDialog1.Filter = "Spreadsheet Files (*.ss)|*.ss";
+            saveFileDialog1.Filter = "Spreadsheet Files (*.ss)|*.ss |All files (*.*)|*.*";
             saveFileDialog1.DefaultExt = "ss";
             saveFileDialog1.ShowDialog();
             if (saveFileDialog1.FileName != null)
@@ -122,7 +122,6 @@ namespace SpreadsheetGUI
 
         private void LoadSelected(object sender, EventArgs e)
         {
-
             FileDialog load = new OpenFileDialog();
             load.Title = "Select the Spreadsheet File to Load";
             load.Filter = "Spreadsheet Files (*.ss)|*.ss";
@@ -198,6 +197,11 @@ namespace SpreadsheetGUI
 
             }
             else return;
+        }
+
+        private void ex(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SS;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,5 +53,21 @@ namespace SpreadsheetGUI
 			// Run the form
 			window.Show();
 		}
-	}
+
+        public void RunNew(string filename)
+        {
+            // Create the window and the controller
+            SpreadsheetWindow window = new SpreadsheetWindow();
+            new SpreadsheetController(window, filename);
+
+            // One more form is running
+            windowCount++;
+
+            // When this form closes, we want to find out
+            window.FormClosed += (o, e) => { if (--windowCount <= 0) ExitThread(); };
+
+            // Run the form
+            window.Show();
+        }
+    }
 }

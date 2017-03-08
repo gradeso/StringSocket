@@ -32,9 +32,25 @@ namespace SpreadsheetGUI
 			view.loadSS += HandleLoadSS;
             view.saveSS += HandleSaveSS;
             view.closeSS += HandleCloseSS;
-			view.cellWithNameChagendContents += HandleCellWithNameChangedContents;
+			view.cellContentsChanged += HandleCellWithNameChangedContents;
 			view.cellHighlighted += HandleCellHighlighted;	
 		}
+
+        public SpreadsheetController(ISpreadsheetView view, string filename)
+        {
+
+            this.view = view;
+
+            //Capture new spreadsheet and create it
+            model = null;
+            DoLoad(filename);
+
+            view.loadSS += HandleLoadSS;
+            view.saveSS += HandleSaveSS;
+            view.closeSS += HandleCloseSS;
+            view.cellContentsChanged += HandleCellWithNameChangedContents;
+            view.cellHighlighted += HandleCellHighlighted;
+        }
 
         private void HandleCloseSS()
         {
@@ -51,7 +67,12 @@ namespace SpreadsheetGUI
         /// </summary>
         /// <param name="filename">The filename.</param>
         private void HandleLoadSS(string filename)
-		{
+        {
+            SpreadsheetApplicationContext.GetContext().RunNew(filename);
+        }
+
+        private void DoLoad(string filename)
+        {
             //Create a new Regex for the param of Spreadsheet(TextWriter dest, Regex isValid)
             Regex reg = new Regex("^.*$");
 
@@ -71,7 +92,7 @@ namespace SpreadsheetGUI
             }
 
             //Send all nonempty cells to be updated in view
-            view.toUpdate = newVals;
+            view.toUpdate = newVals;    
         }
 
         private void HandleSaveSS(string filename)
