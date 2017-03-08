@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SpreadsheetGUI
 {
-	interface ISpreadsheetView
+	public interface ISpreadsheetView
 	{
 		string message { set; }
 		string currentValue { set; }
