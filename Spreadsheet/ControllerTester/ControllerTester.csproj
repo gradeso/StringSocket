@@ -59,6 +59,10 @@
       <Project>{40e660e3-d61a-4719-886f-26f2670cb68b}</Project>
       <Name>SpreadsheetGUI</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Spreadsheet\Spreadsheet.csproj">
+      <Project>{9025A594-DF2A-4E6A-B8C2-F087ECC3E203}</Project>
+      <Name>Spreadsheet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

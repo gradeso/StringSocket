@@ -9,55 +9,77 @@ namespace ControllerTester
 {
     class SpreadsheetWindowStub : ISpreadsheetView
     {
-        public string currentContents
+        public bool DoClose_Called { get; private set; }
+        public bool DoCloseWithSaved_Called { get; private set; }
+        string filename = @"C:\Users\Wes BEAST\Documents\Visual Studio 2015\Projects\sceneKids\testOfSS";
+
+
+        // Methods to fire events
+        public void FireCellContentsChanged()
         {
-            set
-            {
-                throw new NotImplementedException();
-            }
+            cellContentsChanged("A1","content");
         }
 
-        public string currentName
+        public void FireCellContentsChanged_InvalidName()
         {
-            set
-            {
-                throw new NotImplementedException();
-            }
+            try { cellContentsChanged("1", "content"); }
+            catch (Exception) { }
         }
 
-        public string currentValue
+        public void FireCellHighlighted()
         {
-            set
-            {
-                throw new NotImplementedException();
-            }
+            cellHighlighted("A1");
         }
 
-        public string message
+        public void FireCellHighlighted_InvalidName()
         {
-            set
-            {
-                throw new NotImplementedException();
-            }
+            try { cellHighlighted("A1"); }
+            catch (Exception) { }
         }
 
-        public Dictionary<string, string> toUpdate
+        public void FireCloseSS()
         {
-            set
-            {
-                throw new NotImplementedException();
-            }
+            closeSS();
         }
 
+        public void FireLoadSS()
+        {
+            loadSS("C:\\Users\\Wes BEAST\\Documents\\Visual Studio 2015\\Projects\\sceneKids\\Spreadsheet\\SampleSavedSpreadsheet.ss");
+        }
+
+        public void FireSaveSS()
+        {
+            saveSS("C:\\Users\\Wes BEAST\\Documents\\Visual Studio 2015\\Projects\\sceneKids\\Spreadsheet\\SampleSavedSpreadsheet1.ss");
+        }
+
+        // The following properties implement the interface ********************
+        public string currentContents { set; get; }
+
+        public string currentName { set; get; }
+
+        public string currentValue { set; get; }
+
+        public string message { set; get; }
+
+        public Dictionary<string, string> toUpdate { set; get; }
+
+        // The following events implement the interface ************************
+        public event Action<string, string> cellContentsChanged;
         public event Action<string> cellHighlighted;
-        public event Action<string, string> cellWithNameChagendContents;
         public event Action closeSS;
         public event Action<string> loadSS;
         public event Action<string> saveSS;
+        public event Action windowExited;
 
         public void DoClose()
         {
-            throw new NotImplementedException();
+
+            DoClose_Called = true;
+        }
+
+        public void DoCloseWithSave(bool saved)
+        {
+            DoCloseWithSaved_Called = true;
         }
     }
 }

@@ -10,55 +10,74 @@ using System.Text.RegularExpressions;
 
 namespace SpreadsheetGUI
 {
-	class SpreadsheetController 
+	public class SpreadsheetController 
 	{
 		/// <summary>
 		/// The view
 		/// </summary>
-		ISpreadsheetView view;
+		private ISpreadsheetView spreadsheetView;
 		/// <summary>
 		/// The model
 		/// </summary>
-		Spreadsheet model;
+		private Spreadsheet model;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SpreadsheetController"/> class.
+		/// Initializes a new instance of the <see cref="SpreadsheetController"/> class. This 
+        /// class is the control of the Spreadsheet GUI implementation, it handles the interface
+        /// between the model and the view.
 		/// </summary>
 		/// <param name="view">The view.</param>
 		public SpreadsheetController(ISpreadsheetView view)
 		{
-			this.view = view;
+			this.spreadsheetView = view;
 			model = new Spreadsheet();
 			view.loadSS += HandleLoadSS;
             view.saveSS += HandleSaveSS;
             view.closeSS += HandleCloseSS;
 			view.cellContentsChanged += HandleCellWithNameChangedContents;
-			view.cellHighlighted += HandleCellHighlighted;	
+			view.cellHighlighted += HandleCellHighlighted;
+            view.windowExited += HandleWindowExit;
+                	
 		}
 
+        /// <summary>
+        /// Initilizes a new instance of the <see cref="SpreadsheetController"/> with
+        /// a filename parameter. This constructor is to be used for load operations.
+        /// </summary>
+        /// <param name="view">The window being displayed</param>
+        /// <param name="filename">The filepath of the object being loaded</param>
         public SpreadsheetController(ISpreadsheetView view, string filename)
         {
-
-            this.view = view;
-
-            //Capture new spreadsheet and create it
-            model = null;
-            DoLoad(filename);
-
+            this.spreadsheetView = view;
             view.loadSS += HandleLoadSS;
             view.saveSS += HandleSaveSS;
             view.closeSS += HandleCloseSS;
             view.cellContentsChanged += HandleCellWithNameChangedContents;
             view.cellHighlighted += HandleCellHighlighted;
+            view.windowExited += HandleWindowExit;
+
+            model = null;
+            DoLoad(filename);
+
+        }
+
+        /// <summary>
+        /// When the exit button is pressed, this hook calls the DoCloseWithSave method, which handles the 
+        /// state of the spreadsheet.
+        /// </summary>
+        private void HandleWindowExit()
+        {
+            spreadsheetView.DoCloseWithSave(model.Changed);
         }
 
         private void HandleCloseSS()
         {
             if (!model.Changed)
-                view.DoClose();
+                spreadsheetView.DoClose();
             else
             {
-                //Probably move this too the Window
+                try { spreadsheetView.DoCloseWithSave(model.Changed); }
+                catch (Exception) { return; }
             }
         }
 
@@ -68,9 +87,19 @@ namespace SpreadsheetGUI
         /// <param name="filename">The filename.</param>
         private void HandleLoadSS(string filename)
         {
-            SpreadsheetApplicationContext.GetContext().RunNew(filename);
+            
+            try { SpreadsheetApplicationContext.GetContext().RunNew(filename); }
+            catch (SpreadsheetReadException)
+            { return; }
+            catch (Exception e) { return; }
+
         }
 
+        /// <summary>
+        /// Deals with the second SpreadsheetController Constructor that passes a file path
+        /// so that the file to load can be accessed and read here.
+        /// </summary>
+        /// <param name="filename"></param>
         private void DoLoad(string filename)
         {
             //Create a new Regex for the param of Spreadsheet(TextWriter dest, Regex isValid)
@@ -91,20 +120,29 @@ namespace SpreadsheetGUI
                 newVals.Add(name, model.GetCellValue(name).ToString());
             }
 
+
             //Send all nonempty cells to be updated in view
-            view.toUpdate = newVals;    
+            spreadsheetView.toUpdate = newVals;
+
         }
 
         private void HandleSaveSS(string filename)
         {
-            using (TextWriter write = File.CreateText(filename))
+            try
             {
-                if (model.Changed)
+                using (TextWriter write = File.CreateText(filename))
                 {
-                    model.Save(write);
+                    if (model.Changed)
+                    {
+                        model.Save(write);
+                    }
+                    else
+                        return;
                 }
-                else
-                    return;
+            }
+            catch (Exception)
+            {
+
             }
         }
 
@@ -126,11 +164,11 @@ namespace SpreadsheetGUI
 				{
 					updateDict.Add(s, model.GetCellValue(s).ToString());
 				}
-				view.toUpdate = updateDict;
+				spreadsheetView.toUpdate = updateDict;
 			}
 			catch (Exception e)
 			{
-				view.message = e.Message;
+				spreadsheetView.message = e.Message;
 				model.SetContentsOfCell(name, previousContents.ToString());
 			}
 
@@ -142,16 +180,16 @@ namespace SpreadsheetGUI
 		/// <param name="name">The name.</param>
 		private void HandleCellHighlighted(string name)
 		{
-			view.currentName = name;
+			spreadsheetView.currentName = name;
 			try
 			{
-				view.currentContents = model.GetCellContents(name).ToString();
-				view.currentValue = model.GetCellValue(name) is FormulaError ? "Evaluation Error" : model.GetCellValue(name).ToString();
+				spreadsheetView.currentContents = model.GetCellContents(name).ToString();
+				spreadsheetView.currentValue = model.GetCellValue(name) is FormulaError ? "Evaluation Error" : model.GetCellValue(name).ToString();
 			}
 			catch (InvalidNameException)
 			{
-				view.currentContents = "";
-				view.currentValue = "";
+				spreadsheetView.currentContents = "";
+				spreadsheetView.currentValue = "";
 			}
 		}
 	}
