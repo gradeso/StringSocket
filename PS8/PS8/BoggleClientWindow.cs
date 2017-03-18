@@ -10,11 +10,12 @@ using System.Windows.Forms;
 
 namespace PS8
 {
-    public partial class Form1 : Form
+    public partial class BoggleClientWindow : Form, IBoggleClientView
     {
-        public Form1()
+        public BoggleClientWindow()
         {
             InitializeComponent();
+            playerNameBox.Focus();
         }
     }
 }

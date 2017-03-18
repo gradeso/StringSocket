@@ -16,7 +16,10 @@ namespace PS8
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            var context = BoggleClientApplicationContext.GetContext();
+            BoggleClientApplicationContext.GetContext().RunNew();
+            Application.Run(context);
         }
     }
 }

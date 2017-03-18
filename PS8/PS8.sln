@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PS8", "PS8\PS8.csproj", "{BCBBB746-04BA-4D8D-83E2-FDF9E0201A3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoggleClient", "PS8\BoggleClient.csproj", "{BCBBB746-04BA-4D8D-83E2-FDF9E0201A3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
