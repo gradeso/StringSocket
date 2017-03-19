@@ -15,7 +15,7 @@ namespace PS8
         public BoggleClientWindow()
         {
             InitializeComponent();
-            playerNameBox.Focus();
+            
         }
     }
 }
