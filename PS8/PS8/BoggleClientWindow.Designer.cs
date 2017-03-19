@@ -79,14 +79,14 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(684, 536);
+            this.panel1.Size = new System.Drawing.Size(648, 514);
             this.panel1.TabIndex = 0;
             // 
             // playerTwoBox
             // 
             this.playerTwoBox.AutoSize = true;
             this.playerTwoBox.Font = new System.Drawing.Font("Century Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerTwoBox.Location = new System.Drawing.Point(354, 489);
+            this.playerTwoBox.Location = new System.Drawing.Point(322, 471);
             this.playerTwoBox.Name = "playerTwoBox";
             this.playerTwoBox.Size = new System.Drawing.Size(140, 36);
             this.playerTwoBox.TabIndex = 12;
@@ -97,7 +97,7 @@
             // 
             this.playerOneBox.AutoSize = true;
             this.playerOneBox.Font = new System.Drawing.Font("Century Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerOneBox.Location = new System.Drawing.Point(17, 489);
+            this.playerOneBox.Location = new System.Drawing.Point(2, 471);
             this.playerOneBox.Name = "playerOneBox";
             this.playerOneBox.Size = new System.Drawing.Size(140, 36);
             this.playerOneBox.TabIndex = 11;
@@ -106,16 +106,16 @@
             // 
             // textBox18
             // 
-            this.textBox18.Location = new System.Drawing.Point(360, 185);
+            this.textBox18.Location = new System.Drawing.Point(328, 186);
             this.textBox18.Multiline = true;
             this.textBox18.Name = "textBox18";
-            this.textBox18.Size = new System.Drawing.Size(313, 277);
+            this.textBox18.Size = new System.Drawing.Size(313, 283);
             this.textBox18.TabIndex = 10;
             // 
             // textBox17
             // 
             this.textBox17.Font = new System.Drawing.Font("Century Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox17.Location = new System.Drawing.Point(360, 85);
+            this.textBox17.Location = new System.Drawing.Point(328, 86);
             this.textBox17.Name = "textBox17";
             this.textBox17.Size = new System.Drawing.Size(313, 43);
             this.textBox17.TabIndex = 9;
@@ -127,7 +127,7 @@
             this.label2.AutoSize = true;
             this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label2.Font = new System.Drawing.Font("Century Gothic", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(215, 402);
+            this.label2.Location = new System.Drawing.Point(200, 409);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(121, 60);
             this.label2.TabIndex = 8;
@@ -138,7 +138,7 @@
             // 
             this.ScoreLabel.AutoSize = true;
             this.ScoreLabel.Font = new System.Drawing.Font("Century Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ScoreLabel.Location = new System.Drawing.Point(547, 137);
+            this.ScoreLabel.Location = new System.Drawing.Point(515, 138);
             this.ScoreLabel.Name = "ScoreLabel";
             this.ScoreLabel.Size = new System.Drawing.Size(126, 36);
             this.ScoreLabel.TabIndex = 6;
@@ -151,7 +151,7 @@
             this.helpButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.helpButton.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.helpButton.Location = new System.Drawing.Point(360, 47);
+            this.helpButton.Location = new System.Drawing.Point(328, 48);
             this.helpButton.Name = "helpButton";
             this.helpButton.Size = new System.Drawing.Size(312, 30);
             this.helpButton.TabIndex = 5;
@@ -164,7 +164,7 @@
             this.connectToServerButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.connectToServerButton.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.connectToServerButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.connectToServerButton.Location = new System.Drawing.Point(485, 8);
+            this.connectToServerButton.Location = new System.Drawing.Point(453, 9);
             this.connectToServerButton.Name = "connectToServerButton";
             this.connectToServerButton.Size = new System.Drawing.Size(187, 30);
             this.connectToServerButton.TabIndex = 4;
@@ -178,7 +178,7 @@
             this.registerUsernameButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.registerUsernameButton.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.registerUsernameButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.registerUsernameButton.Location = new System.Drawing.Point(360, 8);
+            this.registerUsernameButton.Location = new System.Drawing.Point(328, 9);
             this.registerUsernameButton.Name = "registerUsernameButton";
             this.registerUsernameButton.Size = new System.Drawing.Size(119, 30);
             this.registerUsernameButton.TabIndex = 3;
@@ -188,7 +188,7 @@
             // serverURL_Box
             // 
             this.serverURL_Box.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.serverURL_Box.Location = new System.Drawing.Point(23, 47);
+            this.serverURL_Box.Location = new System.Drawing.Point(8, 48);
             this.serverURL_Box.Multiline = true;
             this.serverURL_Box.Name = "serverURL_Box";
             this.serverURL_Box.Size = new System.Drawing.Size(313, 30);
@@ -198,7 +198,7 @@
             // playerNameBox
             // 
             this.playerNameBox.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerNameBox.Location = new System.Drawing.Point(23, 8);
+            this.playerNameBox.Location = new System.Drawing.Point(8, 9);
             this.playerNameBox.Multiline = true;
             this.playerNameBox.Name = "playerNameBox";
             this.playerNameBox.Size = new System.Drawing.Size(313, 30);
@@ -228,7 +228,7 @@
             this.tableLayoutPanel1.Controls.Add(this.textBox3, 2, 0);
             this.tableLayoutPanel1.Controls.Add(this.textBox2, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.textBox1, 0, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(23, 85);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(8, 86);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25F));
@@ -466,7 +466,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 536);
+            this.ClientSize = new System.Drawing.Size(648, 514);
             this.Controls.Add(this.panel1);
             this.Name = "BoggleClientWindow";
             this.Text = "BOGGLE";
