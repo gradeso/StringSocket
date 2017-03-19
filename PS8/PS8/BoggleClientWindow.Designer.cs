@@ -66,7 +66,6 @@
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.panel1.Controls.Add(this.playerTwoBox);
             this.panel1.Controls.Add(this.playerOneBox);
-            this.panel1.Controls.Add(this.textBox18);
             this.panel1.Controls.Add(this.textBox17);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.ScoreLabel);
@@ -76,6 +75,7 @@
             this.panel1.Controls.Add(this.serverURL_Box);
             this.panel1.Controls.Add(this.playerNameBox);
             this.panel1.Controls.Add(this.tableLayoutPanel1);
+            this.panel1.Controls.Add(this.textBox18);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
@@ -106,10 +106,10 @@
             // 
             // textBox18
             // 
-            this.textBox18.Location = new System.Drawing.Point(328, 186);
+            this.textBox18.Location = new System.Drawing.Point(328, 135);
             this.textBox18.Multiline = true;
             this.textBox18.Name = "textBox18";
-            this.textBox18.Size = new System.Drawing.Size(313, 283);
+            this.textBox18.Size = new System.Drawing.Size(313, 334);
             this.textBox18.TabIndex = 10;
             // 
             // textBox17
@@ -138,7 +138,7 @@
             // 
             this.ScoreLabel.AutoSize = true;
             this.ScoreLabel.Font = new System.Drawing.Font("Century Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ScoreLabel.Location = new System.Drawing.Point(515, 138);
+            this.ScoreLabel.Location = new System.Drawing.Point(336, 146);
             this.ScoreLabel.Name = "ScoreLabel";
             this.ScoreLabel.Size = new System.Drawing.Size(126, 36);
             this.ScoreLabel.TabIndex = 6;

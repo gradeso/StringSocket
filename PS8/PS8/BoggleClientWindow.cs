@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace PS8
 {
@@ -15,6 +16,12 @@ namespace PS8
         public BoggleClientWindow()
         {
             InitializeComponent();
+            registerUsernameButton.MouseClick += registerButtonClick;
+            
+        }
+
+        private void registerButtonClick(object sender, MouseEventArgs e)
+        {
             
         }
     }
