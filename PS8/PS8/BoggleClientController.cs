@@ -6,49 +6,78 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Dynamic;
+using Newtonsoft.Json.Linq;
 
 namespace PS8
 {
     class BoggleClientController
     {
         private IBoggleClientView ClientView;
-
+        string serverUrl;
         private Game game;
+        HttpClient client = null;
 
         public BoggleClientController(IBoggleClientView view)
         {
             ClientView = view;
-            
+            view.registerButtonClicked += handleRegisterClick;
+        }
+
+        private void handleRegisterClick(string name, string url)
+        {
+            CreateClient(url);
+            CreateUser(name);
         }
 
         ///******************* These methods implement the Boggle API ***********************///
         private void CreateUser(string nickname)
         {
+            dynamic content = new JObject();
+            content.Nickname = nickname; 
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.Default, "application/json");
 
+           // StringContent httpContent = "{\"Nickname\":\"wes\"}";
+
+            using (this.client)
+            {
+                HttpResponseMessage response = client.PostAsync("users/", httpContent).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string result = response.Content.ReadAsStringAsync().Result;
+
+                    dynamic serverResponse = JsonConvert.DeserializeObject(result);
+
+                }
+
+                else throw new Exception();
+            }
         }
 
         private void JoinGame(string userToken, int timeLimit)
         {
 
         }
+
         private void CancelJoinRequest(string userToken)
         {
 
         }
+
         private void PlayWord(string userToken, string wordPlayed)
         {
 
         }
+
         private void GameStatus(bool brief)
         {
-            using (HttpClient client = CreateClient())
+            using (this.client)
             {
-                HttpResponseMessage response = client.GetAsync("/games").Result;
+                HttpResponseMessage response = client.GetAsync("games/" + game.GameID.ToString()).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
 
-                    dynamic arg = JsonConvert.DeserializeObject(result);
+                    dynamic gameState = JsonConvert.DeserializeObject(result);
 
                     return;
                 }
@@ -63,15 +92,17 @@ namespace PS8
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private static HttpClient CreateClient()
+        private void CreateClient()
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri("http://cs3500-boggle-s17.azurewebsites.net");
 
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Add("Content-Type", @"application/json");
+            //client.DefaultRequestHeaders.Add("Content-Type", @"application/json");
 
-            return client;
+            this.client = client;
+
+            return;
         }
 
         /// <summary>
@@ -82,7 +113,7 @@ namespace PS8
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private static HttpClient CreateClient(string url)
+        private void CreateClient(string url)
         {
             HttpClient client = new HttpClient();
 
@@ -95,9 +126,9 @@ namespace PS8
                 throw new InvalidHTTP_FormatException();
 
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Add("Content-Type", @"application/json");
+          //  client.DefaultRequestHeaders.Add("Content-Type", @"application/json");
 
-            return client;
+            this.client = client;
         }
 
 

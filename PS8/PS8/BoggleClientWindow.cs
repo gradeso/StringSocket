@@ -20,9 +20,14 @@ namespace PS8
             
         }
 
+        public event Action<string, string> registerButtonClicked;
+
         private void registerButtonClick(object sender, MouseEventArgs e)
         {
-            
+            string name = playerNameBox.Text;
+            string url = serverURL_Box.Text;
+            if (name != null && url != null)
+                registerButtonClicked(name,url);
         }
     }
 }
