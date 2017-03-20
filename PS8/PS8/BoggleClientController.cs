@@ -13,7 +13,6 @@ namespace PS8
     class BoggleClientController
     {
         private IBoggleClientView ClientView;
-        string serverUrl;
         private Game game;
         HttpClient client = null;
 
@@ -32,25 +31,31 @@ namespace PS8
         ///******************* These methods implement the Boggle API ***********************///
         private void CreateUser(string nickname)
         {
-            dynamic content = new JObject();
-            content.Nickname = nickname; 
-            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.Default, "application/json");
+            //Create an array object that will be converted to JSON for request body
+            dynamic content = new ExpandoObject();
+            content.Nickname = nickname;
 
-           // StringContent httpContent = "{\"Nickname\":\"wes\"}";
+            //Convert the expando into a JSON array
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+           //StringContent httpContent = new StringContent("{\"Nickname\":\"wes\"}");
 
             using (this.client)
             {
-                HttpResponseMessage response = client.PostAsync("users/", httpContent).Result;
+                HttpResponseMessage response = client.PostAsync("users", httpContent).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
 
                     dynamic serverResponse = JsonConvert.DeserializeObject(result);
 
+
                 }
 
                 else throw new Exception();
             }
+
+            ClientView.Pl
         }
 
         private void JoinGame(string userToken, int timeLimit)
