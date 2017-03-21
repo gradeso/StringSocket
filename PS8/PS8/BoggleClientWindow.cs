@@ -16,11 +16,23 @@ namespace PS8
         public BoggleClientWindow()
         {
             InitializeComponent();
-            registerUsernameButton.MouseClick += registerButtonClick;
+
+            Size = new Size(666, 159);
+            popUpMenu.Location = new Point(0,0);
+            
+            connectButton.MouseClick += registerButtonClick;
             
         }
 
         public event Action<string, string> registerButtonClicked;
+        public event Action preapareGameWindow;
+        
+
+        public void prepareGameWindow()
+        {
+            Size = new Size(666, 563);
+            popUpMenu.Location = new Point(698, 152);
+        }
 
         private void registerButtonClick(object sender, MouseEventArgs e)
         {

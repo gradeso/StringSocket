@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Dynamic;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace PS8
 {
@@ -28,6 +29,8 @@ namespace PS8
             CreateUser(name);
         }
 
+
+
         ///******************* These methods implement the Boggle API ***********************///
         private void CreateUser(string nickname)
         {
@@ -35,27 +38,46 @@ namespace PS8
             dynamic content = new ExpandoObject();
             content.Nickname = nickname;
 
+            //Add the nickname to the game object
+            game.Nickname = nickname;
+
             //Convert the expando into a JSON array
             StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
            //StringContent httpContent = new StringContent("{\"Nickname\":\"wes\"}");
 
-            using (this.client)
+            using (client)
             {
                 HttpResponseMessage response = client.PostAsync("users", httpContent).Result;
-                if (response.IsSuccessStatusCode)
+                if (response.StatusCode == HttpStatusCode.Created)
                 {
+                    //Because we successfully connected to the server, the URL is correct, so 
+                    //create the game object that will act as the model.
+                    game = new Game();
+
+                    //Read the contents of the POST into a string.
                     string result = response.Content.ReadAsStringAsync().Result;
 
-                    dynamic serverResponse = JsonConvert.DeserializeObject(result);
+                    //Strip the value of the UserToken out of the response.
+                    string id = result.Substring(14);
+                    game.UserToken = id.Substring(0,id.Length - 2);
+                    ClientView.registerButtonClicked +=
+                }
 
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+                {
+
+                }
+
+                else if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
 
                 }
 
                 else throw new Exception();
             }
 
-            ClientView.Pl
+            
         }
 
         private void JoinGame(string userToken, int timeLimit)
@@ -77,7 +99,7 @@ namespace PS8
         {
             using (this.client)
             {
-                HttpResponseMessage response = client.GetAsync("games/" + game.GameID.ToString()).Result;
+                HttpResponseMessage response = client.GetAsync("games/" + game.UserToken).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
