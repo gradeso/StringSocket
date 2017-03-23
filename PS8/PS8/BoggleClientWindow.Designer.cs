@@ -68,15 +68,15 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.panel1.Controls.Add(this.popUpMenu);
             this.panel1.Controls.Add(this.ScoreLabel2);
-            this.panel1.Controls.Add(this.textBox19);
-            this.panel1.Controls.Add(this.helpButton);
             this.panel1.Controls.Add(this.playerTwoBox);
             this.panel1.Controls.Add(this.playerOneBox);
+            this.panel1.Controls.Add(this.ScoreLabel1);
+            this.panel1.Controls.Add(this.popUpMenu);
+            this.panel1.Controls.Add(this.textBox19);
+            this.panel1.Controls.Add(this.helpButton);
             this.panel1.Controls.Add(this.textBox17);
             this.panel1.Controls.Add(this.label2);
-            this.panel1.Controls.Add(this.ScoreLabel1);
             this.panel1.Controls.Add(this.tableLayoutPanel1);
             this.panel1.Controls.Add(this.textBox18);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -147,7 +147,7 @@
             this.playerNameBox.Name = "playerNameBox";
             this.playerNameBox.Size = new System.Drawing.Size(940, 44);
             this.playerNameBox.TabIndex = 1;
-            this.playerNameBox.Text = "wes";
+            this.playerNameBox.Text = "darth plagueis";
             // 
             // playerTwoBox
             // 

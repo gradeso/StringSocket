@@ -33,8 +33,8 @@ namespace PS8
 
         public void prepareGameWindow()
         {
+            Size = new Size(802, 560);
             popUpMenu.Location = new Point(1470, 152);
-            Size = new Size(1201, 850);
             createArrayOfTiles();
         }
 

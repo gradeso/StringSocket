@@ -34,8 +34,7 @@ namespace PS8
 
         private void Game()
         {
-            JoinGame();
-            GameStatus(true);
+            
             //while (pending)
             //{
             //    Task checkStatus = new Task(() => GameStatus(true));
@@ -70,7 +69,8 @@ namespace PS8
                     string id = result.Substring(14);
                     game.UserToken = id.Substring(0,id.Length - 2);
 
-                    Game();
+                    JoinGame();
+                    
                 }
 
                 else if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -100,14 +100,20 @@ namespace PS8
             using (client)
             {
                 HttpResponseMessage response = client.PostAsync("games", httpContent).Result;
-                if (response.StatusCode == HttpStatusCode.Accepted)
+                if (response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.Created)
                 {
-                    
+                    string data = response.Content.ReadAsStringAsync().Result;
+                    dynamic arg = JsonConvert.DeserializeObject(data);
+                    int id = (int)(arg.GameID);
+                    game.GameID = id;
+                    GameStatus(true);
                 }
 
                 else if (response.StatusCode == HttpStatusCode.Created)
                 {
-
+                    dynamic data = response.Content.ReadAsStringAsync();
+                    int id = int.Parse(data.GameID.ToString());
+                    GameStatus(true);
                 }
 
                 else if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -138,19 +144,24 @@ namespace PS8
         {
             using (client)
             {
-                HttpResponseMessage response = client.GetAsync("games/132").Result;
+                HttpResponseMessage response = client.GetAsync("games/" + game.GameID).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
-
                     dynamic gameState = JsonConvert.DeserializeObject(result);
+                    string status = gameState.GameState;
+                    if(status == "pending")
+                    {
 
-                    StringBuilder gameStatus = gameState.GameState.ToString();
-                    gameStatus.Replace("{", "");
-                    gameStatus.Replace("}", "");
-                    bool temp;
-                    bool resutl = bool.TryParse(gameStatus.ToString(), out temp);
+                    }
+                    else if (status == "active")
+                    {
 
+                    }
+                    else if (status == "completed")
+                    {
+
+                    }
                     return;
                 }
 
