@@ -17,7 +17,7 @@ namespace PS8
         private Game game;
         HttpClient client = null;
         private bool pending = true;
-        
+        private int gameTime;
 
         public BoggleClientController(IBoggleClientView view)
         {
@@ -25,8 +25,9 @@ namespace PS8
             view.registerButtonClicked += handleRegisterClick;
         }
 
-        private void handleRegisterClick(string name, Uri url)
+        private void handleRegisterClick(string name, Uri url, int gameTime)
         {
+            this.gameTime = gameTime;
             CreateClient(url);
             CreateUser(name);
         }
@@ -37,7 +38,6 @@ namespace PS8
             GameStatus(true);
             //while (pending)
             //{
-
             //    Task checkStatus = new Task(() => GameStatus(true));
             //}
         }
@@ -62,6 +62,7 @@ namespace PS8
                     //create the game object that will act as the model.
                     game = new Game();
                     game.Nickname = nickname;
+                    game.TimeLimit = this.gameTime;
                     //Read the contents of the POST into a string.
                     string result = response.Content.ReadAsStringAsync().Result;
 
@@ -92,7 +93,7 @@ namespace PS8
         {
             dynamic content = new ExpandoObject();
             content.UserToken = game.UserToken;
-            content.TimeLimit = 120;
+            content.TimeLimit = game.TimeLimit;
 
             StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
@@ -101,7 +102,7 @@ namespace PS8
                 HttpResponseMessage response = client.PostAsync("games", httpContent).Result;
                 if (response.StatusCode == HttpStatusCode.Accepted)
                 {
-
+                    
                 }
 
                 else if (response.StatusCode == HttpStatusCode.Created)

@@ -16,7 +16,7 @@ namespace PS8
 
         public List<object> tileArray;
 
-        public event Action<string, Uri> registerButtonClicked;
+        public event Action<string, Uri, int> registerButtonClicked;
 
 
         public BoggleClientWindow()
@@ -33,8 +33,8 @@ namespace PS8
 
         public void prepareGameWindow()
         {
-            Size = new Size(666, 563);
-            popUpMenu.Location = new Point(698, 152);
+            popUpMenu.Location = new Point(1470, 152);
+            Size = new Size(1201, 850);
             createArrayOfTiles();
         }
 
@@ -42,7 +42,7 @@ namespace PS8
         {
             string name;
             Uri url;
-
+            
             try
             {
                 if (playerNameBox.Text != null)
@@ -57,9 +57,12 @@ namespace PS8
                 }
 
                 int gameTime = int.Parse(gameTimeBox.Text);
-                
-                
-                registerButtonClicked(name, url);
+                if(!(gameTime > 5 && gameTime < 120))
+                {
+                    throw new InvalidConstraintException();
+                }
+
+                registerButtonClicked(name, url, gameTime);
                 prepareGameWindow();
             }
             catch (UriFormatException)
@@ -76,6 +79,10 @@ namespace PS8
             {
                 //Add popup dialog 
                 return;
+            }
+            catch (InvalidConstraintException)
+            {
+
             }
 
 
