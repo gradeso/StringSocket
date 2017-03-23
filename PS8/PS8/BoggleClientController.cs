@@ -16,6 +16,8 @@ namespace PS8
         private IBoggleClientView ClientView;
         private Game game;
         HttpClient client = null;
+        
+        
 
         public BoggleClientController(IBoggleClientView view)
         {
@@ -23,23 +25,24 @@ namespace PS8
             view.registerButtonClicked += handleRegisterClick;
         }
 
-        private void handleRegisterClick(string name, string url)
+        private void handleRegisterClick(string name, Uri url)
         {
             CreateClient(url);
             CreateUser(name);
         }
 
-
+        
 
         ///******************* These methods implement the Boggle API ***********************///
         private void CreateUser(string nickname)
         {
+            
             //Create an array object that will be converted to JSON for request body
             dynamic content = new ExpandoObject();
             content.Nickname = nickname;
 
             //Add the nickname to the game object
-            game.Nickname = nickname;
+            
 
             //Convert the expando into a JSON array
             StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
@@ -54,14 +57,14 @@ namespace PS8
                     //Because we successfully connected to the server, the URL is correct, so 
                     //create the game object that will act as the model.
                     game = new Game();
-
+                    game.Nickname = nickname;
                     //Read the contents of the POST into a string.
                     string result = response.Content.ReadAsStringAsync().Result;
 
                     //Strip the value of the UserToken out of the response.
                     string id = result.Substring(14);
                     game.UserToken = id.Substring(0,id.Length - 2);
-                    ClientView.registerButtonClicked +=
+                    
                 }
 
                 else if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -140,20 +143,12 @@ namespace PS8
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private void CreateClient(string url)
+        private void CreateClient(Uri url)
         {
             HttpClient client = new HttpClient();
 
-            Uri test;
-
-            //Test to see if the string 'URL' provided is a proper URL with correct HTTP syntax
-            if (Uri.TryCreate(url, UriKind.Absolute, out test) && test.Scheme == Uri.UriSchemeHttp)
-                client.BaseAddress = test;
-            else
-                throw new InvalidHTTP_FormatException();
-
+            client.BaseAddress = url;
             client.DefaultRequestHeaders.Accept.Clear();
-          //  client.DefaultRequestHeaders.Add("Content-Type", @"application/json");
 
             this.client = client;
         }

@@ -17,16 +17,13 @@ namespace PS8
         {
             InitializeComponent();
 
-            Size = new Size(666, 159);
+            Size = new Size(666, 195);
             popUpMenu.Location = new Point(0,0);
             
             connectButton.MouseClick += registerButtonClick;
-            
         }
 
-        public event Action<string, string> registerButtonClicked;
-        public event Action preapareGameWindow;
-        
+        public event Action<string, Uri> registerButtonClicked;
 
         public void prepareGameWindow()
         {
@@ -34,12 +31,44 @@ namespace PS8
             popUpMenu.Location = new Point(698, 152);
         }
 
-        private void registerButtonClick(object sender, MouseEventArgs e)
+        private void registerButtonClick(object sender, MouseEventArgs j)
         {
-            string name = playerNameBox.Text;
-            string url = serverURL_Box.Text;
-            if (name != null && url != null)
-                registerButtonClicked(name,url);
+            bool validInfo = false;
+            string name;
+            Uri url;
+
+            try
+            {
+                if (playerNameBox.Text != null)
+                    name = playerNameBox.Text;
+                else
+                    throw new ArgumentNullException("name");
+
+                if (!Uri.TryCreate(serverURL_Box.Text, UriKind.Absolute, out url) && url.Scheme == Uri.UriSchemeHttp)
+                {
+                    url = null;
+                    throw new UriFormatException();
+                }
+
+                int gameTime = int.Parse(gameTimeBox.Text);
+
+                registerButtonClicked(name, url);
+                prepareGameWindow();
+      
+
+            }
+            catch (UriFormatException)
+            {
+                return;
+            }
+            catch (FormatException)
+            {
+                return;
+            }
+            catch (ArgumentNullException)
+            {
+                return;
+            }
         }
     }
 }
