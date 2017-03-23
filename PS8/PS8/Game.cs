@@ -23,6 +23,9 @@ namespace PS8
         private int score;
         public int Score { get { return score; } set { score = value; } }
 
+        private int timeLimit;
+        public int TimeLimit { get { return timeLimit; } set { timeLimit = value; } }
+
         private List<string> wordsPlayed;
         public List<string> WordsPlayed { get { return copyOfList(wordsPlayed); } }
         public void addWord(string word) { wordsPlayed.Add(word); }
@@ -31,9 +34,7 @@ namespace PS8
         /// The class that backs a game of Boggle;
         /// </summary>
         /// <param name="GameID"></param>
-        public Game()
-        {
-        }
+        public Game() { }
 
         public IEnumerator<string> EnumBoard()
         {

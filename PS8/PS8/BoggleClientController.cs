@@ -16,7 +16,7 @@ namespace PS8
         private IBoggleClientView ClientView;
         private Game game;
         HttpClient client = null;
-        
+        private bool pending = true;
         
 
         public BoggleClientController(IBoggleClientView view)
@@ -31,23 +31,27 @@ namespace PS8
             CreateUser(name);
         }
 
-        
+        private void Game()
+        {
+            JoinGame();
+            GameStatus(true);
+            //while (pending)
+            //{
+
+            //    Task checkStatus = new Task(() => GameStatus(true));
+            //}
+        }
 
         ///******************* These methods implement the Boggle API ***********************///
         private void CreateUser(string nickname)
         {
-            
             //Create an array object that will be converted to JSON for request body
             dynamic content = new ExpandoObject();
             content.Nickname = nickname;
 
-            //Add the nickname to the game object
-            
-
             //Convert the expando into a JSON array
             StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
-           //StringContent httpContent = new StringContent("{\"Nickname\":\"wes\"}");
 
             using (client)
             {
@@ -64,7 +68,8 @@ namespace PS8
                     //Strip the value of the UserToken out of the response.
                     string id = result.Substring(14);
                     game.UserToken = id.Substring(0,id.Length - 2);
-                    
+
+                    Game();
                 }
 
                 else if (response.StatusCode == HttpStatusCode.BadRequest)
@@ -83,31 +88,67 @@ namespace PS8
             
         }
 
-        private void JoinGame(string userToken, int timeLimit)
+        private void JoinGame()
+        {
+            dynamic content = new ExpandoObject();
+            content.UserToken = game.UserToken;
+            content.TimeLimit = 120;
+
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+            using (client)
+            {
+                HttpResponseMessage response = client.PostAsync("games", httpContent).Result;
+                if (response.StatusCode == HttpStatusCode.Accepted)
+                {
+
+                }
+
+                else if (response.StatusCode == HttpStatusCode.Created)
+                {
+
+                }
+
+                else if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+
+                }
+
+                else if (response.StatusCode == HttpStatusCode.Conflict)
+                {
+
+                }
+            }
+            
+
+        }
+
+        private void CancelJoinRequest()
         {
 
         }
 
-        private void CancelJoinRequest(string userToken)
-        {
-
-        }
-
-        private void PlayWord(string userToken, string wordPlayed)
+        private void PlayWord(string wordPlayed)
         {
 
         }
 
         private void GameStatus(bool brief)
         {
-            using (this.client)
+            using (client)
             {
-                HttpResponseMessage response = client.GetAsync("games/" + game.UserToken).Result;
+                HttpResponseMessage response = client.GetAsync("games/132").Result;
                 if (response.IsSuccessStatusCode)
                 {
                     string result = response.Content.ReadAsStringAsync().Result;
 
                     dynamic gameState = JsonConvert.DeserializeObject(result);
+
+                    StringBuilder gameStatus = gameState.GameState.ToString();
+                    gameStatus.Replace("{", "");
+                    gameStatus.Replace("}", "");
+                    bool temp;
+                    bool resutl = bool.TryParse(gameStatus.ToString(), out temp);
 
                     return;
                 }
@@ -128,7 +169,6 @@ namespace PS8
             client.BaseAddress = new Uri("http://cs3500-boggle-s17.azurewebsites.net");
 
             client.DefaultRequestHeaders.Accept.Clear();
-            //client.DefaultRequestHeaders.Add("Content-Type", @"application/json");
 
             this.client = client;
 
@@ -136,7 +176,7 @@ namespace PS8
         }
 
         /// <summary>
-        /// A helper method that creates an HTTP Client with a string argument that represents the base
+        /// A helper method that creates an HTTP Client with a Uri argument that represents the base
         /// address of the HTTP Client instance that is being created. Addtionally this client
         /// requires content in the form of JSON arrays
         /// <exception cref=InvalidHTTP_FormatException>description</exception>  
