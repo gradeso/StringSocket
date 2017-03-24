@@ -15,11 +15,13 @@ namespace PS8
 	
 	class BoggleClientController
 	{
+        private string nickname;
 		private IBoggleClientView ClientView;
 		private Game game;
 		HttpClient client = null;
 		private bool pending = true;
 		private int gameTime;
+        
 
 		/// <summary>
 		/// The timer that goes 
@@ -46,37 +48,41 @@ namespace PS8
 			ClientView = view;
 			view.cancel += View_cancel;
 			view.passGameTimeAndStart += View_passGameTimeAndStart;
-			view.passNameAndUrl += View_passNameAndUrl;
+            view.passNameAndUrl += View_passNameAndUrl;
+            view.wordPlayed += play_Word;
 			timeOutCounter = 0;
 			statusCheckTimer = new Timer(delta);
 			statusCheckTimer.AutoReset = true;
-		}
+            
+        }
 
-		private void View_passNameAndUrl(string arg1, Uri arg2)
-		{
-		
-		}
+        private void play_Word(string word)
+        {
+            PlayWord(word);
+        }
 
-		private void View_passGameTimeAndStart(int obj)
+        private void View_passNameAndUrl(string nickname, Uri url)
+        {
+            this.nickname = nickname;
+            CreateClient(url);
+        }
+
+		private void View_passGameTimeAndStart(int time)
 		{
-			throw new NotImplementedException();
+            gameTime = time;
+            CreateUser(this.nickname, time);
+            JoinGame();
+            GameStatus(true);
 		}
 
 		private void View_cancel()
 		{
-			throw new NotImplementedException();
-		}
-
-		private void handleJoinClick(string name, Uri url, int gameTime)
-		{
 			
-			this.gameTime = gameTime;
-		
 		}
 
 		
 		///******************* These methods implement the Boggle API ***********************///
-		private void CreateUser(string nickname)
+		private void CreateUser(string nickname, int gameTime)
 		{
 			//Create an array object that will be converted to JSON for request body
 			dynamic content = new ExpandoObject();
@@ -86,8 +92,6 @@ namespace PS8
 			StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
 
-			using (client)
-			{
 				HttpResponseMessage response = client.PostAsync("users", httpContent).Result;
 				if (response.StatusCode == HttpStatusCode.Created)
 				{
@@ -103,7 +107,7 @@ namespace PS8
 					string id = result.Substring(14);
 					game.UserToken = id.Substring(0, id.Length - 2);
 
-					JoinGame();
+					//JoinGame();
 
 				}
 
@@ -118,7 +122,7 @@ namespace PS8
 				}
 
 				else throw new Exception("Outside of consideration");
-			}
+			
 
 
 		}
@@ -131,45 +135,56 @@ namespace PS8
 
 			StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
-			using (client)
+			HttpResponseMessage response = client.PostAsync("games", httpContent).Result;
+			if (response.StatusCode == HttpStatusCode.Accepted)
 			{
-				HttpResponseMessage response = client.PostAsync("games", httpContent).Result;
-				if (response.StatusCode == HttpStatusCode.Accepted)
-				{
-					string data = response.Content.ReadAsStringAsync().Result;
-					dynamic arg = JsonConvert.DeserializeObject(data);
-					int id = (int)(arg.GameID);
-					game.GameID = id;
-					GameStatus(true);
-				}
-
-				else if (response.StatusCode == HttpStatusCode.Created)
-				{
-					string data = response.Content.ReadAsStringAsync().Result;
-					dynamic arg = JsonConvert.DeserializeObject(data);
-					int id = (int)(arg.GameID);
-					game.GameID = id;
-					GameStatus(true);
-				}
-
-				else if (response.StatusCode == HttpStatusCode.Forbidden)
-				{
-
-				}
-
-				else if (response.StatusCode == HttpStatusCode.Conflict)
-				{
-
-				}
+				string data = response.Content.ReadAsStringAsync().Result;
+				dynamic arg = JsonConvert.DeserializeObject(data);
+				int id = (int)(arg.GameID);
+				game.GameID = id;
+				//GameStatus(true);
 			}
+
+			else if (response.StatusCode == HttpStatusCode.Created)
+			{
+				string data = response.Content.ReadAsStringAsync().Result;
+				dynamic arg = JsonConvert.DeserializeObject(data);
+				int id = (int)(arg.GameID);
+				game.GameID = id;
+				//GameStatus(true);
+			}
+
+			else if (response.StatusCode == HttpStatusCode.Forbidden)
+			{
+
+			}
+
+			else if (response.StatusCode == HttpStatusCode.Conflict)
+			{
+
+			}
+			
 
 
 		}
 
 		private void CancelJoinRequest()
 		{
+            dynamic content = new ExpandoObject();
+            content.UserToken = game.UserToken;
+            
 
-		}
+            StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = client.PutAsync("games", httpContent).Result;
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+
+            }
+
+            else throw new Exception();
+
+        }
 
 		private void PlayWord(string wordPlayed)
 		{
@@ -178,38 +193,37 @@ namespace PS8
 
 		private void GameStatus(bool brief)
 		{
-			using (client)
-			{
-				HttpResponseMessage response = client.GetAsync("games/" + game.GameID).Result;
-				if (response.IsSuccessStatusCode)
-				{
-					string result = response.Content.ReadAsStringAsync().Result;
-					dynamic gameState = JsonConvert.DeserializeObject(result);
-					string status = gameState.GameState;
-					if (status == "pending")
-					{
+
+		    HttpResponseMessage response = client.GetAsync("games/" + game.GameID).Result;
+		    if (response.IsSuccessStatusCode)
+		    {
+			    string result = response.Content.ReadAsStringAsync().Result;
+			    dynamic gameState = JsonConvert.DeserializeObject(result);
+			    string status = gameState.GameState;
+			    if (status == "pending")
+			    {
 						
-						PendingGame(gameState);
-					}
-					else if (status == "active")
-					{
-						ActiveGame(gameState);
-					}
-					else if (status == "completed")
-					{
+				    PendingGame(gameState);
+			    }
+			    else if (status == "active")
+			    {
+				    ActiveGame(gameState);
+			    }
+			    else if (status == "completed")
+			    {
 
-					}
-					else
-					{
+			    }
+			    else
+			    {
 
-						SendCancel();
-						throw new Exception("unexpected termination");
-					}
-					return;
-				}
+				    SendCancel();
+				    throw new Exception("unexpected termination");
+			    }
+			    return;
+		    }
 
-				else throw new Exception();
-			}
+		    else throw new Exception();
+			
 		}
 
 		private void SendCancel()
@@ -219,7 +233,7 @@ namespace PS8
 
 		private void ActiveGame(dynamic gameState)
 		{
-
+            //
 		}
 
 		private void PendingGame(dynamic gameState)

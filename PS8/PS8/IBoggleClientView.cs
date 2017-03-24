@@ -11,5 +11,6 @@ namespace PS8
 		event Action<string, Uri> passNameAndUrl;
 		event Action<int> passGameTimeAndStart;
 		event Action cancel;
+        event Action<string> wordPlayed;
     }
 }

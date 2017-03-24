@@ -16,20 +16,26 @@ namespace PS8
 
         public List<object> tileArray;
 
-		public event Action<string, Uri> passNameAndUrl;
-		public event Action<int> passGameTimeAndStart;
-		public event Action cancel;
+        public event Action<string, Uri> passNameAndUrl;
+        public event Action<int> passGameTimeAndStart;
+        public event Action cancel;
+        public event Action<string> wordPlayed;
 
-		public BoggleClientWindow()
+        public BoggleClientWindow()
         {
             InitializeComponent();
 
             Size = new Size(666, 195);
-            popUpMenu.Location = new Point(0,0);
-			gameTimeBox.Visible = false;
+            popUpMenu.Location = new Point(0, 0);
+            gameTimeBox.Visible = false;
             connectButton.MouseClick += registerButtonClick;
+            playWordButton.MouseClick += playWord;
 
-            
+        }
+
+        private void playWord(object sender, MouseEventArgs e)
+        {
+            wordPlayed(playWordButton.Text);
         }
 
         public void prepareGameWindow()
@@ -39,74 +45,77 @@ namespace PS8
             createArrayOfTiles();
         }
 
-		private void registerButtonClick(object sender, MouseEventArgs j)
-		{
+        private void registerButtonClick(object sender, MouseEventArgs j)
+        {
 
-			switch (connectButton.Text) {
+            switch (connectButton.Text)
+            {
 
-				case "Register":
+                case "Register":
 
-					try
-					{
-						string name;
-						if (playerNameBox.Text != null)
-							name = playerNameBox.Text;
-						else
-							throw new ArgumentNullException("name");
-						Uri url;
-						if (!Uri.TryCreate(serverUrL_Box.Text, UriKind.Absolute, out url) && url.Scheme == Uri.UriSchemeHttp)
-						{
-							url = null;
-							throw new UriFormatException();
-						}
-						passNameAndUrl(name, url);
-
-
-
-					}
-					catch (UriFormatException)
-					{
-						//Add popup dialog 
-						return;
-					}
-					catch (FormatException)
-					{
-						//Add popup dialog
-						return;
-					}
-					catch (ArgumentNullException)
-					{
-						//Add popup dialog 
-						return;
-					}
-					catch (InvalidConstraintException)
-					{
-
-					}
-					playerNameBox.Visible = false;
-					connectButton.Text = "Join";
-					serverUrL_Box.Visible = false;
-					gameTimeBox.Visible = true;
-					break;
-				case "Join":
+                    try
+                    {
+                        string name;
+                        if (playerNameBox.Text != null)
+                            name = playerNameBox.Text;
+                        else
+                            throw new ArgumentNullException("name");
+                        Uri url;
+                        if (!Uri.TryCreate(serverUrL_Box.Text, UriKind.Absolute, out url) && url.Scheme == Uri.UriSchemeHttp)
+                        {
+                            url = null;
+                            throw new UriFormatException();
+                        }
+                        passNameAndUrl(name, url);
 
 
-					int gameTime = int.Parse(gameTimeBox.Text);
-					if (!(gameTime > 5 && gameTime < 120))
-					{
-						throw new InvalidConstraintException();
-					}
-					prepareGameWindow();
-					passGameTimeAndStart(gameTime);
-					gameTimeBox.Visible = false;
-					connectButton.Text = "Cancel";
 
-					
-					break;
-				case "Cancel":
-					cancel();
-					break;
-			}
+                    }
+                    catch (UriFormatException)
+                    {
+                        //Add popup dialog 
+                        return;
+                    }
+                    catch (FormatException)
+                    {
+                        //Add popup dialog
+                        return;
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        //Add popup dialog 
+                        return;
+                    }
+                    catch (InvalidConstraintException)
+                    {
+
+                    }
+                    playerNameBox.Visible = false;
+                    connectButton.Text = "Join";
+                    serverUrL_Box.Visible = false;
+                    gameTimeBox.Visible = true;
+                    break;
+
+                case "Join":
+
+                    //Try 
+                    int gameTime = int.Parse(gameTimeBox.Text);
+
+                    if (!(gameTime > 5 && gameTime < 120))
+                    {
+                        throw new InvalidConstraintException();
+                    }
+                    prepareGameWindow();
+                    passGameTimeAndStart(gameTime);
+                    gameTimeBox.Visible = false;
+                    connectButton.Text = "Cancel";
+
+
+                    break;
+                case "Cancel":
+                    cancel();
+                    break;
+            }
         }
         public void createArrayOfTiles()
         {
