@@ -8,6 +8,8 @@ namespace PS8
 {
     interface IBoggleClientView
     {
-        event Action<string, Uri, int> registerButtonClicked;
+		event Action<string, Uri> passNameAndUrl;
+		event Action<int> passGameTimeAndStart;
+		event Action cancel;
     }
 }
