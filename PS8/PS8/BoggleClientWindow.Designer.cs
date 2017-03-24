@@ -29,16 +29,19 @@
         private void InitializeComponent()
         {
             this.panel1 = new System.Windows.Forms.Panel();
-            this.helpButton = new System.Windows.Forms.Button();
+            this.ScoreLabel2 = new System.Windows.Forms.Label();
+            this.playerTwoBox = new System.Windows.Forms.Label();
+            this.playerOneBox = new System.Windows.Forms.Label();
+            this.ScoreLabel1 = new System.Windows.Forms.Label();
             this.popUpMenu = new System.Windows.Forms.Panel();
+            this.gameTimeBox = new System.Windows.Forms.TextBox();
             this.connectButton = new System.Windows.Forms.Button();
             this.serverURL_Box = new System.Windows.Forms.TextBox();
             this.playerNameBox = new System.Windows.Forms.TextBox();
-            this.playerTwoBox = new System.Windows.Forms.Label();
-            this.playerOneBox = new System.Windows.Forms.Label();
+            this.textBox19 = new System.Windows.Forms.TextBox();
+            this.helpButton = new System.Windows.Forms.Button();
             this.textBox17 = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.ScoreLabel1 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.textBox16 = new System.Windows.Forms.TextBox();
             this.textBox15 = new System.Windows.Forms.TextBox();
@@ -57,9 +60,6 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox18 = new System.Windows.Forms.TextBox();
-            this.gameTimeBox = new System.Windows.Forms.TextBox();
-            this.textBox19 = new System.Windows.Forms.TextBox();
-            this.ScoreLabel2 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.popUpMenu.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -68,37 +68,67 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.panel1.Controls.Add(this.popUpMenu);
             this.panel1.Controls.Add(this.ScoreLabel2);
             this.panel1.Controls.Add(this.playerTwoBox);
             this.panel1.Controls.Add(this.playerOneBox);
             this.panel1.Controls.Add(this.ScoreLabel1);
-            this.panel1.Controls.Add(this.popUpMenu);
+            this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.textBox19);
             this.panel1.Controls.Add(this.helpButton);
             this.panel1.Controls.Add(this.textBox17);
-            this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.tableLayoutPanel1);
             this.panel1.Controls.Add(this.textBox18);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1179, 794);
+            this.panel1.Size = new System.Drawing.Size(1178, 794);
             this.panel1.TabIndex = 0;
             // 
-            // helpButton
+            // ScoreLabel2
             // 
-            this.helpButton.BackColor = System.Drawing.Color.DimGray;
-            this.helpButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.helpButton.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.helpButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.helpButton.Location = new System.Drawing.Point(355, 739);
-            this.helpButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.helpButton.Name = "helpButton";
-            this.helpButton.Size = new System.Drawing.Size(468, 46);
-            this.helpButton.TabIndex = 5;
-            this.helpButton.Text = "Help";
-            this.helpButton.UseVisualStyleBackColor = false;
+            this.ScoreLabel2.AutoSize = true;
+            this.ScoreLabel2.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ScoreLabel2.Location = new System.Drawing.Point(833, 91);
+            this.ScoreLabel2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.ScoreLabel2.Name = "ScoreLabel2";
+            this.ScoreLabel2.Size = new System.Drawing.Size(157, 43);
+            this.ScoreLabel2.TabIndex = 15;
+            this.ScoreLabel2.Text = "Score: 0";
+            // 
+            // playerTwoBox
+            // 
+            this.playerTwoBox.AutoSize = true;
+            this.playerTwoBox.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.playerTwoBox.Location = new System.Drawing.Point(833, 23);
+            this.playerTwoBox.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.playerTwoBox.Name = "playerTwoBox";
+            this.playerTwoBox.Size = new System.Drawing.Size(175, 43);
+            this.playerTwoBox.TabIndex = 12;
+            this.playerTwoBox.Text = "Player 2: ";
+            // 
+            // playerOneBox
+            // 
+            this.playerOneBox.AutoSize = true;
+            this.playerOneBox.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.playerOneBox.Location = new System.Drawing.Point(13, 23);
+            this.playerOneBox.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.playerOneBox.Name = "playerOneBox";
+            this.playerOneBox.Size = new System.Drawing.Size(175, 43);
+            this.playerOneBox.TabIndex = 11;
+            this.playerOneBox.Text = "Player 1: ";
+            // 
+            // ScoreLabel1
+            // 
+            this.ScoreLabel1.AutoSize = true;
+            this.ScoreLabel1.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ScoreLabel1.Location = new System.Drawing.Point(13, 91);
+            this.ScoreLabel1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.ScoreLabel1.Name = "ScoreLabel1";
+            this.ScoreLabel1.Size = new System.Drawing.Size(157, 43);
+            this.ScoreLabel1.TabIndex = 6;
+            this.ScoreLabel1.Text = "Score: 0";
             // 
             // popUpMenu
             // 
@@ -111,6 +141,16 @@
             this.popUpMenu.Name = "popUpMenu";
             this.popUpMenu.Size = new System.Drawing.Size(940, 246);
             this.popUpMenu.TabIndex = 13;
+            // 
+            // gameTimeBox
+            // 
+            this.gameTimeBox.AcceptsReturn = true;
+            this.gameTimeBox.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.gameTimeBox.Location = new System.Drawing.Point(11, 135);
+            this.gameTimeBox.Name = "gameTimeBox";
+            this.gameTimeBox.Size = new System.Drawing.Size(305, 37);
+            this.gameTimeBox.TabIndex = 4;
+            this.gameTimeBox.Text = " Enter Game Time (sec)";
             // 
             // connectButton
             // 
@@ -149,29 +189,28 @@
             this.playerNameBox.TabIndex = 1;
             this.playerNameBox.Text = "darth plagueis";
             // 
-            // playerTwoBox
+            // textBox19
             // 
-            this.playerTwoBox.AutoSize = true;
-            this.playerTwoBox.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerTwoBox.Location = new System.Drawing.Point(833, 23);
-            this.playerTwoBox.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.playerTwoBox.Name = "playerTwoBox";
-            this.playerTwoBox.Size = new System.Drawing.Size(175, 43);
-            this.playerTwoBox.TabIndex = 12;
-            this.playerTwoBox.Text = "Player 2: ";
-            this.playerTwoBox.Visible = false;
+            this.textBox19.Location = new System.Drawing.Point(11, 154);
+            this.textBox19.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.textBox19.Multiline = true;
+            this.textBox19.Name = "textBox19";
+            this.textBox19.Size = new System.Drawing.Size(334, 512);
+            this.textBox19.TabIndex = 14;
             // 
-            // playerOneBox
+            // helpButton
             // 
-            this.playerOneBox.AutoSize = true;
-            this.playerOneBox.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerOneBox.Location = new System.Drawing.Point(13, 23);
-            this.playerOneBox.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.playerOneBox.Name = "playerOneBox";
-            this.playerOneBox.Size = new System.Drawing.Size(175, 43);
-            this.playerOneBox.TabIndex = 11;
-            this.playerOneBox.Text = "Player 1: ";
-            this.playerOneBox.Visible = false;
+            this.helpButton.BackColor = System.Drawing.Color.DimGray;
+            this.helpButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.helpButton.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.helpButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.helpButton.Location = new System.Drawing.Point(355, 739);
+            this.helpButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.helpButton.Name = "helpButton";
+            this.helpButton.Size = new System.Drawing.Size(468, 46);
+            this.helpButton.TabIndex = 5;
+            this.helpButton.Text = "Help";
+            this.helpButton.UseVisualStyleBackColor = false;
             // 
             // textBox17
             // 
@@ -195,19 +234,6 @@
             this.label2.Size = new System.Drawing.Size(179, 89);
             this.label2.TabIndex = 8;
             this.label2.Text = "0:00";
-            this.label2.Visible = false;
-            // 
-            // ScoreLabel1
-            // 
-            this.ScoreLabel1.AutoSize = true;
-            this.ScoreLabel1.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ScoreLabel1.Location = new System.Drawing.Point(13, 91);
-            this.ScoreLabel1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.ScoreLabel1.Name = "ScoreLabel1";
-            this.ScoreLabel1.Size = new System.Drawing.Size(157, 43);
-            this.ScoreLabel1.TabIndex = 6;
-            this.ScoreLabel1.Text = "Score: 0";
-            this.ScoreLabel1.Visible = false;
             // 
             // tableLayoutPanel1
             // 
@@ -476,42 +502,11 @@
             this.textBox18.Size = new System.Drawing.Size(334, 512);
             this.textBox18.TabIndex = 10;
             // 
-            // gameTimeBox
-            // 
-            this.gameTimeBox.AcceptsReturn = true;
-            this.gameTimeBox.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gameTimeBox.Location = new System.Drawing.Point(11, 135);
-            this.gameTimeBox.Name = "gameTimeBox";
-            this.gameTimeBox.Size = new System.Drawing.Size(305, 37);
-            this.gameTimeBox.TabIndex = 4;
-            this.gameTimeBox.Text = " Enter Game Time (sec)";
-            // 
-            // textBox19
-            // 
-            this.textBox19.Location = new System.Drawing.Point(11, 154);
-            this.textBox19.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.textBox19.Multiline = true;
-            this.textBox19.Name = "textBox19";
-            this.textBox19.Size = new System.Drawing.Size(334, 512);
-            this.textBox19.TabIndex = 14;
-            // 
-            // ScoreLabel2
-            // 
-            this.ScoreLabel2.AutoSize = true;
-            this.ScoreLabel2.Font = new System.Drawing.Font("Century Gothic", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ScoreLabel2.Location = new System.Drawing.Point(833, 91);
-            this.ScoreLabel2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.ScoreLabel2.Name = "ScoreLabel2";
-            this.ScoreLabel2.Size = new System.Drawing.Size(157, 43);
-            this.ScoreLabel2.TabIndex = 15;
-            this.ScoreLabel2.Text = "Score: 0";
-            this.ScoreLabel2.Visible = false;
-            // 
             // BoggleClientWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1179, 794);
+            this.ClientSize = new System.Drawing.Size(1178, 794);
             this.Controls.Add(this.panel1);
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "BoggleClientWindow";

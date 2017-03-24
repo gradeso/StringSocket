@@ -34,7 +34,6 @@ namespace PS8
 
         private void Game()
         {
-            
             //while (pending)
             //{
             //    Task checkStatus = new Task(() => GameStatus(true));
@@ -100,7 +99,7 @@ namespace PS8
             using (client)
             {
                 HttpResponseMessage response = client.PostAsync("games", httpContent).Result;
-                if (response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.Created)
+                if (response.StatusCode == HttpStatusCode.Accepted)
                 {
                     string data = response.Content.ReadAsStringAsync().Result;
                     dynamic arg = JsonConvert.DeserializeObject(data);
@@ -111,8 +110,10 @@ namespace PS8
 
                 else if (response.StatusCode == HttpStatusCode.Created)
                 {
-                    dynamic data = response.Content.ReadAsStringAsync();
-                    int id = int.Parse(data.GameID.ToString());
+                    string data = response.Content.ReadAsStringAsync().Result;
+                    dynamic arg = JsonConvert.DeserializeObject(data);
+                    int id = (int)(arg.GameID);
+                    game.GameID = id;
                     GameStatus(true);
                 }
 
@@ -152,15 +153,15 @@ namespace PS8
                     string status = gameState.GameState;
                     if(status == "pending")
                     {
-
+                        Game();
                     }
                     else if (status == "active")
                     {
-
+                        pending = false;
                     }
                     else if (status == "completed")
                     {
-
+                        pending = false;
                     }
                     return;
                 }
