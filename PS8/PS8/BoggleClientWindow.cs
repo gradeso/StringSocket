@@ -14,15 +14,12 @@ namespace PS8
     public partial class BoggleClientWindow : Form, IBoggleClientView
     {
         private string board  = "aaaaaaaaaaaaaaaa";
+        private bool pending = false;
         protected List<object> tileArray;
 
-        string IBoggleClientView.board
+        public string Board
         {
-            get
-            {
-
-                return board;
-            }
+            get { return board; }
 
             set
             {
@@ -30,6 +27,8 @@ namespace PS8
                 populateBoard();
             }
         }
+
+        public bool Pending { get { return pending; } set { pending = value; }}
 
         public event Action<string, Uri> passNameAndUrl;
         public event Action<int> passGameTimeAndStart;
@@ -123,8 +122,6 @@ namespace PS8
                         throw new InvalidConstraintException();
                     }
 
-                    
-                    prepareGameWindow();
                     passGameTimeAndStart(gameTime);
                     gameTimeBox.Visible = false;
                     connectButton.Text = "Cancel";
@@ -141,17 +138,18 @@ namespace PS8
 
         private void populateBoard()
         {
-
-            char[] letters = this.board.ToCharArray();
-            int index = 0;
-
-            foreach (dynamic box in tileArray)
+            if (board != null)
             {
-                box.Text = letters[index].ToString();
-                if(index != 16)
-                    index++;
-            }
+                char[] letters = this.board.ToCharArray();
+                int index = 0;
 
+                foreach (dynamic box in tileArray)
+                {
+                    box.Text = letters[index].ToString();
+                    if (index != 16)
+                        index++;
+                }
+            }
         }
 
         public void createArrayOfTiles()

@@ -165,9 +165,7 @@ namespace PS8
 				int id = (int)(arg.GameID);
 				game.GameID = id;
 
-				GameStatus(true);
-
-                //return pending
+                GameStatus(true);
                
 			}
 
@@ -269,7 +267,7 @@ namespace PS8
 		private void ActiveGame(dynamic gameState)
 		{
             string board = gameState.Board;
-            ClientView.board = board; 
+            ClientView.Board = board; 
 		}
 
 
