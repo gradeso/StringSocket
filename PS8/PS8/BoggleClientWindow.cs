@@ -13,8 +13,23 @@ namespace PS8
 {
     public partial class BoggleClientWindow : Form, IBoggleClientView
     {
+        private string board  = "aaaaaaaaaaaaaaaa";
+        protected List<object> tileArray;
 
-        public List<object> tileArray;
+        string IBoggleClientView.board
+        {
+            get
+            {
+
+                return board;
+            }
+
+            set
+            {
+                board = value;
+                populateBoard();
+            }
+        }
 
         public event Action<string, Uri> passNameAndUrl;
         public event Action<int> passGameTimeAndStart;
@@ -23,6 +38,7 @@ namespace PS8
 
         public BoggleClientWindow()
         {
+
             InitializeComponent();
 
             Size = new Size(666, 195);
@@ -43,6 +59,7 @@ namespace PS8
             Size = new Size(802, 560);
             popUpMenu.Location = new Point(1470, 152);
             createArrayOfTiles();
+            
         }
 
         private void registerButtonClick(object sender, MouseEventArgs j)
@@ -105,18 +122,38 @@ namespace PS8
                     {
                         throw new InvalidConstraintException();
                     }
+
+                    
                     prepareGameWindow();
                     passGameTimeAndStart(gameTime);
                     gameTimeBox.Visible = false;
                     connectButton.Text = "Cancel";
-
+                   
 
                     break;
+
                 case "Cancel":
+
                     cancel();
                     break;
             }
         }
+
+        private void populateBoard()
+        {
+
+            char[] letters = this.board.ToCharArray();
+            int index = 0;
+
+            foreach (dynamic box in tileArray)
+            {
+                box.Text = letters[index].ToString();
+                if(index != 16)
+                    index++;
+            }
+
+        }
+
         public void createArrayOfTiles()
         {
             tileArray = new List<object>() { textBox1, textBox2, textBox3, textBox4, textBox5, textBox6,
