@@ -28,18 +28,21 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.timerLabel = new System.Windows.Forms.Label();
             this.playWordButton = new System.Windows.Forms.Button();
             this.popUpMenu = new System.Windows.Forms.Panel();
+            this.cancelJoinButton = new System.Windows.Forms.Button();
+            this.joinButton = new System.Windows.Forms.Button();
             this.gameTimeBox = new System.Windows.Forms.TextBox();
-            this.connectButton = new System.Windows.Forms.Button();
+            this.registerButton = new System.Windows.Forms.Button();
             this.serverUrL_Box = new System.Windows.Forms.TextBox();
             this.playerNameBox = new System.Windows.Forms.TextBox();
             this.ScoreLabel2 = new System.Windows.Forms.Label();
-            this.playerTwoBox = new System.Windows.Forms.Label();
-            this.playerOneBox = new System.Windows.Forms.Label();
+            this.playerTwoLabel = new System.Windows.Forms.Label();
+            this.playerOneLabel = new System.Windows.Forms.Label();
             this.ScoreLabel1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.textBox19 = new System.Windows.Forms.TextBox();
             this.helpButton = new System.Windows.Forms.Button();
             this.playWordTextBox = new System.Windows.Forms.TextBox();
@@ -61,6 +64,7 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox18 = new System.Windows.Forms.TextBox();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.panel1.SuspendLayout();
             this.popUpMenu.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
@@ -69,13 +73,13 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.panel1.Controls.Add(this.timerLabel);
             this.panel1.Controls.Add(this.playWordButton);
             this.panel1.Controls.Add(this.popUpMenu);
             this.panel1.Controls.Add(this.ScoreLabel2);
-            this.panel1.Controls.Add(this.playerTwoBox);
-            this.panel1.Controls.Add(this.playerOneBox);
+            this.panel1.Controls.Add(this.playerTwoLabel);
+            this.panel1.Controls.Add(this.playerOneLabel);
             this.panel1.Controls.Add(this.ScoreLabel1);
-            this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.textBox19);
             this.panel1.Controls.Add(this.helpButton);
             this.panel1.Controls.Add(this.playWordTextBox);
@@ -84,8 +88,22 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1250, 516);
+            this.panel1.Size = new System.Drawing.Size(789, 516);
             this.panel1.TabIndex = 0;
+            // 
+            // timerLabel
+            // 
+            this.timerLabel.AutoSize = true;
+            this.timerLabel.BackColor = System.Drawing.SystemColors.HighlightText;
+            this.timerLabel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.timerLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.timerLabel.Location = new System.Drawing.Point(329, 423);
+            this.timerLabel.MaximumSize = new System.Drawing.Size(119, 35);
+            this.timerLabel.MinimumSize = new System.Drawing.Size(119, 35);
+            this.timerLabel.Name = "timerLabel";
+            this.timerLabel.Size = new System.Drawing.Size(119, 35);
+            this.timerLabel.TabIndex = 17;
+            this.timerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // playWordButton
             // 
@@ -102,39 +120,69 @@
             // 
             // popUpMenu
             // 
+            this.popUpMenu.Controls.Add(this.cancelJoinButton);
+            this.popUpMenu.Controls.Add(this.joinButton);
             this.popUpMenu.Controls.Add(this.gameTimeBox);
-            this.popUpMenu.Controls.Add(this.connectButton);
+            this.popUpMenu.Controls.Add(this.registerButton);
             this.popUpMenu.Controls.Add(this.serverUrL_Box);
             this.popUpMenu.Controls.Add(this.playerNameBox);
-            this.popUpMenu.Location = new System.Drawing.Point(963, 205);
+            this.popUpMenu.Location = new System.Drawing.Point(798, 12);
             this.popUpMenu.Name = "popUpMenu";
-            this.popUpMenu.Size = new System.Drawing.Size(627, 160);
+            this.popUpMenu.Size = new System.Drawing.Size(644, 260);
             this.popUpMenu.TabIndex = 13;
+            // 
+            // cancelJoinButton
+            // 
+            this.cancelJoinButton.BackColor = System.Drawing.Color.DimGray;
+            this.cancelJoinButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.cancelJoinButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.cancelJoinButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cancelJoinButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.cancelJoinButton.Location = new System.Drawing.Point(7, 219);
+            this.cancelJoinButton.Name = "cancelJoinButton";
+            this.cancelJoinButton.Size = new System.Drawing.Size(187, 30);
+            this.cancelJoinButton.TabIndex = 6;
+            this.cancelJoinButton.Text = "Cancel Join";
+            this.cancelJoinButton.UseVisualStyleBackColor = false;
+            // 
+            // joinButton
+            // 
+            this.joinButton.BackColor = System.Drawing.Color.DimGray;
+            this.joinButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.joinButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.joinButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.joinButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.joinButton.Location = new System.Drawing.Point(7, 179);
+            this.joinButton.Name = "joinButton";
+            this.joinButton.Size = new System.Drawing.Size(187, 30);
+            this.joinButton.TabIndex = 5;
+            this.joinButton.Text = "Join";
+            this.joinButton.UseVisualStyleBackColor = false;
             // 
             // gameTimeBox
             // 
             this.gameTimeBox.AcceptsReturn = true;
             this.gameTimeBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gameTimeBox.Location = new System.Drawing.Point(7, 88);
-            this.gameTimeBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.gameTimeBox.Location = new System.Drawing.Point(7, 143);
+            this.gameTimeBox.Margin = new System.Windows.Forms.Padding(2);
             this.gameTimeBox.Name = "gameTimeBox";
             this.gameTimeBox.Size = new System.Drawing.Size(205, 26);
             this.gameTimeBox.TabIndex = 4;
             this.gameTimeBox.Text = " Enter Game Time (sec)";
             // 
-            // connectButton
+            // registerButton
             // 
-            this.connectButton.BackColor = System.Drawing.Color.DimGray;
-            this.connectButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.connectButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.connectButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.connectButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.connectButton.Location = new System.Drawing.Point(7, 120);
-            this.connectButton.Name = "connectButton";
-            this.connectButton.Size = new System.Drawing.Size(187, 30);
-            this.connectButton.TabIndex = 3;
-            this.connectButton.Text = "Register";
-            this.connectButton.UseVisualStyleBackColor = false;
+            this.registerButton.BackColor = System.Drawing.Color.DimGray;
+            this.registerButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.registerButton.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.registerButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.registerButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.registerButton.Location = new System.Drawing.Point(7, 88);
+            this.registerButton.Name = "registerButton";
+            this.registerButton.Size = new System.Drawing.Size(187, 30);
+            this.registerButton.TabIndex = 3;
+            this.registerButton.Text = "Register";
+            this.registerButton.UseVisualStyleBackColor = false;
             // 
             // serverUrL_Box
             // 
@@ -160,52 +208,43 @@
             // 
             this.ScoreLabel2.AutoSize = true;
             this.ScoreLabel2.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ScoreLabel2.Location = new System.Drawing.Point(555, 59);
+            this.ScoreLabel2.Location = new System.Drawing.Point(688, 51);
             this.ScoreLabel2.Name = "ScoreLabel2";
-            this.ScoreLabel2.Size = new System.Drawing.Size(102, 29);
+            this.ScoreLabel2.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.ScoreLabel2.Size = new System.Drawing.Size(95, 29);
             this.ScoreLabel2.TabIndex = 15;
-            this.ScoreLabel2.Text = "Score: 0";
+            this.ScoreLabel2.Text = "Score : ";
             // 
-            // playerTwoBox
+            // playerTwoLabel
             // 
-            this.playerTwoBox.AutoSize = true;
-            this.playerTwoBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerTwoBox.Location = new System.Drawing.Point(555, 15);
-            this.playerTwoBox.Name = "playerTwoBox";
-            this.playerTwoBox.Size = new System.Drawing.Size(112, 29);
-            this.playerTwoBox.TabIndex = 12;
-            this.playerTwoBox.Text = "Player 2: ";
+            this.playerTwoLabel.AutoSize = true;
+            this.playerTwoLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.playerTwoLabel.Location = new System.Drawing.Point(668, 9);
+            this.playerTwoLabel.Name = "playerTwoLabel";
+            this.playerTwoLabel.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.playerTwoLabel.Size = new System.Drawing.Size(118, 29);
+            this.playerTwoLabel.TabIndex = 12;
+            this.playerTwoLabel.Text = " Player 2 :";
             // 
-            // playerOneBox
+            // playerOneLabel
             // 
-            this.playerOneBox.AutoSize = true;
-            this.playerOneBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.playerOneBox.Location = new System.Drawing.Point(9, 15);
-            this.playerOneBox.Name = "playerOneBox";
-            this.playerOneBox.Size = new System.Drawing.Size(112, 29);
-            this.playerOneBox.TabIndex = 11;
-            this.playerOneBox.Text = "Player 1: ";
+            this.playerOneLabel.AutoSize = true;
+            this.playerOneLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.playerOneLabel.Location = new System.Drawing.Point(9, 9);
+            this.playerOneLabel.Name = "playerOneLabel";
+            this.playerOneLabel.Size = new System.Drawing.Size(118, 29);
+            this.playerOneLabel.TabIndex = 11;
+            this.playerOneLabel.Text = "Player 1 : ";
             // 
             // ScoreLabel1
             // 
             this.ScoreLabel1.AutoSize = true;
             this.ScoreLabel1.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ScoreLabel1.Location = new System.Drawing.Point(9, 59);
+            this.ScoreLabel1.Location = new System.Drawing.Point(9, 51);
             this.ScoreLabel1.Name = "ScoreLabel1";
-            this.ScoreLabel1.Size = new System.Drawing.Size(102, 29);
+            this.ScoreLabel1.Size = new System.Drawing.Size(95, 29);
             this.ScoreLabel1.TabIndex = 6;
-            this.ScoreLabel1.Text = "Score: 0";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(331, 418);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(120, 57);
-            this.label2.TabIndex = 8;
-            this.label2.Text = "0:00";
+            this.ScoreLabel1.Text = "Score : ";
             // 
             // textBox19
             // 
@@ -237,6 +276,7 @@
             this.playWordTextBox.TabIndex = 9;
             this.playWordTextBox.Text = "Enter Words Here";
             this.playWordTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.playWordTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.enterWordKeyPressed);
             // 
             // tableLayoutPanel1
             // 
@@ -503,11 +543,17 @@
             this.textBox18.Size = new System.Drawing.Size(224, 334);
             this.textBox18.TabIndex = 10;
             // 
+            // timer
+            // 
+            this.timer.Enabled = true;
+            this.timer.Interval = 1000;
+            this.timer.Tick += new System.EventHandler(this.timerTick);
+            // 
             // BoggleClientWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1250, 516);
+            this.ClientSize = new System.Drawing.Size(789, 516);
             this.Controls.Add(this.panel1);
             this.Name = "BoggleClientWindow";
             this.Text = "BOGGLE";
@@ -541,21 +587,24 @@
         private System.Windows.Forms.TextBox textBox4;
         private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.Button connectButton;
+        private System.Windows.Forms.Button registerButton;
         private System.Windows.Forms.TextBox serverUrL_Box;
         private System.Windows.Forms.TextBox playerNameBox;
         private System.Windows.Forms.Label ScoreLabel1;
         private System.Windows.Forms.Button helpButton;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBox18;
         private System.Windows.Forms.TextBox playWordTextBox;
-        private System.Windows.Forms.Label playerTwoBox;
-        private System.Windows.Forms.Label playerOneBox;
+        private System.Windows.Forms.Label playerTwoLabel;
+        private System.Windows.Forms.Label playerOneLabel;
         private System.Windows.Forms.Panel popUpMenu;
         private System.Windows.Forms.TextBox gameTimeBox;
         private System.Windows.Forms.Label ScoreLabel2;
         private System.Windows.Forms.TextBox textBox19;
         private System.Windows.Forms.Button playWordButton;
+        private System.Windows.Forms.Button cancelJoinButton;
+        private System.Windows.Forms.Button joinButton;
+        private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.Label timerLabel;
     }
 }
 

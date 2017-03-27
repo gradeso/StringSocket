@@ -20,13 +20,16 @@ namespace PS8
 		private Game game;
 		HttpClient client = null;
 		private bool pending = true;
-		private int gameTime;
-        private string GameState;
-
-		/// <summary>
-		/// The timer that goes 
-		/// </summary>
-		private Timer statusCheckTimer;
+        private bool active = false;
+        private bool complete;
+		private int gameTime = -1;
+        private Task pendingTask;
+        private Task activeTask;
+        private bool initialize = true;
+        /// <summary>
+        /// The timer that goes 
+        /// </summary>
+        private Timer statusCheckTimer;
 
 		/// <summary>
 		/// The time out counter
@@ -45,53 +48,68 @@ namespace PS8
 
 		public BoggleClientController(IBoggleClientView view)
 		{
-			ClientView = view;
-			view.cancel += View_cancel;
-			view.passGameTimeAndStart += Game;
-            view.passNameAndUrl += View_passNameAndUrl;
-            view.wordPlayed += play_Word;
+            System.Threading.Thread.CurrentThread.Name = "main";
+
+            ClientView = view;
+
+            view.joinServerRequest += handleJoinRequest;
+            view.registerUserRequest += handleRegisterRequest;
+            view.playAWord += PlayWord;
             
 			timeOutCounter = 0;
 			statusCheckTimer = new Timer(delta);
 			statusCheckTimer.AutoReset = true;
         }
 
-       
-
-        private void play_Word(string word)
+        private void handleRegisterRequest(string playerName, Uri serverUrl)
         {
-            PlayWord(word);
+            CreateClient(serverUrl);
+            CreateUser(playerName);
         }
 
-        private void View_passNameAndUrl(string nickname, Uri url)
+        private void handleJoinRequest(int gameTime)
         {
-            this.nickname = nickname;
-            CreateClient(url);
+            JoinGame(gameTime);
+
+            pendingTask = Task.Run(() =>  handlePendingState());
+            
+            activeTask = Task.Run(() => ActiveGameState());
         }
 
-		private void Game(int time)
+        private void handlePendingState()
+        {
+            
+            while (pending)
+                GameStatus(true);
+
+            return;
+        }
+
+		private void ActiveGameState()
 		{
-            gameTime = time;
+            pendingTask.Wait();
 
-            CreateUser(this.nickname, time);
+            PendingChange(pending);
 
-            JoinGame();
+            while (active)
+                GameStatus(false);
 
-            //while(pending)
-            //{
-            //    GameStatus(false);
-            //}
-
+            ActiveChange(active);
+            return;
 		}
 
-		private void View_cancel()
-		{
-			
-		}
+        private void PendingChange(bool state)
+        {
+            ClientView.Pending = state;
+        }
 
-		
-		///******************* These methods implement the Boggle API ***********************///
-		private void CreateUser(string nickname, int gameTime)
+        private void ActiveChange(bool state)
+        {
+            ClientView.GameActive = state;
+        }
+
+        ///******************* These methods implement the Boggle API ***********************///
+        private void CreateUser(string nickname)
 		{
 			//Create an array object that will be converted to JSON for request body
 			dynamic content = new ExpandoObject();
@@ -100,23 +118,20 @@ namespace PS8
 			//Convert the expando into a JSON array
 			StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
-
 				HttpResponseMessage response = client.PostAsync("users", httpContent).Result;
 				if (response.StatusCode == HttpStatusCode.Created)
 				{
 					//Because we successfully connected to the server, the URL is correct, so 
 					//create the game object that will act as the model.
 					game = new Game();
-					game.Nickname = nickname;
-					game.TimeLimit = this.gameTime;
+                    game.Nickname = nickname;
+
 					//Read the contents of the POST into a string.
 					string result = response.Content.ReadAsStringAsync().Result;
 
 					//Strip the value of the UserToken out of the response.
 					string id = result.Substring(14);
 					game.UserToken = id.Substring(0, id.Length - 2);
-
-                    //JoinGame();
 
 				}
 
@@ -136,11 +151,11 @@ namespace PS8
 
 		}
 
-		private void JoinGame()
+		private void JoinGame(int gameTime)
 		{
 			dynamic content = new ExpandoObject();
 			content.UserToken = game.UserToken;
-			content.TimeLimit = game.TimeLimit;
+            content.TimeLimit = gameTime;
 
 			StringContent httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
 
@@ -149,13 +164,11 @@ namespace PS8
 			{
 				string data = response.Content.ReadAsStringAsync().Result;
 				dynamic arg = JsonConvert.DeserializeObject(data);
-				int id = (int)(arg.GameID);
+
+                int id = (int)(arg.GameID);
 				game.GameID = id;
 
 				GameStatus(true);
-
-                pending = true;
-                
 			}
 
 			else if (response.StatusCode == HttpStatusCode.Created)
@@ -166,7 +179,6 @@ namespace PS8
 				game.GameID = id;
 
                 GameStatus(true);
-               
 			}
 
 			else if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -230,10 +242,8 @@ namespace PS8
 
 		private void GameStatus(bool brief)
 		{
-            //+brief.ToString()
-
             HttpResponseMessage response = client.GetAsync("games/" + game.GameID).Result;
-		    if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
 		    {
 			    string result = response.Content.ReadAsStringAsync().Result;
 			    dynamic gameState = JsonConvert.DeserializeObject(result);
@@ -244,11 +254,28 @@ namespace PS8
 			    }
 			    else if (status == "active")
 			    {
-                    pending = false;
-				    ActiveGame(gameState);
+                    if(initialize)
+                    {
+                        ClientView.GameTime = gameState.TimeLimit;
+
+                        string intermediate = gameState.Board;
+                        ClientView.Board = intermediate.ToLower();
+
+                        if(gameState.Player1.Nickname == nickname)
+                            ClientView.Player2 = gameState.Player2.Nickname;
+                        else
+                            ClientView.Player2 = gameState.Player1.Nickname;
+
+                        pending = false;
+                        active = true;
+                        initialize = false;
+                    }
+
+
 			    }
 			    else if (status == "completed")
 			    {
+                    active = false;
                     //Run game over
 			    }
 
@@ -259,10 +286,6 @@ namespace PS8
 			
 		}
 
-		private void SendCancel()
-		{
-
-		}
 
 		private void ActiveGame(dynamic gameState)
 		{
