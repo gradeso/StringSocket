@@ -227,8 +227,13 @@ namespace PS8
             {
                 string output = response.Content.ReadAsStringAsync().Result;
                 dynamic data = JsonConvert.DeserializeObject(output);
-                int score = data.Score;
-                game.Score += score;
+
+                if (ClientView.Score != data.Score)
+                    ClientView.Score = data.Score;
+
+                ClientView.wordPlayed = wordPlayed;
+                
+                
                 //Trigger score change event, fire int
             }
             else if (response.StatusCode == HttpStatusCode.Conflict)

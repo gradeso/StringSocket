@@ -117,6 +117,7 @@
             this.playWordButton.TabIndex = 16;
             this.playWordButton.Text = "Play Word";
             this.playWordButton.UseVisualStyleBackColor = false;
+            this.playWordButton.Click += new System.EventHandler(this.enterWordAction);
             // 
             // popUpMenu
             // 
@@ -276,7 +277,7 @@
             this.playWordTextBox.TabIndex = 9;
             this.playWordTextBox.Text = "Enter Words Here";
             this.playWordTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.playWordTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.enterWordKeyPressed);
+            this.playWordTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.enterWordAction);
             // 
             // tableLayoutPanel1
             // 

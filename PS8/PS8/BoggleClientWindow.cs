@@ -213,12 +213,18 @@ namespace PS8
                 
         }
 
-        private void enterWordKeyPressed(object sender, KeyPressEventArgs e)
+        private void enterWordAction(object sender, KeyPressEventArgs e)
         {
             if(e.KeyChar == '\r')
             {
-
+                playAWord(playWordTextBox.Text);
+                playWordTextBox.Text = "";
             }
+        }
+
+        private void enterWordAction(object sender, EventArgs e)
+        {
+
         }
     }
 }
