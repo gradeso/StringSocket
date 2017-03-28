@@ -93,22 +93,10 @@ namespace Boggle
         public int TimeLeft { get; set; }
 
         [DataMember(EmitDefaultValue = false)]
-        public Player1IfBrief Player1Brief;
+        public Player1 Player1;
 
         [DataMember(EmitDefaultValue = false)]
-        public Player2IfBrief Player2Brief;
-
-        [DataMember(EmitDefaultValue = false)]
-        public Player1 Player1Active;
-
-        [DataMember(EmitDefaultValue = false)]
-        public Player2 Player2Active;
-
-        [DataMember(EmitDefaultValue = false)]
-        public Player1Completed Player1Complete;
-
-        [DataMember(EmitDefaultValue = false)]
-        public Player2Completed Player2Complete;
+        public Player2 Player2;
     }
     ///// <summary>
     ///// holds the server reponse to a game status request from a client if the game is pending
@@ -156,12 +144,31 @@ namespace Boggle
     //    public Player2Completed Player2;
 
     //}
-    
+
     [DataContract]
     public class Player1
     {
         [DataMember]
-        public int Score { get; }
+        public int Score { get; set;}
+
+        [DataMember(EmitDefaultValue = false)]
+        public string Nickname { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public List<WordPlayed> WordsPlayed;
+    }
+
+    [DataContract]
+    public class Player2
+    {
+        [DataMember]
+        public int Score { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public string Nickname { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public List<WordPlayed> WordsPlayed;
     }
 
     /// <summary>
@@ -170,49 +177,49 @@ namespace Boggle
     public class BriefThing
     {
         public string Brief { get; set; }
-    }  
-
-    /// <summary>
-    /// player info if the brief flag is set
-    /// </summary>
-    public class Player1IfBrief
-    {
-        public int Score { get; set; }
-    }   
-    public class Player2IfBrief
-    {
-        public int Score { get; set; }
     }
 
-    /// <summary>
-    /// player info if the game is active
-    /// </summary>
-    public class Player1f
-    {
-        public string Nickname { get; set; }
-        public int Score { get; set; }
-    }
-    public class Player2f
-    {
-        public string Nickname { get; set; }
-        public int Score { get; set; }
-    }
+    ///// <summary>
+    ///// player info if the brief flag is set
+    ///// </summary>
+    //public class Player1IfBrief
+    //{
+    //    public int Score { get; set; }
+    //}   
+    //public class Player2IfBrief
+    //{
+    //    public int Score { get; set; }
+    //}
 
-    /// <summary>
-    /// player info if the game is completed
-    /// </summary>
-    public class Player1Completed
-    {
-        public string Nickname { get; set; }
-        public int Score { get; set; }
-        public List<WordPlayed> WordsPlayed;
-    }
-    public class Player2Completed
-    {
-        public string Nickname { get; set; }
-        public int Score { get; set; }
-        public List<WordPlayed> WordsPlayed;
-    }
+    ///// <summary>
+    ///// player info if the game is active
+    ///// </summary>
+    //public class Player1f
+    //{
+    //    public string Nickname { get; set; }
+    //    public int Score { get; set; }
+    //}
+    //public class Player2f
+    //{
+    //    public string Nickname { get; set; }
+    //    public int Score { get; set; }
+    //}
+
+    ///// <summary>
+    ///// player info if the game is completed
+    ///// </summary>
+    //public class Player1Completed
+    //{
+    //    public string Nickname { get; set; }
+    //    public int Score { get; set; }
+    //    public List<WordPlayed> WordsPlayed;
+    //}
+    //public class Player2Completed
+    //{
+    //    public string Nickname { get; set; }
+    //    public int Score { get; set; }
+    //    public List<WordPlayed> WordsPlayed;
+    //}
 
     /// <summary>
     /// an object that holds words play info
@@ -271,6 +278,12 @@ namespace Boggle
         public string Player2ID { get; set; }
 
         /// <summary>
+        /// each player has a score
+        /// </summary>
+        public int Player1Score { get; set; }
+        public int Player2Score { get; set; }
+
+        /// <summary>
         /// both players have a list of played words
         /// </summary>
         public List<WordPlayed> player1WordsPlayed;
@@ -295,9 +308,11 @@ namespace Boggle
             //set up player1
             Player1Nickname = name;
             Player1ID = playerid;
+            Player1Score = 0;
             player1WordsPlayed = new List<WordPlayed>();
 
             //setup what we can about player 2
+            Player2Score = 0;
             player2WordsPlayed = new List<WordPlayed>();
 
             //set game to pending
@@ -424,14 +439,16 @@ namespace Boggle
                 result.Score = -1;
             }
 
-            //log the tried word
+            //log the tried word and score
             if (userID == Player1ID)
             {
                 player1WordsPlayed.Add(result);
+                Player1Score += result.Score;
             }
             else
             {
                 player2WordsPlayed.Add(result);
+                Player2Score += result.Score;
             }
             return result.Score;
         }

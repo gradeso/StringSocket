@@ -248,15 +248,58 @@ namespace Boggle
         /// <returns></returns>
         public GameStatusResponse GameStatus(BriefThing brief, string gameID)
         {
+            Game theGame;
             //check games
-            if (games.ContainsKey(gameID))
+            if (games.TryGetValue(gameID, out theGame))
             {
                 if (brief.Brief == "yes" || brief.Brief == "Yes")
                 {
                     //formulate brief response
                     GameStatusResponse response = new GameStatusResponse();
+                    response.GameState = theGame.GameStatus;
+                    response.TimeLeft = theGame.TimeLeft;
+                    response.Player1.Score = theGame.Player1Score;
+                    response.Player2.Score = theGame.Player2Score;
 
+                    SetStatus(OK);
+                    return response;
+                }
+                else
+                {
+                    if (theGame.GameStatus == "Active")
+                    {
+                        //formulate active response
+                        GameStatusResponse response = new GameStatusResponse();
+                        response.GameState = theGame.GameStatus;
+                        response.Board = theGame.board.ToString();
+                        response.TimeLimit = theGame.TotalTime;
+                        response.TimeLeft = theGame.TimeLeft;
+                        response.Player1.Nickname = theGame.Player1Nickname;
+                        response.Player1.Score = theGame.Player1Score;
+                        response.Player2.Nickname = theGame.Player2Nickname;
+                        response.Player2.Score = theGame.Player2Score;
 
+                        SetStatus(OK);
+                        return response;
+                    }
+                    else
+                    {
+                        //formulate completed response
+                        GameStatusResponse response = new GameStatusResponse();
+                        response.GameState = theGame.GameStatus;
+                        response.Board = theGame.board.ToString();
+                        response.TimeLimit = theGame.TotalTime;
+                        response.TimeLeft = 0;
+                        response.Player1.Nickname = theGame.Player1Nickname;
+                        response.Player1.Score = theGame.Player1Score;
+                        response.Player1.WordsPlayed = theGame.player1WordsPlayed;
+                        response.Player2.Nickname = theGame.Player2Nickname;
+                        response.Player2.Score = theGame.Player2Score;
+                        response.Player2.WordsPlayed = theGame.player2WordsPlayed;
+
+                        SetStatus(OK);
+                        return response;
+                    }
                 }
             }
             //check pending game
