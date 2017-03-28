@@ -19,7 +19,12 @@ namespace Boggle
 		///if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
 	    ///Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
 		/// </summary>
-		[WebInvoke(Method = "POST", UriTemplate = "/users")]
+		[WebInvoke(
+			
+			BodyStyle = WebMessageBodyStyle.Wrapped,
+			RequestFormat = WebMessageFormat.Json,
+			ResponseFormat = WebMessageFormat.Json,
+			UriTemplate = "/users")]
 		void SaveUserID();
 
 		/// <summary>
