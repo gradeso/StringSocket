@@ -173,7 +173,7 @@ namespace Boggle
         /// cancels a pending game if that ID is in a pending game
         /// </summary>
         /// <param name="userID"></param>
-        public void CancelJoin(UserID userID)
+        public void CancelJoinRequest(UserID userID)
         {
             lock (sync)
             {
@@ -188,11 +188,99 @@ namespace Boggle
                     SetStatus(Forbidden);
                     return;
                 }
+
                 //otherwise the pending game needs to be canceled
                 else
                 {
+                    pendingGame = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// handles a playWord request from a boggle client
+        /// </summary>
+        /// <param name="leRequest"></param>
+        /// <returns></returns>
+        public PlayWordResponseInfo PlayWord(PlayWordInfo playWordInfo, string gameID)
+        {
+            lock (sync)
+            {
+                //pull the game and do more testing
+                Game theGame;
+                int score;
+
+                if (playWordInfo == null || gameID == null)
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
+                else if (playWordInfo.UserToken == null || playWordInfo.Word == null || (!games.TryGetValue(gameID, out theGame)))
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
+                else if (!theGame.isPlayer(playWordInfo.UserToken))
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
+
+                //if we make it here the word will be played
+                else
+                {
+                    score = theGame.PlayWord(playWordInfo.UserToken, playWordInfo.Word);
+
+                    //construct response
+                    PlayWordResponseInfo response = new PlayWordResponseInfo();
+                    response.Score = score;
+                    SetStatus(OK);
+                    return response;
+                }
+            }
+        }
+
+        /// <summary>
+        /// handles a Game status request from a boggle client
+        /// </summary>
+        /// <param name="brief"></param>
+        /// <param name="gameID"></param>
+        /// <returns></returns>
+        public GameStatusResponse GameStatus(BriefThing brief, string gameID)
+        {
+            //check games
+            if (games.ContainsKey(gameID))
+            {
+                if (brief.Brief == "yes" || brief.Brief == "Yes")
+                {
+                    //formulate brief response
+                    GameStatusResponse response = new GameStatusResponse();
+
 
                 }
+            }
+            //check pending game
+            else if (pendingGame != null)
+            {
+                if (pendingGame.GameID == gameID)
+                {
+                    //formulate response
+                    GameStatusResponse response = new GameStatusResponse();
+                    response.GameState = "Pending";
+                    SetStatus(OK);
+                    return response;
+                }
+                else
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
+            }
+            //otherwise the game does not exist
+            else
+            {
+                SetStatus(Forbidden);
+                return null;
             }
         }
 

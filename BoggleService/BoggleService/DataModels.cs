@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Timers;
-
+using NetSpell;
+using System.Runtime.Serialization;
 
 /// <summary>
 /// Contains definitions of objects that will be passed to and from the server
@@ -74,52 +75,95 @@ namespace Boggle
     }
 
     /// <summary>
-    /// holds the server reponse to a game status request from a client if the game is pending
+    /// holds a game status response data
     /// </summary>
-    public class GameStatusResponseIfPendingInfo
+    [DataContract]
+    public class GameStatusResponse
     {
+        [DataMember]
         public string GameState { get; set; }
-    }
 
-    /// <summary>
-    /// holds the server reponse to a game status request from a client if the breif flag is set
-    /// </summary>
-    public class GameStatusResponseIfActiveOrCompletedAndBriefInfo
-    {
-        public string GameState { get; set; }
-        public int TimeLeft { get; set; }
-        public Player1IfBrief Player1;
-        public Player2IfBrief Player2;
-
-    }
-
-    /// <summary>
-    ///  holds the server reponse to a game status request from a client if its active
-    /// </summary>
-    public class GameStatusResponseIfActiveInfo
-    {
-        public string GameState { get; set; }
+        [DataMember(EmitDefaultValue = false)]
         public string Board { get; set; }
-        public int TimeLimit { get; set; }
-        public int TimeLeft { get; set; }
-        public Player1 Player1;
-        public Player2 Player2;
-    }
 
-    /// <summary>
-    ///  holds the server reponse to a game status request from a client if its completed
-    /// </summary>
-    public class GameStatusResponseIfCompleted
-    {
-        public string GameState { get; set; }
-        public string Board { get; set; }
+        [DataMember(EmitDefaultValue = false)]
         public int TimeLimit { get; set; }
-        public int TimeLeft { get; set; }
-        public Player1Completed Player1;
-        public Player2Completed Player2;
 
+        [DataMember(EmitDefaultValue = false)]
+        public int TimeLeft { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public Player1IfBrief Player1Brief;
+
+        [DataMember(EmitDefaultValue = false)]
+        public Player2IfBrief Player2Brief;
+
+        [DataMember(EmitDefaultValue = false)]
+        public Player1 Player1Active;
+
+        [DataMember(EmitDefaultValue = false)]
+        public Player2 Player2Active;
+
+        [DataMember(EmitDefaultValue = false)]
+        public Player1Completed Player1Complete;
+
+        [DataMember(EmitDefaultValue = false)]
+        public Player2Completed Player2Complete;
     }
+    ///// <summary>
+    ///// holds the server reponse to a game status request from a client if the game is pending
+    ///// </summary>
+    //public class GameStatusResponseIfPendingInfo
+    //{
+    //    public string GameState { get; set; }
+    //}
+
+    ///// <summary>
+    ///// holds the server reponse to a game status request from a client if the breif flag is set
+    ///// </summary>
+    //public class GameStatusResponseIfActiveOrCompletedAndBriefInfo
+    //{
+    //    public string GameState { get; set; }
+    //    public int TimeLeft { get; set; }
+    //    public Player1IfBrief Player1;
+    //    public Player2IfBrief Player2;
+
+    //}
+
+    ///// <summary>
+    /////  holds the server reponse to a game status request from a client if its active
+    ///// </summary>
+    //public class GameStatusResponseIfActiveInfo
+    //{
+    //    public string GameState { get; set; }
+    //    public string Board { get; set; }
+    //    public int TimeLimit { get; set; }
+    //    public int TimeLeft { get; set; }
+    //    public Player1 Player1;
+    //    public Player2 Player2;
+    //}
+
+    ///// <summary>
+    /////  holds the server reponse to a game status request from a client if its completed
+    ///// </summary>
+    //public class GameStatusResponseIfCompleted
+    //{
+    //    public string GameState { get; set; }
+    //    public string Board { get; set; }
+    //    public int TimeLimit { get; set; }
+    //    public int TimeLeft { get; set; }
+    //    public Player1Completed Player1;
+    //    public Player2Completed Player2;
+
+    //}
     
+    [DataContract]
+    public class Player1
+    {
+        [DataMember]
+        public int Score { get; }
+    }
+
     /// <summary>
     /// holds a breif string parameter
     /// </summary>
@@ -143,12 +187,12 @@ namespace Boggle
     /// <summary>
     /// player info if the game is active
     /// </summary>
-    public class Player1
+    public class Player1f
     {
         public string Nickname { get; set; }
         public int Score { get; set; }
     }
-    public class Player2
+    public class Player2f
     {
         public string Nickname { get; set; }
         public int Score { get; set; }
@@ -227,6 +271,12 @@ namespace Boggle
         public string Player2ID { get; set; }
 
         /// <summary>
+        /// both players have a list of played words
+        /// </summary>
+        public List<WordPlayed> player1WordsPlayed;
+        public List<WordPlayed> player2WordsPlayed;
+
+        /// <summary>
         /// constructor
         /// </summary>
         public Game(string name, string playerid, string gameid, int time)
@@ -245,6 +295,10 @@ namespace Boggle
             //set up player1
             Player1Nickname = name;
             Player1ID = playerid;
+            player1WordsPlayed = new List<WordPlayed>();
+
+            //setup what we can about player 2
+            player2WordsPlayed = new List<WordPlayed>();
 
             //set game to pending
             GameStatus = "Pending";
@@ -255,6 +309,7 @@ namespace Boggle
         /// </summary>
         public void StartGame()
         {
+            GameStatus = "Active";
             gameTimer.Start();
         }
 
@@ -272,6 +327,113 @@ namespace Boggle
                 gameTimer.Stop();
                 GameStatus = "Completed";
             }
+        }
+
+        /// <summary>
+        /// method that tells the caller if the id passed in is a player
+        /// in this game
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        public bool isPlayer (string userID)
+        {
+            if (userID == Player1ID || userID == Player2ID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public int PlayWord(string userID, string word)
+        {
+            //test tried words
+            if (userID == Player1ID)
+            {
+                foreach (WordPlayed w in player1WordsPlayed)
+                {
+                    if (w.Word == word)
+                    {
+                        return 0;
+                    }
+                }
+            }
+            else
+            {
+                foreach (WordPlayed w in player2WordsPlayed)
+                {
+                    if (w.Word == word)
+                    {
+                        return 0;
+                    }
+                }
+            }
+
+            WordPlayed result = new WordPlayed();
+            result.Word = word;
+
+            //if we get here we need to see if the word is playable
+            if (board.CanBeFormed(word))
+            {
+                //determine if the word is in the english dictionary
+                //technique found at http://stackoverflow.com/questions/38416265/c-sharp-checking-if-a-word-is-in-an-english-dictionary
+                NetSpell.SpellChecker.Dictionary.WordDictionary oDict = new NetSpell.SpellChecker.Dictionary.WordDictionary();
+
+                oDict.DictionaryFile = "en-US.dic";
+                oDict.Initialize();
+                NetSpell.SpellChecker.Spelling oSpell = new NetSpell.SpellChecker.Spelling();
+
+                oSpell.Dictionary = oDict;
+                if (oSpell.TestWord(word))
+                {
+                    //determine the length and therby the score of the word if we get here
+                    if (word.Length < 3)
+                    {
+                        result.Score = -1;
+                    }
+                    else if (word.Length >= 3 && word.Length <= 4)
+                    {
+                        result.Score = 1;
+                    }
+                    else if (word.Length == 5)
+                    {
+                        result.Score = 2;
+                    }
+                    else if (word.Length == 6)
+                    {
+                        result.Score = 3;
+                    }
+                    else if (word.Length == 7)
+                    {
+                        result.Score = 5;
+                    }
+                    else
+                    {
+                        result.Score = 11;
+                    }
+                }
+                else
+                {
+                    result.Score = -1;
+                }
+            }
+            else
+            {
+                result.Score = -1;
+            }
+
+            //log the tried word
+            if (userID == Player1ID)
+            {
+                player1WordsPlayed.Add(result);
+            }
+            else
+            {
+                player2WordsPlayed.Add(result);
+            }
+            return result.Score;
         }
     }
 }
