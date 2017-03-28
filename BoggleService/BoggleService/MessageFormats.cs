@@ -99,6 +99,9 @@ namespace Boggle
 
 		public string Board { get; set; }
 
+		[ScriptIgnore]
+		public BoggleBoard boggleBoard { get; set; }
 	}
+	
 
 }

@@ -12,7 +12,13 @@ namespace Boggle
 		// <summary>
 		/// represents the game with the key as the game ID
 		/// </summary>
-		SortedDictionary<int, BoggleBoard> currentGames;
+		private static readonly SortedDictionary<int, BoggleBoard> currentGames = 
+			();
+
+		private static DetailedPlayerInfo player1;
+
+		private static DetailedPlayerInfo player2;
+
 		/// <summary>
 		/// The most recent call to SetStatus determines the response code used when
 		/// an http response is sent.
