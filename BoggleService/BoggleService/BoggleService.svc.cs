@@ -9,11 +9,13 @@ namespace Boggle
 {
 	public class BoggleService : IBoggleService
 	{
+
+		private static readonly HashSet<string> bigDict;
 		// <summary>
 		/// represents the game with the key as the game ID
 		/// </summary>
-		private static readonly SortedDictionary<int, BoggleBoard> currentGames = 
-			();
+		private static SortedDictionary<int, DetailedGameState> currentGames =
+			new SortedDictionary<int, DetailedGameState>();
 
 		private static DetailedPlayerInfo player1;
 
