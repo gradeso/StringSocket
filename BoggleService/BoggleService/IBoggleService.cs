@@ -64,6 +64,6 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "/games/{GameID}?Brief={maybeYes}")]
-		string playWordInGame(bool maybeYes);
+		string gameStatus(bool maybeYes);
 	}
 }
