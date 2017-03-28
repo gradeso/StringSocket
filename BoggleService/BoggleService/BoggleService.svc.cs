@@ -34,15 +34,15 @@ namespace Boggle
 			return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
 		}
 
-//		/// <summary>
-//		Join a game.
+		//		/// <summary>
+		//		Join a game.
 
-//		If UserToken is invalid, TimeLimit< 5, or TimeLimit> 120, responds with status 403 (Forbidden).
-//Otherwise, if UserToken is already a player in the pending game, responds with status 409 (Conflict).
-//Otherwise, if there is already one player in the pending game, adds UserToken as the second player.The pending game becomes active and a new pending game with no players is created.
-//			The active game's time limit is the integer average of the time limits requested by the two players. Returns the new active game's GameID(which should be the same as the old pending game's GameID). Responds with status 201 (Created).
-//Otherwise, adds UserToken as the first player of the pending game, and the TimeLimit as the pending game's requested time limit. Returns the pending game's GameID. Responds with status 202 (Accepted).		/// </summary>
-//		/// <returns></returns>
+		//		If UserToken is invalid, TimeLimit< 5, or TimeLimit> 120, responds with status 403 (Forbidden).
+		//Otherwise, if UserToken is already a player in the pending game, responds with status 409 (Conflict).
+		//Otherwise, if there is already one player in the pending game, adds UserToken as the second player.The pending game becomes active and a new pending game with no players is created.
+		//			The active game's time limit is the integer average of the time limits requested by the two players. Returns the new active game's GameID(which should be the same as the old pending game's GameID). Responds with status 201 (Created).
+		//Otherwise, adds UserToken as the first player of the pending game, and the TimeLimit as the pending game's requested time limit. Returns the pending game's GameID. Responds with status 202 (Accepted).		/// </summary>
+		//		/// <returns></returns>
 		/// <exception cref="System.NotImplementedException"></exception>
 		public string AttemptJoin()
 		{
@@ -50,7 +50,7 @@ namespace Boggle
 		}
 
 		/// <summary>
-		/// Starts a new game or stops the join request
+		/// stops the join request
 		/// </summary>
 		/// <exception cref="System.NotImplementedException"></exception>
 		public void CancelJoin()
@@ -58,16 +58,11 @@ namespace Boggle
 			throw new NotImplementedException();
 		}
 
-		/// <summary>
-		/// Play a word in a game.
-		/// </summary>
-		/// <param name="maybeYes"></param>
-		/// <returns></returns>
-		/// <exception cref="System.NotImplementedException"></exception>
-		public string playWordInGame(bool maybeYes)
+		public string gameStatus(bool maybeYes)
 		{
 			throw new NotImplementedException();
 		}
+
 
 		/// <summary>
 		/// Plays the word in game with identifier.
