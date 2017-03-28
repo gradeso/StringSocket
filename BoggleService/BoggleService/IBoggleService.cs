@@ -5,22 +5,22 @@ using System.ServiceModel.Web;
 
 namespace Boggle
 {
-    [ServiceContract]
-    public interface IBoggleService
-    {
+	[ServiceContract]
+	public interface IBoggleService
+	{
 
-        /// <summary>
-        /// Sends back index.html as the response body.
-        /// </summary>
-        [WebGet(UriTemplate = "/api")]
-        Stream API();
+		/// <summary>
+		/// Sends back index.html as the response body.
+		/// </summary>
+		[WebGet(UriTemplate = "/api")]
+		Stream API();
 
 		/// <summary>
 		///if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
-	    ///Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
+		///Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
 		/// </summary>
 		[WebInvoke(
-			
+			Method = "POST",
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
@@ -28,24 +28,42 @@ namespace Boggle
 		void SaveUserID();
 
 		/// <summary>
-		/// Starts a new game or
+		/// Starts a new game or stops the join request
 		/// </summary>
-		[WebInvoke(Method = "PUT",  UriTemplate = "/games")]
+		[WebInvoke(Method = "PUT",
+			UriTemplate = "/games")]
 		void CancelJoin();
 
-		[WebInvoke(Method = "POST", UriTemplate = "/games")]
-		void AttemptJoin();
+		/// <summary>
+		/// Attempts the join.
+		/// </summary>
+		/// <returns></returns>
+		[WebInvoke(Method = "POST",
+			BodyStyle = WebMessageBodyStyle.Wrapped,
+			RequestFormat = WebMessageFormat.Json,
+			ResponseFormat = WebMessageFormat.Json,
+			UriTemplate = "/games")]
+		string AttemptJoin();
 
-		[WebGet(UriTemplate = "/games/{GameID}")]
-		string AcessUserToken(string GameID);
+		/// <summary>
+		/// Plays the word in game with identifier.
+		/// </summary>
+		/// <param name="GameID">The game identifier.</param>
+		/// <returns></returns>
+		[WebInvoke(Method = "PUT",
+			BodyStyle = WebMessageBodyStyle.Wrapped,
+			RequestFormat = WebMessageFormat.Json,
+			ResponseFormat = WebMessageFormat.Json, UriTemplate = "/games/{GameID}")]
+		string PlayWordInGame(string GameID);
 
 
 		/// <summary>
-		/// Returns the nth word from dictionary.txt.  If there is
-		/// no nth word, responds with code 403. This is a demo;
-		/// you can delete it.
+		///Play a word in a game.
 		/// </summary>
-		[WebGet(UriTemplate = "/word?index={n}")]
-        string WordAtIndex(int n);
-    }
+		[WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
+			RequestFormat = WebMessageFormat.Json,
+			ResponseFormat = WebMessageFormat.Json,
+			UriTemplate = "/games/{GameID}?Brief={maybeYes}")]
+		string playWordInGame(bool maybeYes);
+	}
 }
