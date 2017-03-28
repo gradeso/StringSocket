@@ -14,12 +14,51 @@ namespace Boggle
         [WebGet(UriTemplate = "/api")]
         Stream API();
 
+        ///// <summary>
+        ///// Returns the nth word from dictionary.txt.  If there is
+        ///// no nth word, responds with code 403. This is a demo;
+        ///// you can delete it.
+        ///// </summary>
+        //[WebGet(UriTemplate = "/word?index={n}")]
+        //string WordAtIndex(int n);
+
         /// <summary>
-        /// Returns the nth word from dictionary.txt.  If there is
-        /// no nth word, responds with code 403. This is a demo;
-        /// you can delete it.
+        /// Registers a new user.
         /// </summary>
-        [WebGet(UriTemplate = "/word?index={n}")]
-        string WordAtIndex(int n);
+        [WebInvoke(Method = "POST", UriTemplate = "/users")]
+        UserID CreateUser(UserName userName);
+
+        /// <summary>
+        /// deals with a join request from a client
+        /// </summary>
+        /// <param name="requestInfo"></param>
+        /// <returns></returns>
+        [WebInvoke(Method = "POST", UriTemplate = "/games")]
+        GameCreateResponseInfo JoinGame(GameCreateRequestInfo requestInfo);
+
+        /// <summary>
+        /// deals with a cancel join request from a client
+        /// </summary>
+        /// <param name="userID"></param>
+        [WebInvoke(Method = "PUT", UriTemplate = "/games")]
+        void CancelJoinRequest(UserID userID);
+
+        /// <summary>
+        /// handles a play word request from a client
+        /// </summary>
+        /// <param name="playWordInfo"></param>
+        /// <param name="GameID"></param>
+        /// <returns></returns>
+        [WebInvoke(Method = "PUT", UriTemplate = "/games/{GameID}")]
+        PlayWordResponseInfo PlayWord(PlayWordInfo playWordInfo, string GameID);
+
+        /// <summary>
+        /// handles a game status request from the server
+        /// </summary>
+        /// <param name="brief"></param>
+        /// <param name="GameID"></param>
+        /// <returns></returns>
+        [WebInvoke(Method = "GET", UriTemplate = "/games/{GameID}")]
+        object GameStatus(BriefThing brief, string GameID);
     }
 }
