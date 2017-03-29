@@ -82,5 +82,11 @@ namespace Boggle
             string word = (string) r.Data;
             Assert.AreEqual("AAL", word);
         }
+
+        [TestMethod]
+        public void TestCreate1()
+        {
+            Response r = 
+        }
     }
 }

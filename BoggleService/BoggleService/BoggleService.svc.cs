@@ -125,7 +125,7 @@ namespace Boggle
             lock (sync)
             {
                 //if invalid arguments are given
-                if ((!users.ContainsKey(leRequest.UserToken)) || leRequest.TimeLimit < 5 || leRequest.TimeLimit > 120)
+                if ((!users.ContainsKey(leRequest.UserToken)) || leRequest.TimeLimit < 5 || leRequest.TimeLimit > 120 || leRequest == null)
                 {
                     SetStatus(Forbidden);
                     return null;
@@ -253,35 +253,19 @@ namespace Boggle
         /// <returns></returns>
         public GameStatusResponse GameStatus(string brief, string gameID)
         {
-            Game theGame;
-            //check games
-            if (games.TryGetValue(gameID, out theGame))
+            lock (sync)
             {
-                if (brief == "yes" || brief == "Yes")
+                Game theGame;
+                //check games
+                if (games.TryGetValue(gameID, out theGame))
                 {
-                    //formulate brief response
-                    GameStatusResponse response = new GameStatusResponse();
-                    response.GameState = theGame.GameStatus;
-                    response.TimeLeft = theGame.TimeLeft;
-                    response.Player1.Score = theGame.Player1Score;
-                    response.Player2.Score = theGame.Player2Score;
-
-                    SetStatus(OK);
-                    return response;
-                }
-                else
-                {
-                    if (theGame.GameStatus == "Active")
+                    if (brief == "yes" || brief == "Yes")
                     {
-                        //formulate active response
+                        //formulate brief response
                         GameStatusResponse response = new GameStatusResponse();
                         response.GameState = theGame.GameStatus;
-                        response.Board = theGame.board.ToString();
-                        response.TimeLimit = theGame.TotalTime;
                         response.TimeLeft = theGame.TimeLeft;
-                        response.Player1.Nickname = theGame.Player1Nickname;
                         response.Player1.Score = theGame.Player1Score;
-                        response.Player2.Nickname = theGame.Player2Nickname;
                         response.Player2.Score = theGame.Player2Score;
 
                         SetStatus(OK);
@@ -289,46 +273,65 @@ namespace Boggle
                     }
                     else
                     {
-                        //formulate completed response
-                        GameStatusResponse response = new GameStatusResponse();
-                        response.GameState = theGame.GameStatus;
-                        response.Board = theGame.board.ToString();
-                        response.TimeLimit = theGame.TotalTime;
-                        response.TimeLeft = 0;
-                        response.Player1.Nickname = theGame.Player1Nickname;
-                        response.Player1.Score = theGame.Player1Score;
-                        response.Player1.WordsPlayed = theGame.player1WordsPlayed;
-                        response.Player2.Nickname = theGame.Player2Nickname;
-                        response.Player2.Score = theGame.Player2Score;
-                        response.Player2.WordsPlayed = theGame.player2WordsPlayed;
+                        if (theGame.GameStatus == "Active")
+                        {
+                            //formulate active response
+                            GameStatusResponse response = new GameStatusResponse();
+                            response.GameState = theGame.GameStatus;
+                            response.Board = theGame.board.ToString();
+                            response.TimeLimit = theGame.TotalTime;
+                            response.TimeLeft = theGame.TimeLeft;
+                            response.Player1.Nickname = theGame.Player1Nickname;
+                            response.Player1.Score = theGame.Player1Score;
+                            response.Player2.Nickname = theGame.Player2Nickname;
+                            response.Player2.Score = theGame.Player2Score;
 
+                            SetStatus(OK);
+                            return response;
+                        }
+                        else
+                        {
+                            //formulate completed response
+                            GameStatusResponse response = new GameStatusResponse();
+                            response.GameState = theGame.GameStatus;
+                            response.Board = theGame.board.ToString();
+                            response.TimeLimit = theGame.TotalTime;
+                            response.TimeLeft = 0;
+                            response.Player1.Nickname = theGame.Player1Nickname;
+                            response.Player1.Score = theGame.Player1Score;
+                            response.Player1.WordsPlayed = theGame.player1WordsPlayed;
+                            response.Player2.Nickname = theGame.Player2Nickname;
+                            response.Player2.Score = theGame.Player2Score;
+                            response.Player2.WordsPlayed = theGame.player2WordsPlayed;
+
+                            SetStatus(OK);
+                            return response;
+                        }
+                    }
+                }
+                //check pending game
+                else if (pendingGame != null)
+                {
+                    if (pendingGame.GameID == gameID)
+                    {
+                        //formulate response
+                        GameStatusResponse response = new GameStatusResponse();
+                        response.GameState = "Pending";
                         SetStatus(OK);
                         return response;
                     }
+                    else
+                    {
+                        SetStatus(Forbidden);
+                        return null;
+                    }
                 }
-            }
-            //check pending game
-            else if (pendingGame != null)
-            {
-                if (pendingGame.GameID == gameID)
-                {
-                    //formulate response
-                    GameStatusResponse response = new GameStatusResponse();
-                    response.GameState = "Pending";
-                    SetStatus(OK);
-                    return response;
-                }
+                //otherwise the game does not exist
                 else
                 {
                     SetStatus(Forbidden);
                     return null;
                 }
-            }
-            //otherwise the game does not exist
-            else
-            {
-                SetStatus(Forbidden);
-                return null;
             }
         }
 
