@@ -9,6 +9,8 @@ using System.Web.Script.Serialization;
 /// </summary>
 namespace Boggle
 {
+
+
 	/// <summary>
 	/// call POST /users
 	/// </summary>
@@ -83,10 +85,30 @@ namespace Boggle
 	/// </summary>
 	public class GameStatePending
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GameStatePending"/> class.
+		/// </summary>
+		public GameStatePending()
+		{
+			GameState = "pending";
+		}
+		
+		public GameStatePending(GameStatePending g)
+		{
+			
+
+			
+		}
+
 		public string GameState { get; set; }
 	}
 	public class GameStateActive : GameStatePending
 	{
+		public GameStateActive()
+		{
+			
+		}
+
 		public int TimeLeft { get; set; }
 
 		public PlayerInfo Player1 { get; set; }
@@ -95,6 +117,10 @@ namespace Boggle
 	}
 	public class GameState 
 	{
+		DetailedGameState()
+		{
+
+		}
 		public int TimeLimit { get; set; }
 
 		public string Board { get; set; }
@@ -102,6 +128,6 @@ namespace Boggle
 		[ScriptIgnore]
 		public BoggleBoard boggleBoard { get; set; }
 	}
-	
 
+	
 }
