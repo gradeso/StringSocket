@@ -159,14 +159,14 @@ namespace Boggle
 			Player2 = null;
 		}
 
-		public int TimeLeft { get; set; }
+        public int TimeLeft { get; set; }
 
-		public PlayerInfo Player1 { get; set; }
+		public DetailedPlayerInfo Player1 { get; set; }
 
-		public PlayerInfo Player2 { get; set; }
+		public DetailedPlayerInfo Player2 { get; set; }
 	}
 
-    [DataContract]
+    
 	public class DetailedGameState
 	{
 		public DetailedGameState()
