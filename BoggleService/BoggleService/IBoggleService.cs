@@ -14,16 +14,9 @@ namespace Boggle
         [WebGet(UriTemplate = "/api")]
         Stream API();
 
-        ///// <summary>
-        ///// Returns the nth word from dictionary.txt.  If there is
-        ///// no nth word, responds with code 403. This is a demo;
-        ///// you can delete it.
-        ///// </summary>
-        //[WebGet(UriTemplate = "/word?index={n}")]
-        //string WordAtIndex(int n);
-
         /// <summary>
         /// Registers a new user.
+        /// BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json,
         /// </summary>
         [WebInvoke(Method = "POST", UriTemplate = "/users")]
         UserID CreateUser(UserName userName);
@@ -58,7 +51,7 @@ namespace Boggle
         /// <param name="brief"></param>
         /// <param name="GameID"></param>
         /// <returns></returns>
-        [WebInvoke(Method = "GET", UriTemplate = "/games/{GameID}")]
-        GameStatusResponse GameStatus(BriefThing brief, string gameID);
+        [WebGet(UriTemplate = "/games/{GameID}?Brief={brief}")]
+        GameStatusResponse GameStatus(string brief, string gameID);
     }
 }

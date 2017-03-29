@@ -23,12 +23,15 @@ namespace Boggle
     /// <summary>
     /// user id class holds a userID
     /// </summary>
+    [DataContract]
     public class UserID
     {
         public UserID(string leID)
         {
             UserToken = leID;
         }
+
+        [DataMember]
         public string UserToken { get; set; }
     }
 
@@ -44,6 +47,7 @@ namespace Boggle
     /// <summary>
     /// holds the server response to a join game request
     /// </summary>
+    [DataContract]
     public class GameCreateResponseInfo
     {
         /// <summary>
@@ -54,6 +58,7 @@ namespace Boggle
         {
             GameID = id;
         }
+        [DataMember]
         public string GameID { get; set; }
     }
 
@@ -69,8 +74,10 @@ namespace Boggle
     /// <summary>
     /// holds the server response to a play word request
     /// </summary>
+    [DataContract]
     public class PlayWordResponseInfo
     {
+        [DataMember]
         public int Score { get; set; }
     }
 
@@ -169,14 +176,6 @@ namespace Boggle
 
         [DataMember(EmitDefaultValue = false)]
         public List<WordPlayed> WordsPlayed;
-    }
-
-    /// <summary>
-    /// holds a breif string parameter
-    /// </summary>
-    public class BriefThing
-    {
-        public string Brief { get; set; }
     }
 
     ///// <summary>

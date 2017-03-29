@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.ServiceModel.Web;
+using System.Text;
 using System.Threading;
 using static System.Net.HttpStatusCode;
+using Newtonsoft.Json;
 
 namespace Boggle
 {
@@ -106,6 +109,8 @@ namespace Boggle
 
                 //set the status and return
                 SetStatus(Created);
+                //UserID leID = new UserID(newToken);
+                //StringContent response = new StringContent(JsonConvert.SerializeObject(leID), Encoding.UTF8, "application/json");
                 return new UserID(newToken);
             }           
         }
@@ -246,13 +251,13 @@ namespace Boggle
         /// <param name="brief"></param>
         /// <param name="gameID"></param>
         /// <returns></returns>
-        public GameStatusResponse GameStatus(BriefThing brief, string gameID)
+        public GameStatusResponse GameStatus(string brief, string gameID)
         {
             Game theGame;
             //check games
             if (games.TryGetValue(gameID, out theGame))
             {
-                if (brief.Brief == "yes" || brief.Brief == "Yes")
+                if (brief == "yes" || brief == "Yes")
                 {
                     //formulate brief response
                     GameStatusResponse response = new GameStatusResponse();
