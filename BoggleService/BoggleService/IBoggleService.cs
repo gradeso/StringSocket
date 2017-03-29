@@ -25,7 +25,7 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "/users")]
-		void SaveUserID(string Nickname);
+		string SaveUserID(string Nickname);
 
 		/// <summary>
 		/// Starts a new game or stops the join request

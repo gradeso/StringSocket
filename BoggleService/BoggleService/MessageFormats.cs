@@ -76,6 +76,8 @@ namespace Boggle
 		public PlayerInfo()
 		{
 			userID = "";
+			Nicknme = "";
+			Score = 0;
 		}
 		
 		[ScriptIgnore]
@@ -83,7 +85,7 @@ namespace Boggle
 
 		public string Nicknme { get; set; }
 
-		public ScoreInfo Score { get; set; }
+		public int Score { get; set; }
 	}
 	public class DetailedPlayerInfo : PlayerInfo
 	{
@@ -97,6 +99,8 @@ namespace Boggle
 		{
 			this.userID = userID;
 			Nicknme = nn;
+			MovesMade = new List<WordAndScore>();
+
 		}
 
 		public List<WordAndScore> MovesMade;
@@ -167,6 +171,7 @@ namespace Boggle
 		{
 			TimeLimit = 0;
 			Board = null;
+			boggleBoard = null;
 		}
 		public int TimeLimit { get; set; }
 
