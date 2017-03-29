@@ -11,39 +11,57 @@ namespace Boggle
 {
 
 
-	/// <summary>
-	/// call POST /users
-	/// </summary>
-	public class UserNckname
+	public class Move
 	{
-		public string Nickname { get; set; }
+		public string UserToken { get; set; }
+		public string Word { get; set; }
 
 	}
-	/// <summary>
-	/// call POST /games
-	/// </summary>
-	public class UserTokenAndTimeLimit
+	public class JoinAttempt
 	{
-		/// <summary>
-		/// Gets or sets the user token.
-		/// </summary>
-		/// <value>
-		/// The user token.
-		/// </value>
 		public string UserToken { get; set; }
+		public string TimeLimit { get; set; }
 
-			public int TimeLimit { get; set; }
+	}
+
+
+	/// <summary>
+	/// response POST users
+	/// </summary>
+	public class UserIDInfo
+	{
+		public UserIDInfo()
+		{
+			UserToken = "";
 		}
+		public UserIDInfo(string id)
+		{
+			UserToken = id;
+		}
+		public string UserToken { get; set; }
+	}
+
+
+
 
 	/// <summary>
 	/// response POST games
 	/// </summary>
 	public class GameIDInfo
 	{
+		public GameIDInfo()
+		{
+			GameID = "";
+		}
+		public GameIDInfo(string id)
+		{
+			GameID = id;
+		}
 		public string GameID { get; set; }
 	}
+
 	/// <summary>
-	/// used in /games response.
+	/// used in PUT /games/{GameID} response.
 	/// </summary>
 	public class ScoreInfo
 	{
@@ -51,21 +69,53 @@ namespace Boggle
 	}
 
 	/// <summary>
-	/// Holds scores and names of player
+	/// Holds scores and names of player. Used in game status GET.
 	/// </summary>
 	public class PlayerInfo
 	{
-	
-		public UserNckname Nicknme { get; set; }
+		public PlayerInfo()
+		{
+			userID = "";
+		}
+		
+		[ScriptIgnore]
+		public string userID { get; set; }
+
+		public string Nicknme { get; set; }
 
 		public ScoreInfo Score { get; set; }
 	}
 	public class DetailedPlayerInfo : PlayerInfo
 	{
-		public WordAndScore[] MovesMade;
+		public DetailedPlayerInfo()
+		{
+			MovesMade = new List<WordAndScore>();
+		}
+
+
+		public DetailedPlayerInfo(string userID, string nn)
+		{
+			this.userID = userID;
+			Nicknme = nn;
+		}
+
+		public List<WordAndScore> MovesMade;
+		
 	}
 	public class WordAndScore
 	{
+		public WordAndScore()
+		{
+			ownersToken = "";
+			Word = "";
+			Score = 0;
+		}
+		public WordAndScore(string ot, string w, int s)
+		{
+			ownersToken = ot;
+			Word = w;
+			Score = s;
+		}
 		/// <summary>
 		/// Gets or sets the owners token. eg. player 1 s user Id
 		/// </summary>
@@ -93,12 +143,6 @@ namespace Boggle
 			GameState = "pending";
 		}
 		
-		public GameStatePending(GameStatePending g)
-		{
-			
-
-			
-		}
 
 		public string GameState { get; set; }
 	}
@@ -106,7 +150,9 @@ namespace Boggle
 	{
 		public GameStateActive()
 		{
-			
+			TimeLeft = 0;
+			Player1 = null;
+			Player2 = null;
 		}
 
 		public int TimeLeft { get; set; }
@@ -119,7 +165,8 @@ namespace Boggle
 	{
 		DetailedGameState()
 		{
-
+			TimeLimit = 0;
+			Board = null;
 		}
 		public int TimeLimit { get; set; }
 

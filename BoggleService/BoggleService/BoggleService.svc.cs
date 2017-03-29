@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
 using System.Text.RegularExpressions;
 using static System.Net.HttpStatusCode;
@@ -22,6 +23,8 @@ namespace Boggle
 		private static DetailedPlayerInfo player1;
 
 		private static DetailedPlayerInfo player2;
+
+
 		static BoggleService()
 		{
 			sync = new object();
@@ -62,7 +65,10 @@ namespace Boggle
 		/// <exception cref="System.NotImplementedException"></exception>
 		public string AttemptJoin()
 		{
-			throw new NotImplementedException();
+			lock (sync)
+			{
+
+			}
 		}
 
 		/// <summary>
@@ -106,16 +112,37 @@ namespace Boggle
 		{
 			lock (sync)
 			{
+				string dataObject = WebOperationContext.Current..RequestMessage.GetBody<>(new DataContractJsonSerializer());
+
+				string userID = Guid.NewGuid().ToString();
+				SetStatus(Created);
+				new DetailedPlayerInfo(userID);
 			}
 		}
 
-		private void Respond(dynamic ToBeJSONofied, HttpStatusCode httpCode )
+		/// <summary>
+		/// Puts the player in pending game queue. 
+		/// </summary>
+		/// <param name="player">The player.</param>
+		/// <returns>returns true if second player and game is ready.</returns>
+		private bool PutPlayerInPendingGameQueue(DetailedPlayerInfo player)
 		{
-			
-			SetStatus(httpCode);
-			WebOperationContext.Current.OutgoingResponse.ContentType = "application/json";
-			
+			if (player1 == null)
+			{
+				player1 = player;
+				return false;
+			}
+			else if (player2 == null)
+			{
+				player2 = player;
+				return true;
+			}
+			else
+			{
+				throw new Exception("queue was full when attempting to add player.");
+			}
 		}
+		
 
 	}
 }
