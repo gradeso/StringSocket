@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
 using System.Text.RegularExpressions;
 using static System.Net.HttpStatusCode;
@@ -13,19 +14,26 @@ namespace Boggle
 
 		private static readonly object sync;
 		private static readonly HashSet<string> bigDict;
+		/// <summary>
+		/// The users that have registered.
+		/// </summary>
+		private static readonly Dictionary<string, DetailedPlayerInfo> users = new Dictionary<string, DetailedPlayerInfo>();
+
 		// <summary>
 		/// represents the game with the key as the game ID
 		/// </summary>
 		private static SortedDictionary<int, DetailedGameState> currentGames =
 			new SortedDictionary<int, DetailedGameState>();
-        // <summary>
-        /// represents the game with the key as the game ID
-        /// </summary>
-        private static readonly SortedDictionary<int, BoggleBoard> currentGames;
-
+		/// <summary>
+		/// The player1 that is pending to be added
+		/// </summary>
 		private static DetailedPlayerInfo player1;
-
+		/// <summary>
+		/// The player2 for game about to start.
+		/// </summary>
 		private static DetailedPlayerInfo player2;
+
+
 		static BoggleService()
 		{
 			sync = new object();
@@ -54,50 +62,27 @@ namespace Boggle
 			return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
 		}
 
-		//		/// <summary>
-		//		Join a game.
-
-		//		If UserToken is invalid, TimeLimit< 5, or TimeLimit> 120, responds with status 403 (Forbidden).
-		//Otherwise, if UserToken is already a player in the pending game, responds with status 409 (Conflict).
-		//Otherwise, if there is already one player in the pending game, adds UserToken as the second player.The pending game becomes active and a new pending game with no players is created.
-		//			The active game's time limit is the integer average of the time limits requested by the two players. Returns the new active game's GameID(which should be the same as the old pending game's GameID). Responds with status 201 (Created).
-		//Otherwise, adds UserToken as the first player of the pending game, and the TimeLimit as the pending game's requested time limit. Returns the pending game's GameID. Responds with status 202 (Accepted).		/// </summary>
-		//		/// <returns></returns>
-		/// <exception cref="System.NotImplementedException"></exception>
-		public string AttemptJoin()
-		{
-			throw new NotImplementedException();
-		}
-
+		
 		/// <summary>
-		/// stops the join request
+		/// Puts the player in pending game queue. 
 		/// </summary>
-		/// <exception cref="System.NotImplementedException"></exception>
-		public void CancelJoin()
+		/// <param name="player">The player.</param>
+		/// <returns>returns true if second player and game is ready.</returns>
+		private bool PutPlayerInPendingGameQueue(DetailedPlayerInfo player)
 		{
-			throw new NotImplementedException();
-		}
-
-		public string gameStatus(bool maybeYes)
-		{
-			lock (sync)
+			if (player1 == null)
 			{
-
+				player1 = player;
+				return false;
 			}
-		}
-
-
-		/// <summary>
-		/// Plays the word in game with identifier.
-		/// </summary>
-		/// <param name="GameID">The game identifier.</param>
-		/// <returns></returns>
-		/// <exception cref="System.NotImplementedException"></exception>
-		public string PlayWordInGame(string GameID)
-		{
-			lock (sync)
+			else if (player2 == null)
 			{
-
+				player2 = player;
+				return true;
+			}
+			else
+			{
+				throw new Exception("queue was full when attempting to add player.");
 			}
 		}
 
@@ -105,21 +90,47 @@ namespace Boggle
 		/// if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
 		/// Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
 		/// </summary>
-		/// <exception cref="System.NotImplementedException"></exception>
-		public void SaveUserID()
+		/// <param name="Nickname"></param>
+		public string SaveUserID(string Nickname)
 		{
+
 			lock (sync)
 			{
+				if (Nickname == null || Nickname.Trim() == "")
+				{
+					SetStatus(Forbidden);
+					return "";
+				}
+
+				string userID = Guid.NewGuid().ToString();
+				SetStatus(Created);
+				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
+				return userID;
 			}
 		}
+		public string AttemptJoin(JoinAttempt ja)
+				{
+			lock (sync)
+			{
+				//left off here
+			}
+				}
 
-		private void Respond(dynamic ToBeJSONofied, HttpStatusCode httpCode )
+		public void CancelJoin(string UserToken)
 		{
-			
-			SetStatus(httpCode);
-			WebOperationContext.Current.OutgoingResponse.ContentType = "application/json";
-			
+			throw new NotImplementedException();
 		}
 
+		
+
+		public string PlayWordInGame(Move moveMade, string GameID)
+		{
+			throw new NotImplementedException();
+		}
+
+		public string gameStatus(string GameID, bool maybeYes)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

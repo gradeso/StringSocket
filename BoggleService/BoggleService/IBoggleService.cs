@@ -25,17 +25,17 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "/users")]
-		void SaveUserID();
+		string SaveUserID(string Nickname);
 
 		/// <summary>
 		/// Starts a new game or stops the join request
 		/// </summary>
 		[WebInvoke(Method = "PUT",
 			UriTemplate = "/games")]
-		void CancelJoin();
+		void CancelJoin(string UserToken);
 
 		/// <summary>
-		/// Attempts the join.
+		/// Attempts the join a game.
 		/// </summary>
 		/// <returns></returns>
 		[WebInvoke(Method = "POST",
@@ -43,7 +43,7 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "/games")]
-		string AttemptJoin();
+		string AttemptJoin(JoinAttempt ja);
 
 		/// <summary>
 		/// Plays the word in game with identifier.
@@ -54,7 +54,7 @@ namespace Boggle
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json, UriTemplate = "/games/{GameID}")]
-		string PlayWordInGame(string GameID);
+		string PlayWordInGame(Move moveMade, string GameID);
 
 		/// <summary>
 		///Play a word in a game.
@@ -63,6 +63,6 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "/games/{GameID}?Brief={maybeYes}")]
-		string gameStatus(bool maybeYes);
+		string gameStatus(string GameID, bool maybeYes);
 	}
 }
