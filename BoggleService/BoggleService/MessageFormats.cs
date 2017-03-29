@@ -167,7 +167,7 @@ namespace Boggle
 	}
 
     
-	public class DetailedGameState
+	public class DetailedGameState: GameStateActive
 	{
 		public DetailedGameState()
 		{

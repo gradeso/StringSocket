@@ -24,15 +24,13 @@ namespace Boggle
 		/// </summary>
 		private static SortedDictionary<int, DetailedGameState> currentGames =
 			new SortedDictionary<int, DetailedGameState>();
-		/// <summary>
-		/// The player1 that is pending to be added
-		/// </summary>
-		private static DetailedPlayerInfo player1;
-		/// <summary>
-		/// The player2 for game about to start.
-		/// </summary>
-		private static DetailedPlayerInfo player2;
 
+		/// <summary>
+		/// The pending game to be added to dict. when ready.
+		/// </summary>
+		private static DetailedGameState pendingGame = null;
+
+		private static int GameIDCounter= 0;
 
         public BoggleService() { }
 		//{
@@ -71,14 +69,14 @@ namespace Boggle
 		/// <returns>returns true if second player and game is ready.</returns>
 		private bool PutPlayerInPendingGameQueue(DetailedPlayerInfo player)
 		{
-			if (player1 == null)
+			if (pendingGame.Player1 == null)
 			{
-				player1 = player;
+				pendingGame.Player1 = player;
 				return false;
 			}
-			else if (player2 == null)
+			else if (pendingGame.Player2 == null)
 			{
-				player2 = player;
+				pendingGame.Player2 = player;
 				return true;
 			}
 			else
@@ -105,17 +103,22 @@ namespace Boggle
 
 				string userID = Guid.NewGuid().ToString();
 				SetStatus(Created);
-				//users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
+				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
+
 				return userID;
 			}
 		}
 		public string AttemptJoin(JoinAttempt ja)
-				{
+			{
 			lock (sync)
 			{
-                return ""; //left off here
-			}
+				if (pendingGame == null) {
+					pendingGame = new DetailedGameState();
 				}
+
+				ja.TimeLimit
+			}
+			}
 
 		public void CancelJoin(string UserToken)
 		{
