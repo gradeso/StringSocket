@@ -12,7 +12,7 @@ namespace Boggle
 	public class BoggleService : IBoggleService
 	{
 
-		private static readonly object sync;
+		private static readonly object sync = new object();
 		private static readonly HashSet<string> bigDict;
 		/// <summary>
 		/// The users that have registered.
@@ -34,13 +34,14 @@ namespace Boggle
 		private static DetailedPlayerInfo player2;
 
 
-		static BoggleService()
-		{
-			sync = new object();
-			bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("dictionary.txt"), "\n"));
-			player1 = null;
-			player2 = null;
-		}
+        public BoggleService() { }
+		//{
+		//	sync = new object();
+		//	bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("dictionary.txt"), "\n"));
+		//	player1 = null;
+		//	player2 = null;
+		//}
+
 		/// <summary>
 		/// The most recent call to SetStatus determines the response code used when
 		/// an http response is sent.
@@ -104,7 +105,7 @@ namespace Boggle
 
 				string userID = Guid.NewGuid().ToString();
 				SetStatus(Created);
-				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
+				//users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
 				return userID;
 			}
 		}
@@ -112,7 +113,7 @@ namespace Boggle
 				{
 			lock (sync)
 			{
-				//left off here
+                return ""; //left off here
 			}
 				}
 

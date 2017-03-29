@@ -24,7 +24,7 @@ namespace Boggle
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "/users")]
+			UriTemplate = "users")]
 		string SaveUserID(string Nickname);
 
 		/// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Web;
 using System.Web.Script.Serialization;
 
@@ -147,7 +148,6 @@ namespace Boggle
 			GameState = "pending";
 		}
 		
-
 		public string GameState { get; set; }
 	}
 	public class GameStateActive : GameStatePending
@@ -165,14 +165,17 @@ namespace Boggle
 
 		public PlayerInfo Player2 { get; set; }
 	}
-	public class GameState 
+
+    [DataContract]
+	public class DetailedGameState
 	{
-		DetailedGameState()
+		public DetailedGameState()
 		{
 			TimeLimit = 0;
 			Board = null;
 			boggleBoard = null;
 		}
+
 		public int TimeLimit { get; set; }
 
 		public string Board { get; set; }
