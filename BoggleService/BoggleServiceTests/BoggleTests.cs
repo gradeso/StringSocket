@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static System.Net.HttpStatusCode;
 using System.Diagnostics;
+using System.Dynamic;
 using Newtonsoft.Json;
 
 namespace Boggle
@@ -82,5 +83,27 @@ namespace Boggle
             string word = (string) r.Data;
             Assert.AreEqual("AAL", word);
         }
+        [TestMethod]
+        public void TestCreateUser()
+        {
+            //Try with valid name, expect 201, created
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            Response r = client.DoPostAsync("users", data);
+            Assert.AreEqual(Created, r.Status);
+
+            data = new ExpandoObject();
+            data.Nickname = "";
+            r = client.DoPostAsync("users", data);
+            Assert.AreEqual(Created, r.Status);
+
+            data = new ExpandoObject();
+            data.Nickname = " ";
+            r = client.DoPostAsync("users", data);
+            Assert.AreEqual(Created, r.Status);
+
+        }
+
+
     }
 }
