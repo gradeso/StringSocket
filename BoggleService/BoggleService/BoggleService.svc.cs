@@ -78,6 +78,7 @@ namespace Boggle
 		{
 			lock (sync)
 			{
+
 			}
 		}
 
@@ -92,8 +93,8 @@ namespace Boggle
 		{
 			lock (sync)
 			{
+
 			}
-			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -113,7 +114,7 @@ namespace Boggle
 			
 			SetStatus(httpCode);
 			WebOperationContext.Current.OutgoingResponse.ContentType = "application/json";
-
+			
 		}
 
 	}
