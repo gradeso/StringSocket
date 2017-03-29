@@ -93,7 +93,7 @@ namespace Boggle
 
 		public PlayerInfo Player2 { get; set; }
 	}
-	public class DetailedGameState : GameStateActive
+	public class GameState 
 	{
 		public int TimeLimit { get; set; }
 

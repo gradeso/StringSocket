@@ -56,7 +56,6 @@ namespace Boggle
 			ResponseFormat = WebMessageFormat.Json, UriTemplate = "/games/{GameID}")]
 		string PlayWordInGame(string GameID);
 
-
 		/// <summary>
 		///Play a word in a game.
 		/// </summary>

@@ -9,11 +9,10 @@ namespace Boggle
 {
 	public class BoggleService : IBoggleService
 	{
-		// <summary>
-		/// represents the game with the key as the game ID
-		/// </summary>
-		private static readonly SortedDictionary<int, BoggleBoard> currentGames = 
-			();
+        // <summary>
+        /// represents the game with the key as the game ID
+        /// </summary>
+        private static readonly SortedDictionary<int, BoggleBoard> currentGames;
 
 		private static DetailedPlayerInfo player1;
 
