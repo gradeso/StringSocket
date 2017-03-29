@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.ServiceModel.Web;
+using System.Text.RegularExpressions;
 using static System.Net.HttpStatusCode;
 
 namespace Boggle
@@ -10,6 +11,7 @@ namespace Boggle
 	public class BoggleService : IBoggleService
 	{
 
+		private static readonly object sync;
 		private static readonly HashSet<string> bigDict;
 		// <summary>
 		/// represents the game with the key as the game ID
@@ -20,7 +22,13 @@ namespace Boggle
 		private static DetailedPlayerInfo player1;
 
 		private static DetailedPlayerInfo player2;
-
+		static BoggleService()
+		{
+			sync = new object();
+			bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("dictionary.txt"), "\n"));
+			player1 = null;
+			player2 = null;
+		}
 		/// <summary>
 		/// The most recent call to SetStatus determines the response code used when
 		/// an http response is sent.
@@ -68,7 +76,9 @@ namespace Boggle
 
 		public string gameStatus(bool maybeYes)
 		{
-			throw new NotImplementedException();
+			lock (sync)
+			{
+			}
 		}
 
 
@@ -80,6 +90,9 @@ namespace Boggle
 		/// <exception cref="System.NotImplementedException"></exception>
 		public string PlayWordInGame(string GameID)
 		{
+			lock (sync)
+			{
+			}
 			throw new NotImplementedException();
 		}
 
@@ -90,9 +103,18 @@ namespace Boggle
 		/// <exception cref="System.NotImplementedException"></exception>
 		public void SaveUserID()
 		{
-			throw new NotImplementedException();
+			lock (sync)
+			{
+			}
 		}
 
-		
+		private void Respond(dynamic ToBeJSONofied, HttpStatusCode httpCode )
+		{
+			
+			SetStatus(httpCode);
+			WebOperationContext.Current.OutgoingResponse.ContentType = "application/json";
+
+		}
+
 	}
 }
