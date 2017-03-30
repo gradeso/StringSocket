@@ -295,6 +295,32 @@ namespace Boggle
         [TestMethod]
         public void Test007_GameStatus()
         {
+            dynamic user = new ExpandoObject();
+            dynamic gameInput = new ExpandoObject();
+            dynamic wordInput = new ExpandoObject();
+
+            user.Nickname = "John";
+            Response r = client.DoPostAsync("users", user).Result;
+            gameInput.UserToken = r.Data.UserToken;
+            gameInput.TimeLimit = 60;
+            var user1ID = r.Data;
+            r = client.DoPostAsync("games", gameInput).Result;
+            user.Nickname = "Sally";
+            r = client.DoPostAsync("users", user).Result;
+            gameInput.UserToken = r.Data.UserToken;
+            gameInput.TimeLimit = 60;
+            var user2ID = r.Data;
+            r = client.DoPostAsync("games", gameInput).Result;
+            string gameID = r.Data.GameID;
+            // string[] meme = new string[0];
+
+            wordInput.UserToken = user1ID.UserToken;
+            wordInput.Word = "hello";
+            r = client.DoPutAsync(wordInput, "games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+
+            r = client.DoGetAsync("games/" + gameID + "?Brief=" + "yes").Result;
+            Assert.AreEqual(OK, r.Status);
         }
     }
 }
