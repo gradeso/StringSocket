@@ -43,7 +43,7 @@ namespace Boggle
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_'
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-'
         };
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Boggle
             lock (sync)
             {
                 //if the name is null or nothing after trimming
-                if (username.Nickname == null || username.Nickname.Trim().Length == 0)
+                if (string.IsNullOrWhiteSpace(username.Nickname))
                 {
                     SetStatus(Forbidden);
                     return null;
@@ -122,6 +122,11 @@ namespace Boggle
         /// <returns></returns>
         public GameCreateResponseInfo JoinGame(GameCreateRequestInfo leRequest)
         {
+            if (leRequest.TimeLimit == null || leRequest.UserToken == null)
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
             lock (sync)
             {
                 //if invalid arguments are given
@@ -234,13 +239,21 @@ namespace Boggle
                 //if we make it here the word will be played
                 else
                 {
-                    score = theGame.PlayWord(playWordInfo.UserToken, playWordInfo.Word);
+                    if (theGame.GameStatus == "Active")
+                    {
+                        score = theGame.PlayWord(playWordInfo.UserToken, playWordInfo.Word);
 
-                    //construct response
-                    PlayWordResponseInfo response = new PlayWordResponseInfo();
-                    response.Score = score;
-                    SetStatus(OK);
-                    return response;
+                        //construct response
+                        PlayWordResponseInfo response = new PlayWordResponseInfo();
+                        response.Score = score;
+                        SetStatus(OK);
+                        return response;
+                    }
+                    else
+                    {
+                        SetStatus(Forbidden);
+                        return null;
+                    }
                 }
             }
         }
@@ -249,15 +262,15 @@ namespace Boggle
         /// handles a Game status request from a boggle client
         /// </summary>
         /// <param name="brief"></param>
-        /// <param name="gameID"></param>
+        /// <param name="GameID"></param>
         /// <returns></returns>
-        public GameStatusResponse GameStatus(string brief, string gameID)
+        public GameStatusResponse GameStatus(string brief, string GameID)
         {
             lock (sync)
             {
                 Game theGame;
                 //check games
-                if (games.TryGetValue(gameID, out theGame))
+                if (games.TryGetValue(GameID, out theGame))
                 {
                     if (brief == "yes" || brief == "Yes")
                     {
@@ -312,7 +325,7 @@ namespace Boggle
                 //check pending game
                 else if (pendingGame != null)
                 {
-                    if (pendingGame.GameID == gameID)
+                    if (pendingGame.GameID == GameID)
                     {
                         //formulate response
                         GameStatusResponse response = new GameStatusResponse();

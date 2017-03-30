@@ -40,9 +40,12 @@ namespace Boggle
     /// <summary>
     /// holds info for a join game request
     /// </summary>
+    [DataContract]
     public class GameCreateRequestInfo
     {
+        [DataMember]
         public string UserToken { get; set; }
+        [DataMember]
         public int TimeLimit { get; set; }
     }
 
@@ -67,9 +70,12 @@ namespace Boggle
     /// <summary>
     /// holds the info for a play word request from a client
     /// </summary>
+    [DataContract]
     public class PlayWordInfo
     {
+        [DataMember]
         public string UserToken { get; set; }
+        [DataMember]
         public string Word { get; set; }
     }
 
