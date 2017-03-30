@@ -35,10 +35,31 @@ namespace Boggle
 
 		private static int firstPlayersDesiredTimeLimit = 0;
 
-		private static Timer counter = new Timer(1000); 
+		private static Timer counter = new Timer(1000)
+		{
+			AutoReset = true
+			
+
+		}; 
 
         public BoggleService() {
-			
+			counter.Elapsed += Counter_Elapsed;
+			counter.Start();
+		}
+
+		private void Counter_Elapsed(object sender, ElapsedEventArgs e)
+		{
+			foreach (DetailedGameState dgs in currentGames.Values)
+			{
+				if (dgs.GameState == "active")
+				{
+					dgs.TimeLeft--;
+					if (dgs.TimeLeft <= 0)
+					{
+						dgs.GameState = "completed";
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -161,8 +182,7 @@ namespace Boggle
 			SetStatus(Forbidden);
 			
 		}
-
-		
+	
 
 		public string PlayWordInGame(Move moveMade, string GameID)
 		{
