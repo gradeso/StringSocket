@@ -5,6 +5,7 @@ using System.Net;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
 using System.Text.RegularExpressions;
+using System.Timers;
 using static System.Net.HttpStatusCode;
 
 namespace Boggle
@@ -32,13 +33,13 @@ namespace Boggle
 
 		private static int GameIDCounter= 0;
 
-        public BoggleService() { }
-		//{
-		//	sync = new object();
-		//	bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("dictionary.txt"), "\n"));
-		//	player1 = null;
-		//	player2 = null;
-		//}
+		private static int firstPlayersDesiredTimeLimit = 0;
+
+		private static Timer counter = new Timer(1000); 
+
+        public BoggleService() {
+			
+		}
 
 		/// <summary>
 		/// The most recent call to SetStatus determines the response code used when
@@ -60,31 +61,7 @@ namespace Boggle
 			WebOperationContext.Current.OutgoingResponse.ContentType = "text/html";
 			return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
 		}
-
 		
-		/// <summary>
-		/// Puts the player in pending game queue. 
-		/// </summary>
-		/// <param name="player">The player.</param>
-		/// <returns>returns true if second player and game is ready.</returns>
-		private bool PutPlayerInPendingGameQueue(DetailedPlayerInfo player)
-		{
-			if (pendingGame.Player1 == null)
-			{
-				pendingGame.Player1 = player;
-				return false;
-			}
-			else if (pendingGame.Player2 == null)
-			{
-				pendingGame.Player2 = player;
-				return true;
-			}
-			else
-			{
-				throw new Exception("queue was full when attempting to add player.");
-			}
-		}
-
 		/// <summary>
 		/// if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
 		/// Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
@@ -108,17 +85,64 @@ namespace Boggle
 				return userID;
 			}
 		}
+		/// <summary>
+		/// Attempts the join.
+		/// </summary>
+		/// <param name="ja">The join ateempt info.</param>
+		/// <returns></returns>
 		public string AttemptJoin(JoinAttempt ja)
-			{
+		{
 			lock (sync)
 			{
-				if (pendingGame == null) {
-					pendingGame = new DetailedGameState();
-				}
+				try
+				{
 
-				ja.TimeLimit
+					if (Convert.ToInt32(ja.TimeLimit) > 120 || Convert.ToInt32(ja.TimeLimit) < 5)
+					{
+						SetStatus(Forbidden);
+						return "";
+					}
+					
+				} catch (FormatException) {
+					SetStatus(Forbidden);
+					return "";
+				} catch (NullReferenceException) {
+
+					//triggered when no players in the queue on the line pendingGame.Player1.userID .
+					pendingGame = new DetailedGameState();
+					pendingGame.gameID = GameIDCounter++;
+					DetailedPlayerInfo firstPlayer;
+					if (!users.TryGetValue(ja.UserToken, out firstPlayer))
+					{
+						SetStatus(Forbidden);
+						return "";
+					}
+					pendingGame.Player1 = firstPlayer.DeepClone();
+					firstPlayersDesiredTimeLimit = Convert.ToInt32(ja.TimeLimit);
+					return pendingGame.gameID.ToString();
+				}
+				if (ja.UserToken == pendingGame.Player1.userID)
+					{
+						SetStatus(Conflict);
+						return "";
+					}
+				DetailedPlayerInfo secondPlayer;
+				if (!users.TryGetValue(ja.UserToken, out secondPlayer))
+				{
+					SetStatus(Forbidden);
+					return "";
+				}
+				pendingGame.Player2 = secondPlayer.DeepClone();
+				pendingGame.TimeLimit = (firstPlayersDesiredTimeLimit + Convert.ToInt32(ja.TimeLimit))/ 2;
+				pendingGame.TimeLeft = pendingGame.TimeLimit;
+				pendingGame.GameState = "active";
+				currentGames.Add(pendingGame.gameID, pendingGame.DeepClone());
+				SetStatus(Created);
+				string toReturn = pendingGame.gameID.ToString();
+				pendingGame = null;
+				return toReturn;
 			}
-			}
+		}
 
 		public void CancelJoin(string UserToken)
 		{
