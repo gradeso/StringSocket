@@ -74,43 +74,47 @@ namespace Boggle
 
         public UserID CreateUser(UserName username)
         {
+            if (username == null)
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+            //if the name is null or nothing after trimming
+            if (string.IsNullOrWhiteSpace(username.Nickname))
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+
             //test for special character that will cause the server to slow
             if (username.Nickname.Substring(0, 1) == "@")
             {
                 Thread.Sleep(10000);
             }
 
+            //test for purposful failure character
+            if (username.Nickname.Substring(0, 1) == "#")
+            {
+                SetStatus(NotImplemented);
+                return null;
+            }
+
+            //generate a random token
+            string newToken = GenerateTokenString(NEWTOKENSIZE);
+
+            //make sure the token is unique
+            while (users.ContainsKey(newToken))
+            {
+                newToken = GenerateTokenString(NEWTOKENSIZE);
+            }
+
             lock (sync)
             {
-                //if the name is null or nothing after trimming
-                if (string.IsNullOrWhiteSpace(username.Nickname))
-                {
-                    SetStatus(Forbidden);
-                    return null;
-                }
-
-                //test for purposful failure character
-                if (username.Nickname.Substring(0,1) == "#")
-                {
-                    SetStatus(NotImplemented);
-                    return null;
-                }
-
-                //generate a random token
-                string newToken = GenerateTokenString(NEWTOKENSIZE);
-
-                //make sure the token is unique
-                while (users.ContainsKey(newToken))
-                {
-                    newToken = GenerateTokenString(NEWTOKENSIZE);
-                }
                 //add the user
                 users.Add(newToken, username.Nickname);
 
                 //set the status and return
                 SetStatus(Created);
-                //UserID leID = new UserID(newToken);
-                //StringContent response = new StringContent(JsonConvert.SerializeObject(leID), Encoding.UTF8, "application/json");
                 return new UserID(newToken);
             }           
         }
@@ -137,27 +141,28 @@ namespace Boggle
                 }
                 else if (pendingGame != null)
                 {
-                    //add the user to the game and add it to the list
-                    pendingGame.Player2ID = leRequest.UserToken;
-                    string temp = "";
-                    users.TryGetValue(leRequest.UserToken, out temp);
-                    pendingGame.Player2Nickname = temp;
-                    pendingGame.StartGame();
-                    games.Add(pendingGame.GameID, pendingGame);
+                    if (!(leRequest.UserToken == pendingGame.Player1ID))
+                    {
+                        //add the user to the game and add it to the list
+                        pendingGame.Player2ID = leRequest.UserToken;
+                        string temp = "";
+                        users.TryGetValue(leRequest.UserToken, out temp);
+                        pendingGame.Player2Nickname = temp;
+                        pendingGame.StartGame();
+                        games.Add(pendingGame.GameID, pendingGame);
 
 
-                    //set up response object
-                    GameCreateResponseInfo responseData = new GameCreateResponseInfo(pendingGame.GameID);
+                        //set up response object
+                        GameCreateResponseInfo p2ResponseData = new GameCreateResponseInfo(pendingGame.GameID);
 
-                    //game is no longer pending so set it to null
-                    pendingGame = null;
+                        //game is no longer pending so set it to null
+                        pendingGame = null;
 
-                    //return response
-                    SetStatus(Created);
-                    return responseData;
+                        //return response
+                        SetStatus(Created);
+                        return p2ResponseData;
+                    }
                 }
-                else
-                {
                     //get a new token
                     string newToken = GenerateTokenString(NEWTOKENSIZE);
                     while (games.ContainsKey(newToken))
@@ -172,10 +177,10 @@ namespace Boggle
                     pendingGame = new Game(tempString, leRequest.UserToken, newToken, leRequest.TimeLimit);
 
                     //setup response and send it
-                    GameCreateResponseInfo responseData = new GameCreateResponseInfo(pendingGame.GameID);
+                    GameCreateResponseInfo p1ResponseData = new GameCreateResponseInfo(pendingGame.GameID);
                     SetStatus(Accepted);
-                    return responseData; 
-                }
+                    return p1ResponseData; 
+                
             }
         }
 
@@ -294,8 +299,10 @@ namespace Boggle
                             response.Board = theGame.board.ToString();
                             response.TimeLimit = theGame.TotalTime;
                             response.TimeLeft = theGame.TimeLeft;
+                            response.Player1 = new Player1();
                             response.Player1.Nickname = theGame.Player1Nickname;
                             response.Player1.Score = theGame.Player1Score;
+                            response.Player2 = new Player2();
                             response.Player2.Nickname = theGame.Player2Nickname;
                             response.Player2.Score = theGame.Player2Score;
 
@@ -310,9 +317,11 @@ namespace Boggle
                             response.Board = theGame.board.ToString();
                             response.TimeLimit = theGame.TotalTime;
                             response.TimeLeft = 0;
+                            response.Player1 = new Player1();
                             response.Player1.Nickname = theGame.Player1Nickname;
                             response.Player1.Score = theGame.Player1Score;
                             response.Player1.WordsPlayed = theGame.player1WordsPlayed;
+                            response.Player2 = new Player2();
                             response.Player2.Nickname = theGame.Player2Nickname;
                             response.Player2.Score = theGame.Player2Score;
                             response.Player2.WordsPlayed = theGame.player2WordsPlayed;

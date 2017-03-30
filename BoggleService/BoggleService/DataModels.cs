@@ -307,6 +307,7 @@ namespace Boggle
 
             //first person gets to choose the time but just prime the timer without starting it
             TotalTime = time;
+            TimeLeft = time;
             gameTimer = new Timer();
             gameTimer.Interval = 1000;
             gameTimer.Enabled = true;
