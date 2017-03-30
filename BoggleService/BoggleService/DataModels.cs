@@ -15,8 +15,10 @@ namespace Boggle
     /// <summary>
     /// username class just holds the nickname
     /// </summary>
+    [DataContract]
     public class UserName
     {
+        [DataMember]
         public string Nickname { get; set; }
     }
 
