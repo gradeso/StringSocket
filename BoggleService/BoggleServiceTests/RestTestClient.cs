@@ -100,7 +100,7 @@ namespace Boggle
             using (HttpClient client = CreateClient())
             {
                 StringContent content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await client.PostAsync(url, content);
+                HttpResponseMessage response = client.PostAsync(url, content).Result;
 
                 if (response.IsSuccessStatusCode)
                 {

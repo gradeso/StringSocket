@@ -129,6 +129,10 @@ namespace Boggle
             user.Nickname = "#John";
             r = client.DoPostAsync("users", user).Result;
             Assert.AreEqual(NotImplemented, r.Status);
+            
+            user.Nickname = "John";
+            r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(Created, r.Status);
 
             user.Nickname = null;
             r = client.DoPostAsync("users", user).Result;
@@ -139,10 +143,6 @@ namespace Boggle
             r = client.DoPostAsync("users", user).Result;
             // bad request
             Assert.AreEqual(Forbidden, r.Status);
-
-            user.Nickname = "John";
-            r = client.DoPostAsync("users", user).Result;
-            Assert.AreEqual(Created, r.Status);
         }
 
         [TestMethod]
@@ -322,5 +322,11 @@ namespace Boggle
             r = client.DoGetAsync("games/" + gameID + "?Brief=" + "yes").Result;
             Assert.AreEqual(OK, r.Status);
         }
+
+        //[TestMethod]
+        //public void TestCreate1()
+        //{
+        //    Response r = 
+        //}
     }
 }
