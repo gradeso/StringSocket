@@ -312,8 +312,7 @@ namespace Boggle
             var user2ID = r.Data;
             r = client.DoPostAsync("games", gameInput).Result;
             string gameID = r.Data.GameID;
-            // string[] meme = new string[0];
-
+            
             wordInput.UserToken = user1ID.UserToken;
             wordInput.Word = "hello";
             r = client.DoPutAsync(wordInput, "games/" + gameID).Result;
