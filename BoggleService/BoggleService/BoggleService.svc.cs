@@ -146,7 +146,20 @@ namespace Boggle
 
 		public void CancelJoin(string UserToken)
 		{
-			throw new NotImplementedException();
+			try
+			{
+				if (pendingGame.Player1.userID == UserToken)
+				{
+					pendingGame = null;
+					SetStatus(OK);
+				}
+			}
+			catch
+			{
+
+			}
+			SetStatus(Forbidden);
+			
 		}
 
 		
