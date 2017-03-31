@@ -45,6 +45,7 @@ namespace Boggle
         [WebInvoke(Method = "PUT", UriTemplate = "/games/{GameID}")]
         PlayWordResponseInfo PlayWord(PlayWordInfo playWordInfo, string gameID);
 
+        
         /// <summary>
         /// handles a game status request from the server
         /// </summary>
@@ -52,6 +53,6 @@ namespace Boggle
         /// <param name="GameID"></param>
         /// <returns></returns>
         [WebGet(UriTemplate = "/games/{GameID}?Brief={brief}")]
-        GameStatusResponse GameStatus(string brief, string gameID);
+        GameStatusResponse GameStatus(string brief, string GameID);
     }
 }
