@@ -319,10 +319,10 @@ namespace Boggle
             r = client.DoGetAsync("games/" + GenerateTokenString(40)).Result;
             Assert.AreEqual(Forbidden, r.Status);
             
-            r = client.DoGetAsync("games/" + gameID + "?Brief=yes").Result;
+            r = client.DoGetAsync("games/" + gameID + "?Brief=", "yes").Result;
             Assert.AreEqual(OK, r.Status);
 
-            r = client.DoGetAsync("games/" + gameID + "?Brief=Yes").Result;
+            r = client.DoGetAsync("games/" + gameID + "?Brief=", "Yes").Result;
             Assert.AreEqual(OK, r.Status);
         }
         [TestMethod]
@@ -335,26 +335,41 @@ namespace Boggle
             Assert.AreEqual(Forbidden, r.Status);
         }
 
-        [TestMethod]
-        public void StressTest1()
-        {
-            int size = 1000;
-            Dictionary<string, string> users = new Dictionary<string, string>();
-            Dictionary<string, string> games = new Dictionary<string, string>();
-            dynamic user = new ExpandoObject();
-            dynamic gameInput = new ExpandoObject();
-            dynamic wordInput = new ExpandoObject();
+        //[TestMethod]
+        //public void StressTest1()
+        //{
+        //    int size = 1000;
+        //    Dictionary<string, string> users = new Dictionary<string, string>();
+        //    Dictionary<string, string> games = new Dictionary<string, string>();
+        //    Response r;
+        //    dynamic user = new ExpandoObject();
+        //    dynamic gameInput = new ExpandoObject();
+        //    dynamic wordInput = new ExpandoObject();
 
-            user.Nickname = "@Bob";
-            Response r = client.DoPostAsync("users", user).Result;
-            Assert.AreEqual(Accepted, r.Status);
+        //    for (int i = 0; i < size; i++)
+        //    {
+        //        user.Nickname = GenerateTokenString(10);
+        //        r = client.DoPostAsync("users", user).Result;
+        //        users.Add(user.Nickname, r.Data);
+        //    }
+
+        //    string token;
+        //    for (int i = 0; i < size; i=i+2)
+        //    {
+        //        gameInput.TimeLimit = 60;
+        //        gameInput.UserToken = users.
+        //    }
+
+        //    user.Nickname = "@Bob";
+        //    r = client.DoPostAsync("users", user).Result;
+        //    Assert.AreEqual(Accepted, r.Status);
 
 
 
-            user.Nickname = "";
-            r = client.DoPostAsync("users", user).Result;
-            // bad request
-            Assert.AreEqual(Forbidden, r.Status);
-        }
+        //    user.Nickname = "";
+        //    r = client.DoPostAsync("users", user).Result;
+        //    // bad request
+        //    Assert.AreEqual(Forbidden, r.Status);
+        //}
     }
 }

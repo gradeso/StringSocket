@@ -5,6 +5,7 @@ using System.Web;
 using System.Timers;
 using NetSpell;
 using System.Runtime.Serialization;
+using System.Reflection;
 
 /// <summary>
 /// Contains definitions of objects that will be passed to and from the server
@@ -404,7 +405,7 @@ namespace Boggle
                 //technique found at http://stackoverflow.com/questions/38416265/c-sharp-checking-if-a-word-is-in-an-english-dictionary
                 NetSpell.SpellChecker.Dictionary.WordDictionary oDict = new NetSpell.SpellChecker.Dictionary.WordDictionary();
 
-                oDict.DictionaryFile = "en-US.dic";
+                oDict.DictionaryFile = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); //"en-US.dic"
                 oDict.Initialize();
                 NetSpell.SpellChecker.Spelling oSpell = new NetSpell.SpellChecker.Spelling();
 
@@ -414,7 +415,7 @@ namespace Boggle
                     //determine the length and therby the score of the word if we get here
                     if (word.Length < 3)
                     {
-                        result.Score = -1;
+                        result.Score = 0;
                     }
                     else if (word.Length >= 3 && word.Length <= 4)
                     {
