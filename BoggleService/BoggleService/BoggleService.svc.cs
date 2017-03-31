@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
 using System.Text.RegularExpressions;
 using static System.Net.HttpStatusCode;
+using Newtonsoft.Json;
 
 namespace Boggle
 {
@@ -98,14 +100,16 @@ namespace Boggle
 				if (Nickname == null || Nickname.Trim() == "")
 				{
 					SetStatus(Forbidden);
-					return "";
+					return null;
 				}
 
 				string userID = Guid.NewGuid().ToString();
 				SetStatus(Created);
 				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
-
-				return userID;
+                UserIDInfo t = new UserIDInfo();
+                t.UserToken = userID;
+                string tyne = JsonConvert.SerializeObject(t);
+                return tyne;
 			}
 		}
 		public string AttemptJoin(JoinAttempt ja)
@@ -116,7 +120,8 @@ namespace Boggle
 					pendingGame = new DetailedGameState();
 				}
 
-				ja.TimeLimit
+                
+                    return "";
 			}
 			}
 
@@ -136,5 +141,6 @@ namespace Boggle
 		{
 			throw new NotImplementedException();
 		}
-	}
+
+    }
 }

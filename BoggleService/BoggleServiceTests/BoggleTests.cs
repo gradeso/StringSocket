@@ -89,18 +89,19 @@ namespace Boggle
             //Try with valid name, expect 201, created
             dynamic data = new ExpandoObject();
             data.Nickname = "TestName";
-            Response r = client.DoPostAsync("users", data);
+            Response r = client.DoPostAsync("users", data).Result;
+            data = r.Data;
             Assert.AreEqual(Created, r.Status);
 
             data = new ExpandoObject();
             data.Nickname = "";
-            r = client.DoPostAsync("users", data);
-            Assert.AreEqual(Created, r.Status);
+            r = client.DoPostAsync("users", data).Result;
+            Assert.AreEqual(Forbidden, r.Status);
 
-            data = new ExpandoObject();
-            data.Nickname = " ";
-            r = client.DoPostAsync("users", data);
-            Assert.AreEqual(Created, r.Status);
+            //data = new ExpandoObject();
+            //data.Nickname = " ";
+            //r = client.DoPostAsync("users", data);
+            //Assert.AreEqual(Created, r.Status);
 
         }
 

@@ -29,6 +29,7 @@ namespace Boggle
 	/// <summary>
 	/// response POST users
 	/// </summary>
+    [DataContract]
 	public class UserIDInfo
 	{
 		public UserIDInfo()
@@ -39,6 +40,8 @@ namespace Boggle
 		{
 			UserToken = id;
 		}
+
+        [DataMember]
 		public string UserToken { get; set; }
 	}
 
@@ -184,5 +187,6 @@ namespace Boggle
 		public BoggleBoard boggleBoard { get; set; }
 	}
 
-	
+	//**************************************************************//
+ 
 }
