@@ -60,34 +60,6 @@ namespace Boggle
         }
 
         /// <summary>
-        /// Creates a BoggleBoard from the provided 16-letter string.  The
-        /// method is case-insensitive.  If there aren't exactly 16 letters
-        /// in the string, throws an ArgumentException.  The string consists
-        /// of the first row, then the second row, then the third, then the fourth.
-        /// </summary>
-        public BoggleBoard(string letters)
-        {
-            // Use upper case
-            letters = letters.ToUpper();
-
-            // Make sure letters are legal
-            if (letters.Length != 16)
-            {
-                throw new ArgumentException();
-            }
-            foreach (char c in letters)
-            {
-                if (!Char.IsLetter(c))
-                {
-                    throw new ArgumentException();
-                }
-            }
-
-            // Make the board
-            MakeBoard(letters);
-        }
-
-        /// <summary>
         /// Makes a board from the 16-letter string
         /// </summary>
         private void MakeBoard(string letters)
