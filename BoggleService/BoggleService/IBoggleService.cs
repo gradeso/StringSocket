@@ -12,7 +12,7 @@ namespace Boggle
 		/// <summary>
 		/// Sends back index.html as the response body.
 		/// </summary>
-		[WebGet(UriTemplate = "/api")]
+		[WebGet(UriTemplate = "api")]
 		Stream API();
 
 		/// <summary>
@@ -31,7 +31,7 @@ namespace Boggle
 		/// Starts a new game or stops the join request
 		/// </summary>
 		[WebInvoke(Method = "PUT",
-			UriTemplate = "/games")]
+			UriTemplate = "games")]
 		void CancelJoin(string UserToken);
 
 		/// <summary>
@@ -42,8 +42,8 @@ namespace Boggle
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "/games")]
-		string AttemptJoin(JoinAttempt ja);
+			UriTemplate = "games")]
+		string AttemptJoin(string data);
 
 		/// <summary>
 		/// Plays the word in game with identifier.
@@ -53,7 +53,7 @@ namespace Boggle
 		[WebInvoke(Method = "PUT",
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json, UriTemplate = "/games/{GameID}")]
+			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]
 		string PlayWordInGame(Move moveMade, string GameID);
 
 		/// <summary>
@@ -62,7 +62,7 @@ namespace Boggle
 		[WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "/games/{GameID}?Brief={maybeYes}")]
+			UriTemplate = "games/{GameID}?Brief={maybeYes}")]
 		string gameStatus(string GameID, bool maybeYes);
 	}
 }
