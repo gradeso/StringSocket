@@ -387,5 +387,34 @@ namespace Boggle
                 }
             }
         }
+        [TestMethod]
+        public void Test010_LotsOfGames()
+        {
+            int i = 0;
+            while(i < 1000)
+            {
+                dynamic user = new ExpandoObject();
+                dynamic gameInput = new ExpandoObject();
+                dynamic wordInput = new ExpandoObject();
+
+                user.Nickname = "John";
+                Response r = client.DoPostAsync("users", user).Result;
+                gameInput.UserToken = r.Data.UserToken;
+                gameInput.TimeLimit = 10;
+                var user1ID = r.Data;
+                r = client.DoPostAsync("games", gameInput).Result;
+                var gameID = r.Data.GameID;
+
+                user.Nickname = "Sally";
+                r = client.DoPostAsync("users", user).Result;
+                gameInput.UserToken = r.Data.UserToken;
+                gameInput.TimeLimit = 10;
+                var user2ID = r.Data;
+                r = client.DoPostAsync("games", gameInput).Result;
+                gameID = r.Data.GameID;
+
+                i++;
+            }
+        }
     }
 }
