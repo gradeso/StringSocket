@@ -4,6 +4,7 @@ using static System.Net.HttpStatusCode;
 using System.Diagnostics;
 using System.Dynamic;
 using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace Boggle
 {
@@ -66,23 +67,8 @@ namespace Boggle
 
         private RestTestClient client = new RestTestClient("http://localhost:60000/BoggleService.svc/");
 
-        /// <summary>
-        /// Note that DoGetAsync (and the other similar methods) returns a Response object, which contains
-        /// the response Stats and the deserialized JSON response (if any).  See RestTestClient.cs
-        /// for details.
-        /// </summary>
-        [TestMethod]
-        public void TestMethod1()
-        {
-            Response r = client.DoGetAsync("word?index={0}", "-5").Result;
-            Assert.AreEqual(Forbidden, r.Status);
+        
 
-            r = client.DoGetAsync("word?index={0}", "5").Result;
-            Assert.AreEqual(OK, r.Status);
-
-            string word = (string) r.Data;
-            Assert.AreEqual("AAL", word);
-        }
         [TestMethod]
         public void TestCreateUser()
         {
@@ -90,18 +76,203 @@ namespace Boggle
             dynamic data = new ExpandoObject();
             data.Nickname = "TestName";
             Response r = client.DoPostAsync("users", data).Result;
-            data = r.Data;
             Assert.AreEqual(Created, r.Status);
+            //dynamic output = r.Content.ReadAsStringAsync().Result;
 
+            //Try with null nickname, expect 403
             data = new ExpandoObject();
             data.Nickname = "";
             r = client.DoPostAsync("users", data).Result;
             Assert.AreEqual(Forbidden, r.Status);
 
-            //data = new ExpandoObject();
-            //data.Nickname = " ";
-            //r = client.DoPostAsync("users", data);
-            //Assert.AreEqual(Created, r.Status);
+            //Try with empty nickname,excpect 403
+            data = new ExpandoObject();
+            data.Nickname = " ";
+            r = client.DoPostAsync("users", data).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+        }
+
+        //birdman 24 - 8015825431
+
+        [TestMethod]
+        public void TestJoinGameAccepted()
+        {
+            //Create user
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+
+            string arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, expect Accecpted, because
+            //only one user has been created
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = arg.UserToken;
+            newData.TimeLimit = 100;
+            r = client.DoPostAsync("users", newData).Result;
+            Assert.AreEqual(r.StatusCode, Accepted);
+
+        }
+
+        [TestMethod]
+        public void TestJoinGameCreated()
+        {
+            //Create two users
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+
+            string arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            dynamic data2 = new ExpandoObject();
+            data.Nickname = "TestName2";
+            r = client.DoPostAsync("users", data2).Result;
+
+            arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg3 = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, expect Accecpted, because
+            //only one user has been created
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = arg.UserToken;
+            newData.TimeLimit = 100;
+            r = client.DoPostAsync("users", newData).Result;
+
+            //Submit second joinGame request with second user, expect
+            //created because two users have joined current pending game
+            newData = new ExpandoObject();
+            newData.UserToken = arg3.UserToken;
+            newData.TimeLimit = 100;
+            r = client.DoPostAsync("users", newData).Result;
+            Assert.AreEqual(r.StatusCode, Created);
+        }
+
+        [TestMethod]
+        public void TestJoinGameForbidden()
+        {
+            //Create user
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+
+            string arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, with time less then 
+            //5 seconds, expect forbidden
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = arg.UserToken;
+            newData.TimeLimit = 4;
+            r = client.DoPostAsync("users", newData).Result;
+            Assert.AreEqual(r.StatusCode, Forbidden);
+        }
+
+        [TestMethod]
+        public void TestJoinGameForbidden2()
+        {
+            //Create user
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+
+            string arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, with time less then 
+            //5 
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = arg.UserToken;
+            newData.TimeLimit = 4;
+            r = client.DoPostAsync("users", newData).Result;
+            Assert.AreEqual(r.StatusCode, Accepted);
+        }
+
+        [TestMethod]
+        public void TestJoinGameForbidden3()
+        {
+            //Create user
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+
+            string arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, with time greater then 120 seconds
+            //expect forbidden
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = arg.UserToken;
+            newData.TimeLimit = 4;
+            r = client.DoPostAsync("users", newData).Result;
+            Assert.AreEqual(r.StatusCode, Forbidden);
+        }
+
+        [TestMethod]
+        public void TestJoinGameForbidden4()
+        {
+            //Create user
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+
+            string arg1 = r.Content.ReadAsStringAsync().Result;
+            dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, with invalid UserToken
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = "";
+            newData.TimeLimit = 4;
+            r = client.DoPostAsync("users", newData).Result;
+            Assert.AreEqual(r.StatusCode, Forbidden);
+        }
+
+        [TestMethod]
+        public void CancelJoinRequest()
+        {
+            //Create user
+            dynamic data = new ExpandoObject();
+            data.Nickname = "TestName";
+            Response r = client.DoPostAsync("users", data).Result;
+
+            string userToken = r.Data.UserToken;
+            
+            //dynamic arg = JsonConvert.DeserializeObject(arg1);
+
+            //Submit joinGame with created user, gamestatus will be pending
+
+            dynamic newData = new ExpandoObject();
+            newData.UserToken = userToken;
+
+            r = client.DoPostAsync("games", newData).Result;
+
+
+            r = client.DoPutAsync(newData,"games").Result;
+            Assert.AreEqual(OK,r.Status);
+        }
+
+        [TestMethod]
+        public void TestGameStatusPending()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestGameStatusActive()
+        {
+
+        }
+
+        [TestMethod]
+        public void TestGameStatusCompleted()
+        {
+
+        }
+
+        [TestMethod]
+        public void Test()
+        {
 
         }
 

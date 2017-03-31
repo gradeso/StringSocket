@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Web;
 using System.Web.Script.Serialization;
 
@@ -149,9 +151,13 @@ namespace Boggle
 		public GameStatePending()
 		{
 			GameState = "pending";
+			gameID = -1;
 		}
 		
 		public string GameState { get; set; }
+
+		[ScriptIgnore]
+		public int gameID { get; set; }
 	}
 	public class GameStateActive : GameStatePending
 	{
@@ -164,9 +170,9 @@ namespace Boggle
 
         public int TimeLeft { get; set; }
 
-		public DetailedPlayerInfo Player1 { get; set; }
+		public PlayerInfo Player1 { get; set; }
 
-		public DetailedPlayerInfo Player2 { get; set; }
+		public PlayerInfo Player2 { get; set; }
 	}
 
     
@@ -178,7 +184,6 @@ namespace Boggle
 			Board = null;
 			boggleBoard = null;
 		}
-
 		public int TimeLimit { get; set; }
 
 		public string Board { get; set; }
@@ -186,7 +191,19 @@ namespace Boggle
 		[ScriptIgnore]
 		public BoggleBoard boggleBoard { get; set; }
 	}
+	public static class ExtensionMethods
+	{
+		// Deep clone
+		public static T DeepClone<T>(this T a)
+		{
+			using (MemoryStream stream = new MemoryStream())
+			{
+				BinaryFormatter formatter = new BinaryFormatter();
+				formatter.Serialize(stream, a);
+				stream.Position = 0;
+				return (T)formatter.Deserialize(stream);
+			}
+		}
+	}
 
-	//**************************************************************//
- 
 }
