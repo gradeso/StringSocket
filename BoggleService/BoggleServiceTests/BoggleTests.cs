@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Dynamic;
 using System.Security.Cryptography;
+using System.Collections.Generic;
 
 namespace Boggle
 {
@@ -99,24 +100,6 @@ namespace Boggle
             return new string(identifier);
         }
 
-        /// <summary>
-        /// Note that DoGetAsync (and the other similar methods) returns a Response object, which contains
-        /// the response Stats and the deserialized JSON response (if any).  See RestTestClient.cs
-        /// for details.
-        /// </summary>
-        [TestMethod]
-        public void TestMethod1()
-        {
-            Response r = client.DoGetAsync("word?index={0}", "-5").Result;
-            Assert.AreEqual(Forbidden, r.Status);
-
-            r = client.DoGetAsync("word?index={0}", "5").Result;
-            Assert.AreEqual(OK, r.Status);
-
-            string word = (string) r.Data;
-            Assert.AreEqual("AAL", word);
-        }
-
         [TestMethod]
         public void Test001_CreateUser()
         {
@@ -133,11 +116,6 @@ namespace Boggle
             user.Nickname = "John";
             r = client.DoPostAsync("users", user).Result;
             Assert.AreEqual(Created, r.Status);
-
-            user.Nickname = null;
-            r = client.DoPostAsync("users", user).Result;
-            // bad request
-            Assert.AreEqual(Forbidden, r.Status);
 
             user.Nickname = "";
             r = client.DoPostAsync("users", user).Result;
@@ -322,6 +300,28 @@ namespace Boggle
             String url = String.Format("games/" + gameID + "?Brief={0}", myarray);
             r = client.DoGetAsync(url).Result;
             Assert.AreEqual(OK, r.Status);
+        }
+
+        [TestMethod]
+        public void StressTest1()
+        {
+            int size = 1000;
+            Dictionary<string, string> users = new Dictionary<string, string>();
+            Dictionary<string, string> games = new Dictionary<string, string>();
+            dynamic user = new ExpandoObject();
+            dynamic gameInput = new ExpandoObject();
+            dynamic wordInput = new ExpandoObject();
+
+            user.Nickname = "@Bob";
+            Response r = client.DoPostAsync("users", user).Result;
+            Assert.AreEqual(Accepted, r.Status);
+
+
+
+            user.Nickname = "";
+            r = client.DoPostAsync("users", user).Result;
+            // bad request
+            Assert.AreEqual(Forbidden, r.Status);
         }
     }
 }
