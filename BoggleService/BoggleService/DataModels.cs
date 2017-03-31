@@ -114,52 +114,6 @@ namespace Boggle
         [DataMember(EmitDefaultValue = false)]
         public Player2 Player2;
     }
-    ///// <summary>
-    ///// holds the server reponse to a game status request from a client if the game is pending
-    ///// </summary>
-    //public class GameStatusResponseIfPendingInfo
-    //{
-    //    public string GameState { get; set; }
-    //}
-
-    ///// <summary>
-    ///// holds the server reponse to a game status request from a client if the breif flag is set
-    ///// </summary>
-    //public class GameStatusResponseIfActiveOrCompletedAndBriefInfo
-    //{
-    //    public string GameState { get; set; }
-    //    public int TimeLeft { get; set; }
-    //    public Player1IfBrief Player1;
-    //    public Player2IfBrief Player2;
-
-    //}
-
-    ///// <summary>
-    /////  holds the server reponse to a game status request from a client if its active
-    ///// </summary>
-    //public class GameStatusResponseIfActiveInfo
-    //{
-    //    public string GameState { get; set; }
-    //    public string Board { get; set; }
-    //    public int TimeLimit { get; set; }
-    //    public int TimeLeft { get; set; }
-    //    public Player1 Player1;
-    //    public Player2 Player2;
-    //}
-
-    ///// <summary>
-    /////  holds the server reponse to a game status request from a client if its completed
-    ///// </summary>
-    //public class GameStatusResponseIfCompleted
-    //{
-    //    public string GameState { get; set; }
-    //    public string Board { get; set; }
-    //    public int TimeLimit { get; set; }
-    //    public int TimeLeft { get; set; }
-    //    public Player1Completed Player1;
-    //    public Player2Completed Player2;
-
-    //}
 
     [DataContract]
     public class Player1
@@ -186,48 +140,6 @@ namespace Boggle
         [DataMember(EmitDefaultValue = false)]
         public List<WordPlayed> WordsPlayed;
     }
-
-    ///// <summary>
-    ///// player info if the brief flag is set
-    ///// </summary>
-    //public class Player1IfBrief
-    //{
-    //    public int Score { get; set; }
-    //}   
-    //public class Player2IfBrief
-    //{
-    //    public int Score { get; set; }
-    //}
-
-    ///// <summary>
-    ///// player info if the game is active
-    ///// </summary>
-    //public class Player1f
-    //{
-    //    public string Nickname { get; set; }
-    //    public int Score { get; set; }
-    //}
-    //public class Player2f
-    //{
-    //    public string Nickname { get; set; }
-    //    public int Score { get; set; }
-    //}
-
-    ///// <summary>
-    ///// player info if the game is completed
-    ///// </summary>
-    //public class Player1Completed
-    //{
-    //    public string Nickname { get; set; }
-    //    public int Score { get; set; }
-    //    public List<WordPlayed> WordsPlayed;
-    //}
-    //public class Player2Completed
-    //{
-    //    public string Nickname { get; set; }
-    //    public int Score { get; set; }
-    //    public List<WordPlayed> WordsPlayed;
-    //}
 
     /// <summary>
     /// an object that holds words play info

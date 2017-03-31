@@ -8,11 +8,6 @@ namespace Boggle
     [ServiceContract]
     public interface IBoggleService
     {
-        /// <summary>
-        /// Sends back index.html as the response body.
-        /// </summary>
-        [WebGet(UriTemplate = "/api")]
-        Stream API();
 
         /// <summary>
         /// Registers a new user.
