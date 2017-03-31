@@ -405,9 +405,13 @@ namespace Boggle
                 //technique found at http://stackoverflow.com/questions/38416265/c-sharp-checking-if-a-word-is-in-an-english-dictionary
                 NetSpell.SpellChecker.Dictionary.WordDictionary oDict = new NetSpell.SpellChecker.Dictionary.WordDictionary();
 
-                oDict.DictionaryFile = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location); //"en-US.dic"
+                oDict.DictionaryFile = "en-US.dic";
+                oDict.DictionaryFolder = AppDomain.CurrentDomain.BaseDirectory + "packages\\NetSpell.2.1.7\\dic";
+                
                 oDict.Initialize();
                 NetSpell.SpellChecker.Spelling oSpell = new NetSpell.SpellChecker.Spelling();
+
+                
 
                 oSpell.Dictionary = oDict;
                 if (oSpell.TestWord(word))
