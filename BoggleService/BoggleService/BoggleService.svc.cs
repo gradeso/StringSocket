@@ -254,6 +254,11 @@ namespace Boggle
                         SetStatus(OK);
                         return response;
                     }
+                    if (theGame.GameStatus == "Pending")
+                    {
+                        SetStatus(OK);
+                        return null;
+                    }
                     else
                     {
                         SetStatus(Conflict);
