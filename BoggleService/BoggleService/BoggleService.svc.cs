@@ -42,8 +42,6 @@ namespace Boggle
 		private static Timer counter = new Timer(1000)
 		{
 			AutoReset = true
-			
-
 		}; 
 
         public BoggleService() {
@@ -117,19 +115,27 @@ namespace Boggle
 		/// </summary>
 		/// <param name="ja">The join ateempt info.</param>
 		/// <returns></returns>
-		public string AttemptJoin(JoinAttempt ja)
+		public string AttemptJoin(string data)
 		{
+            SetStatus(Accepted);
+            return "";
+
+            dynamic request = JsonConvert.DeserializeObject(data);
+            JoinAttempt ja = new JoinAttempt();
+            ja.TimeLimit = Convert.ToInt32(request.TimeLimit);
+            ja.UserToken = request.UserToken;
+
 			lock (sync)
 			{
 				try
 				{
 
-					if (Convert.ToInt32(ja.TimeLimit) > 120 || Convert.ToInt32(ja.TimeLimit) < 5)
-					{
-						SetStatus(Forbidden);
-						return "";
-					}
-					
+                    if (Convert.ToInt32(ja.TimeLimit) > 120 || Convert.ToInt32(ja.TimeLimit) < 5)
+                    {
+                        SetStatus(Forbidden);
+                        return "";
+                    }
+
 				} catch (FormatException) {
 					SetStatus(Forbidden);
 					return "";
@@ -139,6 +145,7 @@ namespace Boggle
 					pendingGame = new DetailedGameState();
 					pendingGame.gameID = GameIDCounter++;
 					DetailedPlayerInfo firstPlayer;
+
 					if (!users.TryGetValue(ja.UserToken, out firstPlayer))
 					{
 						SetStatus(Forbidden);
@@ -148,17 +155,20 @@ namespace Boggle
 					firstPlayersDesiredTimeLimit = Convert.ToInt32(ja.TimeLimit);
 					return pendingGame.gameID.ToString();
 				}
+
 				if (ja.UserToken == pendingGame.Player1.userID)
-					{
-						SetStatus(Conflict);
-						return "";
-					}
+				{
+					SetStatus(Conflict);
+					return "";
+				}
+
 				DetailedPlayerInfo secondPlayer;
 				if (!users.TryGetValue(ja.UserToken, out secondPlayer))
 				{
 					SetStatus(Forbidden);
 					return "";
 				}
+
 				pendingGame.Player2 = secondPlayer.DeepClone();
 				pendingGame.TimeLimit = (firstPlayersDesiredTimeLimit + Convert.ToInt32(ja.TimeLimit))/ 2;
 				pendingGame.TimeLeft = pendingGame.TimeLimit;
@@ -167,6 +177,8 @@ namespace Boggle
 				SetStatus(Created);
 				string toReturn = pendingGame.gameID.ToString();
 				pendingGame = null;
+
+
 				return toReturn;
 			}
 		}

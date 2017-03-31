@@ -97,22 +97,18 @@ namespace Boggle
         [TestMethod]
         public void TestJoinGameAccepted()
         {
-            //Create user
             dynamic data = new ExpandoObject();
             data.Nickname = "TestName";
-            HttpResponseMessage r = client.DoPostAsync("users", data).Result;
+            Response r = client.DoPostAsync("users", data).Result;
+            string userToken = r.Data.UserToken;
 
-            string arg1 = r.Content.ReadAsStringAsync().Result;
-            dynamic arg = JsonConvert.DeserializeObject(arg1);
+            data = new ExpandoObject();
 
-            //Submit joinGame with created user, expect Accecpted, because
-            //only one user has been created
-            dynamic newData = new ExpandoObject();
-            newData.UserToken = arg.UserToken;
-            newData.TimeLimit = 100;
-            r = client.DoPostAsync("users", newData).Result;
-            Assert.AreEqual(r.StatusCode, Accepted);
+            data.UserToken = r.Data.SaveUserIDResult;
+            data.TimeLimit = 100;
 
+            r = client.DoPostAsync("games", data).Result;
+            Assert.AreEqual(Accepted, r.Status);
         }
 
         [TestMethod]
