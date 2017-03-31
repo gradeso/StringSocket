@@ -230,6 +230,7 @@ namespace Boggle
             gameInput.TimeLimit = 60;
             var userID = r.Data;
             r = client.DoPostAsync("games", gameInput).Result;
+
             user.Nickname = "Sally";
             r = client.DoPostAsync("users", user).Result;
             gameInput.UserToken = r.Data.UserToken;
@@ -313,13 +314,18 @@ namespace Boggle
 
             System.Threading.Thread.Sleep(12000);
 
+            wordInput.UserToken = user1ID.UserToken;
+            wordInput.Word = "hello";
+            r = client.DoPutAsync(wordInput, "games/" + gameID).Result;
+            Assert.AreEqual(Conflict, r.Status);
+
             r = client.DoGetAsync("games/" + gameID).Result;
             Assert.AreEqual(OK, r.Status);
 
             r = client.DoGetAsync("games/" + GenerateTokenString(40)).Result;
             Assert.AreEqual(Forbidden, r.Status);
             
-            r = client.DoGetAsync("games/" + gameID + "?Brief={0}", "Yes").Result;
+            r = client.DoGetAsync("games/" + gameID + "?Brief={0}", "yes").Result;
             Assert.AreEqual(OK, r.Status);
 
             r = client.DoGetAsync("games/" + gameID + "?Brief={0}", "Yes").Result;
