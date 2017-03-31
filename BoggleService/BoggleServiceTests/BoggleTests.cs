@@ -280,26 +280,59 @@ namespace Boggle
             user.Nickname = "John";
             Response r = client.DoPostAsync("users", user).Result;
             gameInput.UserToken = r.Data.UserToken;
-            gameInput.TimeLimit = 60;
+            gameInput.TimeLimit = 6;
             var user1ID = r.Data;
             r = client.DoPostAsync("games", gameInput).Result;
+            var gameID = r.Data.GameID;
+
+            r = client.DoGetAsync("games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+
+            r = client.DoGetAsync("games/" + GenerateTokenString(40)).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+
             user.Nickname = "Sally";
             r = client.DoPostAsync("users", user).Result;
             gameInput.UserToken = r.Data.UserToken;
-            gameInput.TimeLimit = 60;
+            gameInput.TimeLimit = 6;
             var user2ID = r.Data;
             r = client.DoPostAsync("games", gameInput).Result;
-            string gameID = r.Data.GameID;
+            gameID = r.Data.GameID;
             
             wordInput.UserToken = user1ID.UserToken;
             wordInput.Word = "hello";
             r = client.DoPutAsync(wordInput, "games/" + gameID).Result;
             Assert.AreEqual(OK, r.Status);
-
+            /*
             string[] myarray = { "" };
             String url = String.Format("games/" + gameID + "?Brief={0}", myarray);
             r = client.DoGetAsync(url).Result;
+            */
+            r = client.DoGetAsync("games/" + gameID).Result;
             Assert.AreEqual(OK, r.Status);
+
+            System.Threading.Thread.Sleep(12000);
+
+            r = client.DoGetAsync("games/" + gameID).Result;
+            Assert.AreEqual(OK, r.Status);
+
+            r = client.DoGetAsync("games/" + GenerateTokenString(40)).Result;
+            Assert.AreEqual(Forbidden, r.Status);
+            
+            r = client.DoGetAsync("games/" + gameID + "?Brief=yes").Result;
+            Assert.AreEqual(OK, r.Status);
+
+            r = client.DoGetAsync("games/" + gameID + "?Brief=Yes").Result;
+            Assert.AreEqual(OK, r.Status);
+        }
+        [TestMethod]
+        public void Test009_CreateUser()
+        {
+            dynamic user = new ExpandoObject();
+            user.Nickname = "";
+            Response r = client.DoPostAsync("users", user).Result;
+            // bad request
+            Assert.AreEqual(Forbidden, r.Status);
         }
 
         [TestMethod]
