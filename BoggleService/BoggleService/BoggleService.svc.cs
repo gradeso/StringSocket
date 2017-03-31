@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Timers;
 using static System.Net.HttpStatusCode;
 
@@ -191,7 +193,59 @@ namespace Boggle
 
 		public string gameStatus(string GameID, bool maybeYes)
 		{
-			throw new NotImplementedException();
+			DetailedGameState gameInQuestion;
+			int gameIdNum;
+			if (!int.TryParse(GameID, out gameIdNum) || !currentGames.TryGetValue(gameIdNum, out gameInQuestion))
+			{
+				SetStatus(Forbidden);
+				return "";
+			}
+			switch (gameInQuestion.GameState) {
+				case "pending":
+					
+					return JsonConvert.SerializeObject((GameStatePending) gameInQuestion.DeepClone());
+				case "active":
+					
+						PlayerInfo tempPlr1 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
+						PlayerInfo tempPlr2 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
+					GameStatePending toReturn;
+					if (maybeYes)
+					{
+						toReturn = (GameStateActive)gameInQuestion.DeepClone();
+						((GameStateActive)toReturn).Player1 = tempPlr1;
+						((GameStateActive)toReturn).Player2 = tempPlr2;
+
+					}
+					else
+					{
+						toReturn = gameInQuestion.DeepClone();
+						((DetailedGameState)toReturn).Player1 = tempPlr1;
+						((DetailedGameState)toReturn).Player2 = tempPlr2;
+
+					}
+
+					return JsonConvert.SerializeObject(toReturn);
+					
+				case "completed":
+					GameStatePending toReturn2;
+					if (maybeYes)
+					{
+						PlayerInfo tempPlr11 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
+						PlayerInfo tempPlr22 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
+						toReturn2 = (GameStateActive)gameInQuestion.DeepClone();
+						((GameStateActive)toReturn2).Player1 = tempPlr11;
+						((GameStateActive)toReturn2).Player2 = tempPlr22;
+
+					}
+					else
+					{
+						toReturn2 = gameInQuestion.DeepClone();
+					}
+					return JsonConvert.SerializeObject(toReturn2);
+				default:
+					SetStatus(Forbidden);
+					return "";
+			}
 		}
 	}
 }
