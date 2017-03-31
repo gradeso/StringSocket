@@ -335,7 +335,7 @@ namespace Boggle
             user.Nickname = "John";
             Response r = client.DoPostAsync("users", user).Result;
             gameInput.UserToken = r.Data.UserToken;
-            gameInput.TimeLimit = 10;
+            gameInput.TimeLimit = 30;
             var user1ID = r.Data;
             r = client.DoPostAsync("games", gameInput).Result;
             var gameID = r.Data.GameID;
@@ -343,7 +343,7 @@ namespace Boggle
             user.Nickname = "Sally";
             r = client.DoPostAsync("users", user).Result;
             gameInput.UserToken = r.Data.UserToken;
-            gameInput.TimeLimit = 10;
+            gameInput.TimeLimit = 30;
             var user2ID = r.Data;
             r = client.DoPostAsync("games", gameInput).Result;
             gameID = r.Data.GameID;
