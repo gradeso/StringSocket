@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Dynamic;
 using System.Security.Cryptography;
+using System.Collections.Generic;
 
 namespace Boggle
 {
@@ -99,24 +100,6 @@ namespace Boggle
             return new string(identifier);
         }
 
-        /// <summary>
-        /// Note that DoGetAsync (and the other similar methods) returns a Response object, which contains
-        /// the response Stats and the deserialized JSON response (if any).  See RestTestClient.cs
-        /// for details.
-        /// </summary>
-        [TestMethod]
-        public void TestMethod1()
-        {
-            Response r = client.DoGetAsync("word?index={0}", "-5").Result;
-            Assert.AreEqual(Forbidden, r.Status);
-
-            r = client.DoGetAsync("word?index={0}", "5").Result;
-            Assert.AreEqual(OK, r.Status);
-
-            string word = (string) r.Data;
-            Assert.AreEqual("AAL", word);
-        }
-
         [TestMethod]
         public void Test001_CreateUser()
         {
@@ -133,11 +116,6 @@ namespace Boggle
             user.Nickname = "John";
             r = client.DoPostAsync("users", user).Result;
             Assert.AreEqual(Created, r.Status);
-
-            user.Nickname = null;
-            r = client.DoPostAsync("users", user).Result;
-            // bad request
-            Assert.AreEqual(Forbidden, r.Status);
 
             user.Nickname = "";
             r = client.DoPostAsync("users", user).Result;
@@ -380,7 +358,7 @@ namespace Boggle
             {
                 if(!(la[i] == ""))
                 {
-                    wordInput.UserToken = users[rand.Next(0, 0)];
+                    wordInput.UserToken = users[rand.Next(0, 1)];
                     wordInput.Word = la[i];
                     r = client.DoPutAsync(wordInput, "games/" + gameID).Result;
                     Assert.AreEqual(OK, r.Status);
@@ -391,7 +369,7 @@ namespace Boggle
         public void Test010_LotsOfGames()
         {
             int i = 0;
-            while(i < 1000)
+            while(i < 200)
             {
                 dynamic user = new ExpandoObject();
                 dynamic gameInput = new ExpandoObject();
@@ -416,5 +394,42 @@ namespace Boggle
                 i++;
             }
         }
+
+        //[TestMethod]
+        //public void StressTest1()
+        //{
+        //    int size = 1000;
+        //    Dictionary<string, string> users = new Dictionary<string, string>();
+        //    Dictionary<string, string> games = new Dictionary<string, string>();
+        //    Response r;
+        //    dynamic user = new ExpandoObject();
+        //    dynamic gameInput = new ExpandoObject();
+        //    dynamic wordInput = new ExpandoObject();
+
+        //    for (int i = 0; i < size; i++)
+        //    {
+        //        user.Nickname = GenerateTokenString(10);
+        //        r = client.DoPostAsync("users", user).Result;
+        //        users.Add(user.Nickname, r.Data);
+        //    }
+
+        //    string token;
+        //    for (int i = 0; i < size; i=i+2)
+        //    {
+        //        gameInput.TimeLimit = 60;
+        //        gameInput.UserToken = users.
+        //    }
+
+        //    user.Nickname = "@Bob";
+        //    r = client.DoPostAsync("users", user).Result;
+        //    Assert.AreEqual(Accepted, r.Status);
+
+
+
+        //    user.Nickname = "";
+        //    r = client.DoPostAsync("users", user).Result;
+        //    // bad request
+        //    Assert.AreEqual(Forbidden, r.Status);
+        //}
     }
 }

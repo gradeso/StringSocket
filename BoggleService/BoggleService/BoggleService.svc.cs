@@ -256,7 +256,7 @@ namespace Boggle
                     }
                     else
                     {
-                        SetStatus(Forbidden);
+                        SetStatus(Conflict);
                         return null;
                     }
                 }
@@ -283,6 +283,8 @@ namespace Boggle
                         GameStatusResponse response = new GameStatusResponse();
                         response.GameState = theGame.GameStatus;
                         response.TimeLeft = theGame.TimeLeft;
+                        response.Player1 = new Player1();
+                        response.Player2 = new Player2();
                         response.Player1.Score = theGame.Player1Score;
                         response.Player2.Score = theGame.Player2Score;
 
