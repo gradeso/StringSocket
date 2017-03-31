@@ -246,8 +246,6 @@ namespace Boggle
             newData.UserToken = userToken;
 
             r = client.DoPostAsync("games", newData).Result;
-
-
             r = client.DoPutAsync(newData,"games").Result;
             Assert.AreEqual(OK,r.Status);
         }
