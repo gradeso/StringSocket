@@ -236,8 +236,7 @@ namespace Boggle
         [TestMethod]
         public void TestGameStatus()
         {
-            Response w = client.DoGetAsync("games/{0}?Brief={1}", "42", "yes").Result;
-
+            
             //Create two users
             dynamic data = new ExpandoObject();
             data.Nickname = "TestName";
@@ -267,8 +266,8 @@ namespace Boggle
 
             dynamic arg2 = r.Data;
 
-            
-            
+            Response w = client.DoGetAsync("games/{0}?Brief={1}", "42", "yes").Result;
+
         }
 
         [TestMethod]
