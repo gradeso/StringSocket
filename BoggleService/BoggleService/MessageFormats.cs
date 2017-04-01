@@ -18,8 +18,8 @@ namespace Boggle
 	{
 		public string UserToken { get; set; }
 		public string Word { get; set; }
-
 	}
+
 	public class JoinAttempt
 	{
 		public string UserToken { get; set; }

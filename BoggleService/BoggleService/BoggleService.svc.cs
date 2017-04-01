@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 using static System.Net.HttpStatusCode;
-using Newtonsoft.Json;
+
 
 namespace Boggle
 {
@@ -93,37 +93,31 @@ namespace Boggle
 		public string SaveUserID(string Nickname)
 		{
 
-			lock (sync)
-			{
-				if (Nickname == null || Nickname.Trim() == "")
-				{
-					SetStatus(Forbidden);
-					return null;
-				}
+            lock (sync)
+            {
+                if (Nickname == null || Nickname.Trim() == "")
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
 
-				string userID = Guid.NewGuid().ToString();
-				SetStatus(Created);
-				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
-                UserIDInfo t = new UserIDInfo();
-                t.UserToken = userID;
-                string tyne = JsonConvert.SerializeObject(t);
-                return tyne;
-			}
-		}
+                string userID = Guid.NewGuid().ToString();
+                SetStatus(Created);
+
+                users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
+                //UserIDInfo t = new UserIDInfo();
+                //t.UserToken = userID;
+                return userID;
+            }
+        }
 		/// <summary>
 		/// Attempts the join.
 		/// </summary>
 		/// <param name="ja">The join ateempt info.</param>
 		/// <returns></returns>
-		public string AttemptJoin(string data)
+		public string AttemptJoin(JoinAttempt ja)
 		{
-            SetStatus(Accepted);
-            return "";
 
-            dynamic request = JsonConvert.DeserializeObject(data);
-            JoinAttempt ja = new JoinAttempt();
-            ja.TimeLimit = Convert.ToInt32(request.TimeLimit);
-            ja.UserToken = request.UserToken;
 
 			lock (sync)
 			{
@@ -139,7 +133,9 @@ namespace Boggle
 				} catch (FormatException) {
 					SetStatus(Forbidden);
 					return "";
-				} catch (NullReferenceException) {
+				}
+
+                catch (NullReferenceException) {
 
 					//triggered when no players in the queue on the line pendingGame.Player1.userID .
 					pendingGame = new DetailedGameState();

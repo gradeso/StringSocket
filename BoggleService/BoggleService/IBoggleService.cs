@@ -22,10 +22,10 @@ namespace Boggle
         /// </summary>
         [WebInvoke(
             Method = "POST",
-            //BodyStyle = WebMessageBodyStyle.Wrapped,
-            //RequestFormat = WebMessageFormat.Json,
-            //ResponseFormat = WebMessageFormat.Json,
-            UriTemplate = "/users")]
+            BodyStyle = WebMessageBodyStyle.Wrapped,
+            RequestFormat = WebMessageFormat.Json,
+            ResponseFormat = WebMessageFormat.Json,
+            UriTemplate = "users")]
         string SaveUserID(string Nickname);
 
 		/// <summary>
@@ -44,7 +44,7 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "games")]
-		string AttemptJoin(string data);
+		string AttemptJoin(JoinAttempt ja);
 
 		/// <summary>
 		/// Plays the word in game with identifier.
@@ -57,24 +57,14 @@ namespace Boggle
 			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]
 		string PlayWordInGame(Move moveMade, string GameID);
 
-		/// <summary>
-		///Play a word in a game.
-		/// </summary>
-		[WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "games/{GameID}?Brief={maybeYes}")]
-		string gameStatus(string GameID, bool maybeYes);
-
-        //[WebInvoke(
-        //Method = "POST",
-        //BodyStyle = WebMessageBodyStyle.Wrapped,
-        //RequestFormat = WebMessageFormat.Json,
-        //ResponseFormat = WebMessageFormat.Json,
-        //UriTemplate = "/users")]
-        //string createUser(string nickname);
-        
-            
-        
+        /// <summary>
+        ///Play a word in a game.
+        /// </summary>
+        [WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
+            RequestFormat = WebMessageFormat.Json,
+            ResponseFormat = WebMessageFormat.Json,
+            UriTemplate = "games/{GameID}?Brief={maybeYes}")]
+        string gameStatus(string GameID, bool maybeYes);
+                
 	}
 }
