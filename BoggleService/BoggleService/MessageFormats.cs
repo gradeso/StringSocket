@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Web;
 using System.Web.Script.Serialization;
 
@@ -12,9 +13,79 @@ using System.Web.Script.Serialization;
 /// </summary>
 namespace Boggle
 {
+    [DataContract]
+    public class Player
+    {
+        [DataMember]
+        public string Nickname { get; set; }
+
+        [DataMember]
+        public string UserToken { get; set; }
+
+        [DataMember]
+        public int score { get; set; }
+
+        [DataMember]
+        public List<Play> WordsPlayed;
+
+        public int GameTime { get; set; }
+
+        public void AddPlay(Play play)
+        {
+            WordsPlayed.Add(play);            
+        }
 
 
-	public class Move
+    }
+    [DataContract]
+    public class Game
+    {
+        public int GameID { get; set; }
+
+        public BoggleBoard boggleBoard { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public GameState gameState { get; set; }
+
+        [DataMember(EmitDefaultValue = false)]
+        public string Board { get; set; }
+
+        [DataMember]
+        public int TimeLimit { get; set; }
+
+        [DataMember]
+        public int TimeLeft { get; set; }
+
+        [DataMember]
+        public Player Player1 { get; set; }
+
+        [DataMember]
+        public Player Player2 { get; set; }
+    }
+
+    public class Play
+    {
+        public string startElement = "Word:";
+        public string word { get; private set; }
+        public string secondElement = "Score:";
+        public int score;
+        public void Add(string word, int score)
+        {
+            this.word = word;
+            this.score = score;
+        }
+    }
+
+    public class GameState
+    {
+        public string gameState { get; set; }
+
+    }
+
+    //*****************************************************************************//
+
+
+    public class Move
 	{
 		public string UserToken { get; set; }
 		public string Word { get; set; }

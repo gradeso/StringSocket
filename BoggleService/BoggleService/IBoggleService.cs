@@ -26,7 +26,7 @@ namespace Boggle
             RequestFormat = WebMessageFormat.Json,
             ResponseFormat = WebMessageFormat.Json,
             UriTemplate = "users")]
-        string SaveUserID(string Nickname);
+        string CreateUser(string Nickname);
 
 		/// <summary>
 		/// Starts a new game or stops the join request
@@ -44,14 +44,25 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "games")]
-		string AttemptJoin(JoinAttempt ja);
+		string JoinGame(string UserToken, int TimeLimit);
 
-		/// <summary>
-		/// Plays the word in game with identifier.
-		/// </summary>
-		/// <param name="GameID">The game identifier.</param>
-		/// <returns></returns>
-		[WebInvoke(Method = "PUT",
+        ///// <summary>
+        ///// Attempts the join a game.
+        ///// </summary>
+        ///// <returns></returns>
+        //[WebInvoke(Method = "POST",
+        //    BodyStyle = WebMessageBodyStyle.Wrapped,
+        //    RequestFormat = WebMessageFormat.Json,
+        //    ResponseFormat = WebMessageFormat.Json,
+        //    UriTemplate = "games")]
+        //string JoinGame(JoinAttempt ja);
+
+        /// <summary>
+        /// Plays the word in game with identifier.
+        /// </summary>
+        /// <param name="GameID">The game identifier.</param>
+        /// <returns></returns>
+        [WebInvoke(Method = "PUT",
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]

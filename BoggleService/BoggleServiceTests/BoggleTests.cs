@@ -77,7 +77,6 @@ namespace Boggle
             data.Nickname = "TestName";
             Response r = client.DoPostAsync("users", data).Result;
             Assert.AreEqual(Created, r.Status);
-            //dynamic output = r.Content.ReadAsStringAsync().Result;
 
             //Try with null nickname, expect 403
             data = new ExpandoObject();
@@ -104,7 +103,7 @@ namespace Boggle
 
             data = new ExpandoObject();
 
-            data.UserToken = r.Data.SaveUserIDResult;
+            data.UserToken = r.Data.CreateUserResult;
             data.TimeLimit = 100;
 
             r = client.DoPostAsync("games", data).Result;
@@ -122,24 +121,24 @@ namespace Boggle
             dynamic arg = r.Data;
 
             dynamic data2 = new ExpandoObject();
-            data.Nickname = "TestName2";
-            r = client.DoPostAsync("users", data2).Result;
+            data2.Nickname = "TestName2";
+            Response t = client.DoPostAsync("users", data2).Result;
 
-            dynamic arg3 = r.Data;
+            dynamic arg3 = t.Data;
 
             //Submit joinGame with created user, expect Accecpted, because
             //only one user has been created
             dynamic newData = new ExpandoObject();
-            newData.UserToken = arg.UserToken;
+            newData.UserToken = arg.CreateUserResult;
             newData.TimeLimit = 100;
-            r = client.DoPostAsync("games", newData).Result;
+            Response j = client.DoPostAsync("games", newData).Result;
 
             //Submit second joinGame request with second user, expect
             //created because two users have joined current pending game
             newData = new ExpandoObject();
-            newData.UserToken = arg3.UserToken;
+            newData.UserToken = arg3.CreateUserResult;
             newData.TimeLimit = 100;
-            r = client.DoPostAsync("games", newData).Result;
+            Response s = client.DoPostAsync("games", newData).Result;
             Assert.AreEqual(Created, r.Status);
         }
 
