@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 
@@ -12,26 +13,26 @@ namespace Boggle
 		/// <summary>
 		/// Sends back index.html as the response body.
 		/// </summary>
-		[WebGet(UriTemplate = "/api")]
+		[WebGet(UriTemplate = "api")]
 		Stream API();
 
-		/// <summary>
-		///if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
-		///Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
-		/// </summary>
-		[WebInvoke(
-			Method = "POST",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "users")]
-		string SaveUserID(string Nickname);
+        /// <summary>
+        ///if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
+        ///Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
+        /// </summary>
+        [WebInvoke(
+            Method = "POST",
+            BodyStyle = WebMessageBodyStyle.Wrapped,
+            RequestFormat = WebMessageFormat.Json,
+            ResponseFormat = WebMessageFormat.Json,
+            UriTemplate = "users")]
+        string SaveUserID(string Nickname);
 
 		/// <summary>
 		/// Starts a new game or stops the join request
 		/// </summary>
 		[WebInvoke(Method = "PUT",
-			UriTemplate = "/games")]
+			UriTemplate = "games")]
 		void CancelJoin(string UserToken);
 
 		/// <summary>
@@ -42,7 +43,7 @@ namespace Boggle
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "/games")]
+			UriTemplate = "games")]
 		string AttemptJoin(JoinAttempt ja);
 
 		/// <summary>
@@ -53,16 +54,17 @@ namespace Boggle
 		[WebInvoke(Method = "PUT",
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json, UriTemplate = "/games/{GameID}")]
+			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]
 		string PlayWordInGame(Move moveMade, string GameID);
 
-		/// <summary>
-		///Play a word in a game.
-		/// </summary>
-		[WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "/games/{GameID}?Brief={maybeYes}")]
-		string gameStatus(string GameID, bool maybeYes);
+        /// <summary>
+        ///Play a word in a game.
+        /// </summary>
+        [WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
+            RequestFormat = WebMessageFormat.Json,
+            ResponseFormat = WebMessageFormat.Json,
+            UriTemplate = "games/{GameID}?Brief={maybeYes}")]
+        string gameStatus(string GameID, bool maybeYes);
+                
 	}
 }
