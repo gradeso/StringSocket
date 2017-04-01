@@ -301,6 +301,8 @@ namespace Boggle
             newData.TimeLimit = 100;
             r = client.DoPostAsync("games", newData).Result;
 
+            arg3 = r.Data;
+
             newData = new ExpandoObject();
             newData.UserToken = arg3.UserToken;
             newData.Word = "test";
