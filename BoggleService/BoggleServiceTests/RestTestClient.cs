@@ -65,7 +65,7 @@ namespace Boggle
         /// returned if the request was unsuccessful.
         /// 
         /// For example:
-        /// DoGetAsync("this/is/a/test?name={0}&age={1}, "James", "57")
+        /// DoGetAsync("this/is/a/test?name={0}&age={1}", "James", "57")
         /// </summary>
         public async Task<Response> DoGetAsync(string url, params string[] parameterValues)
         {
@@ -77,6 +77,7 @@ namespace Boggle
             using (HttpClient client = CreateClient())
             {
                 url = String.Format(url, parameterValues);
+
                 HttpResponseMessage response = await client.GetAsync(url);
                 if (response.IsSuccessStatusCode)
                 {

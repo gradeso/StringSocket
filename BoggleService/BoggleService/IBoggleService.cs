@@ -22,7 +22,6 @@ namespace Boggle
         /// </summary>
         [WebInvoke(
             Method = "POST",
-            BodyStyle = WebMessageBodyStyle.Wrapped,
             RequestFormat = WebMessageFormat.Json,
             ResponseFormat = WebMessageFormat.Json,
             UriTemplate = "users")]
@@ -40,22 +39,11 @@ namespace Boggle
 		/// </summary>
 		/// <returns></returns>
 		[WebInvoke(Method = "POST",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
+            BodyStyle = WebMessageBodyStyle.Wrapped,
+            RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "games")]
 		string JoinGame(string UserToken, int TimeLimit);
-
-        ///// <summary>
-        ///// Attempts the join a game.
-        ///// </summary>
-        ///// <returns></returns>
-        //[WebInvoke(Method = "POST",
-        //    BodyStyle = WebMessageBodyStyle.Wrapped,
-        //    RequestFormat = WebMessageFormat.Json,
-        //    ResponseFormat = WebMessageFormat.Json,
-        //    UriTemplate = "games")]
-        //string JoinGame(JoinAttempt ja);
 
         /// <summary>
         /// Plays the word in game with identifier.
@@ -63,19 +51,21 @@ namespace Boggle
         /// <param name="GameID">The game identifier.</param>
         /// <returns></returns>
         [WebInvoke(Method = "PUT",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
+            BodyStyle = WebMessageBodyStyle.Wrapped,
+            RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]
-		string PlayWordInGame(Move moveMade, string GameID);
+		Score PlayWord(string GameID, string UserToken, string wordPlayed);
 
         /// <summary>
         ///Play a word in a game.
         /// </summary>
-        [WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
+        [WebGet(
             RequestFormat = WebMessageFormat.Json,
             ResponseFormat = WebMessageFormat.Json,
-            UriTemplate = "games/{GameID}?Brief={maybeYes}")]
-        string gameStatus(string GameID, bool maybeYes);
-                
-	}
+            UriTemplate = "games/{GameID}?Brief={Brief}")]
+        Game gameStatus(string GameID, string Brief);
+
+
+
+    }
 }
