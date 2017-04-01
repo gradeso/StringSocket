@@ -68,6 +68,10 @@ namespace Boggle
 	/// </summary>
 	public class ScoreInfo
 	{
+		public ScoreInfo()
+		{
+			Score = 0;
+		}
 		public int Score { get; set; }
 	}
 
@@ -180,10 +184,14 @@ namespace Boggle
 			TimeLimit = 0;
 			Board = null;
 			boggleBoard = null;
+			MovesMade = new List<WordAndScore>();
 		}
 		public int TimeLimit { get; set; }
 
 		public string Board { get; set; }
+
+		[ScriptIgnore]
+		public List<WordAndScore> MovesMade { get; set; }
 
 		[ScriptIgnore]
 		public BoggleBoard boggleBoard { get; set; }

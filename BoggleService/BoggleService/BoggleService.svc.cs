@@ -84,12 +84,13 @@ namespace Boggle
 			WebOperationContext.Current.OutgoingResponse.ContentType = "text/html";
 			return File.OpenRead(AppDomain.CurrentDomain.BaseDirectory + "index.html");
 		}
-		
+
 		/// <summary>
 		/// if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
 		/// Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
 		/// </summary>
 		/// <param name="Nickname"></param>
+		/// <returns></returns>
 		public string SaveUserID(string Nickname)
 		{
 
@@ -159,92 +160,156 @@ namespace Boggle
 				pendingGame.TimeLimit = (firstPlayersDesiredTimeLimit + Convert.ToInt32(ja.TimeLimit))/ 2;
 				pendingGame.TimeLeft = pendingGame.TimeLimit;
 				pendingGame.GameState = "active";
+				pendingGame.boggleBoard = new BoggleBoard();
+				pendingGame.Board = pendingGame.boggleBoard.ToString();
 				currentGames.Add(pendingGame.gameID, pendingGame.DeepClone());
 				SetStatus(Created);
+
 				string toReturn = pendingGame.gameID.ToString();
 				pendingGame = null;
-				return toReturn;
+				return JsonConvert.SerializeObject(toReturn);
 			}
 		}
 
 		public void CancelJoin(string UserToken)
 		{
-			try
+			lock (sync)
 			{
-				if (pendingGame.Player1.userID == UserToken)
+				try
 				{
-					pendingGame = null;
-					SetStatus(OK);
+					if (pendingGame.Player1.userID == UserToken)
+					{
+						pendingGame = null;
+						SetStatus(OK);
+					}
 				}
-			}
-			catch
-			{
+				catch
+				{
 
-			}
+				}
 			SetStatus(Forbidden);
-			
+			}
 		}
-	
+
 
 		public string PlayWordInGame(Move moveMade, string GameID)
 		{
-			throw new NotImplementedException();
+			lock (sync)
+			{
+				moveMade.Word = moveMade.Word.Trim();
+				DetailedGameState gameInQuestion;
+				int tempGameID;
+
+				try
+				{
+					if (!int.TryParse(GameID, out tempGameID) || !currentGames.TryGetValue(tempGameID, out gameInQuestion)
+						|| !(gameInQuestion.Player1.userID == moveMade.UserToken || gameInQuestion.Player2.userID == moveMade.UserToken) )
+					{
+						SetStatus(Forbidden);
+						return "";
+					}
+				}
+				catch (NullReferenceException)
+				{
+					SetStatus(Forbidden);
+					return "";
+				}
+				int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, moveMade.Word);
+				if (scoreOfWord != 0)
+				{
+					WordAndScore wac = new WordAndScore(moveMade.UserToken, moveMade.Word, scoreOfWord);
+					gameInQuestion.MovesMade.Add(wac);
+					if (gameInQuestion.Player1.userID == moveMade.UserToken)
+					{
+						gameInQuestion.Player1.Score += scoreOfWord;
+						((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
+					}
+					else
+					{
+
+						gameInQuestion.Player2.Score += scoreOfWord;
+						((DetailedPlayerInfo)gameInQuestion.Player2).MovesMade.Add(wac);
+
+					}
+				}
+				ScoreInfo toReturn = new ScoreInfo();
+				toReturn.Score = scoreOfWord;
+				return JsonConvert.SerializeObject(toReturn);
+
+				
+			}
+		}
+
+		private int calculateScore(BoggleBoard boggleBoard, string word)
+		{
+			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
+				word.Length < 3 ?
+				0 : word.Length < 5 ?
+				1 : word.Length < 6 ?
+				2 : word.Length < 7 ?
+				3 : word.Length < 8 ?
+				5 : 11
+				  : 0;
 		}
 
 		public string gameStatus(string GameID, bool maybeYes)
 		{
-			DetailedGameState gameInQuestion;
-			int gameIdNum;
-			if (!int.TryParse(GameID, out gameIdNum) || !currentGames.TryGetValue(gameIdNum, out gameInQuestion))
+			lock (sync)
 			{
-				SetStatus(Forbidden);
-				return "";
-			}
-			switch (gameInQuestion.GameState) {
-				case "pending":
-					
-					return JsonConvert.SerializeObject((GameStatePending) gameInQuestion.DeepClone());
-				case "active":
-					
-						PlayerInfo tempPlr1 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
-						PlayerInfo tempPlr2 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
-					GameStatePending toReturn;
-					if (maybeYes)
-					{
-						toReturn = (GameStateActive)gameInQuestion.DeepClone();
-						((GameStateActive)toReturn).Player1 = tempPlr1;
-						((GameStateActive)toReturn).Player2 = tempPlr2;
-
-					}
-					else
-					{
-						toReturn = gameInQuestion.DeepClone();
-						((DetailedGameState)toReturn).Player1 = tempPlr1;
-						((DetailedGameState)toReturn).Player2 = tempPlr2;
-
-					}
-
-					return JsonConvert.SerializeObject(toReturn);
-					
-				case "completed":
-					GameStatePending toReturn2;
-					if (maybeYes)
-					{
-						PlayerInfo tempPlr11 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
-						PlayerInfo tempPlr22 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
-						toReturn2 = (GameStateActive)gameInQuestion.DeepClone();
-						((GameStateActive)toReturn2).Player1 = tempPlr11;
-						((GameStateActive)toReturn2).Player2 = tempPlr22;
-
-					}
-					else
-					{
-						toReturn2 = gameInQuestion.DeepClone();
-					}
-					return JsonConvert.SerializeObject(toReturn2);
-				default:
+				DetailedGameState gameInQuestion;
+				int gameIdNum;
+				if (!int.TryParse(GameID, out gameIdNum) || !currentGames.TryGetValue(gameIdNum, out gameInQuestion))
+				{
 					SetStatus(Forbidden);
 					return "";
+				}
+				switch (gameInQuestion.GameState)
+				{
+					case "pending":
+
+						return JsonConvert.SerializeObject((GameStatePending)gameInQuestion.DeepClone());
+					case "active":
+
+						PlayerInfo tempPlr1 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
+						PlayerInfo tempPlr2 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
+						GameStatePending toReturn;
+						if (maybeYes)
+						{
+							toReturn = (GameStateActive)gameInQuestion.DeepClone();
+							((GameStateActive)toReturn).Player1 = tempPlr1;
+							((GameStateActive)toReturn).Player2 = tempPlr2;
+
+						}
+						else
+						{
+							toReturn = gameInQuestion.DeepClone();
+							((DetailedGameState)toReturn).Player1 = tempPlr1;
+							((DetailedGameState)toReturn).Player2 = tempPlr2;
+
+						}
+
+						return JsonConvert.SerializeObject(toReturn);
+
+					case "completed":
+						GameStatePending toReturn2;
+						if (maybeYes)
+						{
+							PlayerInfo tempPlr11 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
+							PlayerInfo tempPlr22 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
+							toReturn2 = (GameStateActive)gameInQuestion.DeepClone();
+							((GameStateActive)toReturn2).Player1 = tempPlr11;
+							((GameStateActive)toReturn2).Player2 = tempPlr22;
+
+						}
+						else
+						{
+							toReturn2 = gameInQuestion.DeepClone();
+						}
+						return JsonConvert.SerializeObject(toReturn2);
+					default:
+						SetStatus(Forbidden);
+						return "";
+				}
 			}
 		}
 	}
