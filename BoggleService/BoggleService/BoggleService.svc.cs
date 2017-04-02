@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
@@ -16,7 +18,7 @@ namespace Boggle
 	{
 
 		private static readonly object sync = new object();
-		private static readonly HashSet<string> bigDict;
+		private static readonly HashSet<string> bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("dictoionary.txt"), "\n"));
 		/// <summary>
 		/// The users that have registered.
 		/// </summary>
@@ -91,7 +93,7 @@ namespace Boggle
 		/// </summary>
 		/// <param name="Nickname"></param>
 		/// <returns></returns>
-		public string SaveUserID(string Nickname)
+		public HttpResponseMessage SaveUserID(string Nickname)
 		{
 
 			lock (sync)
@@ -99,65 +101,66 @@ namespace Boggle
 				if (Nickname == null || Nickname.Trim() == "")
 				{
 					SetStatus(Forbidden);
-					return "";
+					return turnToCorrectFormat("");
 				}
 
 				string userID = Guid.NewGuid().ToString();
 				SetStatus(Created);
 				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
 
-				return userID;
+				return turnToCorrectFormat(new UserIDInfo(userID));
 			}
 		}
-		/// <summary>
+				/// <summary>
 		/// Attempts the join.
 		/// </summary>
 		/// <param name="ja">The join ateempt info.</param>
 		/// <returns></returns>
-		public string AttemptJoin(JoinAttempt ja)
+		public HttpResponseMessage AttemptJoin(string UserToken, int TimeLimit)
 		{
 			lock (sync)
 			{
 				try
 				{
 
-					if (Convert.ToInt32(ja.TimeLimit) > 120 || Convert.ToInt32(ja.TimeLimit) < 5)
+					if (TimeLimit > 120 || TimeLimit < 5)
 					{
 						SetStatus(Forbidden);
-						return "";
+						return turnToCorrectFormat("");
 					}
+					pendingGame.Equals(1);
 					
 				} catch (FormatException) {
 					SetStatus(Forbidden);
-					return "";
+					return turnToCorrectFormat("");
 				} catch (NullReferenceException) {
 
 					//triggered when no players in the queue on the line pendingGame.Player1.userID .
 					pendingGame = new DetailedGameState();
 					pendingGame.gameID = GameIDCounter++;
 					DetailedPlayerInfo firstPlayer;
-					if (!users.TryGetValue(ja.UserToken, out firstPlayer))
+					if (!users.TryGetValue(UserToken, out firstPlayer))
 					{
 						SetStatus(Forbidden);
-						return "";
+						return turnToCorrectFormat("");
 					}
 					pendingGame.Player1 = firstPlayer.DeepClone();
-					firstPlayersDesiredTimeLimit = Convert.ToInt32(ja.TimeLimit);
-					return pendingGame.gameID.ToString();
+					firstPlayersDesiredTimeLimit = Convert.ToInt32(TimeLimit);
+					return turnToCorrectFormat(pendingGame.gameID.ToString());
 				}
-				if (ja.UserToken == pendingGame.Player1.userID)
+				if (UserToken == pendingGame.Player1.userID)
 					{
 						SetStatus(Conflict);
-						return "";
+						return turnToCorrectFormat("");
 					}
 				DetailedPlayerInfo secondPlayer;
-				if (!users.TryGetValue(ja.UserToken, out secondPlayer))
+				if (!users.TryGetValue(UserToken, out secondPlayer))
 				{
 					SetStatus(Forbidden);
-					return "";
+					return turnToCorrectFormat("");
 				}
 				pendingGame.Player2 = secondPlayer.DeepClone();
-				pendingGame.TimeLimit = (firstPlayersDesiredTimeLimit + Convert.ToInt32(ja.TimeLimit))/ 2;
+				pendingGame.TimeLimit = (firstPlayersDesiredTimeLimit + Convert.ToInt32(TimeLimit))/ 2;
 				pendingGame.TimeLeft = pendingGame.TimeLimit;
 				pendingGame.GameState = "active";
 				pendingGame.boggleBoard = new BoggleBoard();
@@ -167,7 +170,7 @@ namespace Boggle
 
 				string toReturn = pendingGame.gameID.ToString();
 				pendingGame = null;
-				return JsonConvert.SerializeObject(toReturn);
+				return turnToCorrectFormat(toReturn);
 			}
 		}
 
@@ -192,34 +195,39 @@ namespace Boggle
 		}
 
 
-		public string PlayWordInGame(Move moveMade, string GameID)
+		public HttpResponseMessage PlayWordInGame(string GameID, string UserToken, string Word)
 		{
 			lock (sync)
 			{
-				moveMade.Word = moveMade.Word.Trim();
+				Word = Word.Trim();
 				DetailedGameState gameInQuestion;
 				int tempGameID;
 
 				try
 				{
 					if (!int.TryParse(GameID, out tempGameID) || !currentGames.TryGetValue(tempGameID, out gameInQuestion)
-						|| !(gameInQuestion.Player1.userID == moveMade.UserToken || gameInQuestion.Player2.userID == moveMade.UserToken) )
+						|| !(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken) )
 					{
 						SetStatus(Forbidden);
-						return "";
+						return turnToCorrectFormat("");
 					}
 				}
 				catch (NullReferenceException)
 				{
 					SetStatus(Forbidden);
-					return "";
+					return turnToCorrectFormat("");
 				}
-				int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, moveMade.Word);
+				if (gameInQuestion.GameState != "active")
+				{
+					SetStatus(Conflict);
+					return turnToCorrectFormat("");
+				}
+				int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
 				if (scoreOfWord != 0)
 				{
-					WordAndScore wac = new WordAndScore(moveMade.UserToken, moveMade.Word, scoreOfWord);
+					WordAndScore wac = new WordAndScore(UserToken, Word, scoreOfWord);
 					gameInQuestion.MovesMade.Add(wac);
-					if (gameInQuestion.Player1.userID == moveMade.UserToken)
+					if (gameInQuestion.Player1.userID == UserToken)
 					{
 						gameInQuestion.Player1.Score += scoreOfWord;
 						((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
@@ -234,10 +242,17 @@ namespace Boggle
 				}
 				ScoreInfo toReturn = new ScoreInfo();
 				toReturn.Score = scoreOfWord;
-				return JsonConvert.SerializeObject(toReturn);
+				return turnToCorrectFormat(toReturn);
 
 				
 			}
+		}
+
+		private HttpResponseMessage turnToCorrectFormat(object toReturn)
+		{
+			HttpResponseMessage response= new HttpResponseMessage(WebOperationContext.Current.OutgoingResponse.StatusCode);
+			response.Content = new StringContent(JsonConvert.SerializeObject(toReturn), Encoding.UTF8, "application/json");
+			return response;
 		}
 
 		private int calculateScore(BoggleBoard boggleBoard, string word)
@@ -252,7 +267,7 @@ namespace Boggle
 				  : 0;
 		}
 
-		public string gameStatus(string GameID, bool maybeYes)
+		public HttpResponseMessage gameStatus(string GameID, bool maybeYes)
 		{
 			lock (sync)
 			{
@@ -261,13 +276,13 @@ namespace Boggle
 				if (!int.TryParse(GameID, out gameIdNum) || !currentGames.TryGetValue(gameIdNum, out gameInQuestion))
 				{
 					SetStatus(Forbidden);
-					return "";
+					return turnToCorrectFormat("");
 				}
 				switch (gameInQuestion.GameState)
 				{
 					case "pending":
 
-						return JsonConvert.SerializeObject((GameStatePending)gameInQuestion.DeepClone());
+						return turnToCorrectFormat((GameStatePending)gameInQuestion.DeepClone());
 					case "active":
 
 						PlayerInfo tempPlr1 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
@@ -288,7 +303,7 @@ namespace Boggle
 
 						}
 
-						return JsonConvert.SerializeObject(toReturn);
+						return turnToCorrectFormat(toReturn);
 
 					case "completed":
 						GameStatePending toReturn2;
@@ -305,10 +320,10 @@ namespace Boggle
 						{
 							toReturn2 = gameInQuestion.DeepClone();
 						}
-						return JsonConvert.SerializeObject(toReturn2);
+						return turnToCorrectFormat(toReturn2);
 					default:
 						SetStatus(Forbidden);
-						return "";
+						return turnToCorrectFormat("");
 				}
 			}
 		}

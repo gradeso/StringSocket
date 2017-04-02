@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.ServiceModel.Web;
@@ -14,6 +15,8 @@ namespace Boggle
 		/// Sends back index.html as the response body.
 		/// </summary>
 		[WebGet(UriTemplate = "api")]
+		[OperationContract]
+
 		Stream API();
 
         /// <summary>
@@ -22,17 +25,24 @@ namespace Boggle
         /// </summary>
         [WebInvoke(
             Method = "POST",
-            BodyStyle = WebMessageBodyStyle.Wrapped,
-            RequestFormat = WebMessageFormat.Json,
-            ResponseFormat = WebMessageFormat.Json,
-            UriTemplate = "users")]
-        string SaveUserID(string Nickname);
+			BodyStyle = WebMessageBodyStyle.Wrapped,
+			RequestFormat = WebMessageFormat.Json,
+			ResponseFormat = WebMessageFormat.Json,
+			UriTemplate = "users")]
+		[OperationContract]
+
+		HttpResponseMessage SaveUserID(string Nickname);
 
 		/// <summary>
 		/// Starts a new game or stops the join request
 		/// </summary>
 		[WebInvoke(Method = "PUT",
+			BodyStyle = WebMessageBodyStyle.Wrapped,
+			RequestFormat = WebMessageFormat.Json,
+			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "games")]
+		[OperationContract]
+
 		void CancelJoin(string UserToken);
 
 		/// <summary>
@@ -44,7 +54,9 @@ namespace Boggle
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "games")]
-		string AttemptJoin(JoinAttempt ja);
+		[OperationContract]
+
+		HttpResponseMessage AttemptJoin(string UserToken, int TimeLimit);
 
 		/// <summary>
 		/// Plays the word in game with identifier.
@@ -55,7 +67,9 @@ namespace Boggle
 			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
 			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]
-		string PlayWordInGame(Move moveMade, string GameID);
+		[OperationContract]
+
+		HttpResponseMessage PlayWordInGame(string GameID, string UserToken, string wordPlayed);
 
         /// <summary>
         ///Play a word in a game.
@@ -64,7 +78,9 @@ namespace Boggle
             RequestFormat = WebMessageFormat.Json,
             ResponseFormat = WebMessageFormat.Json,
             UriTemplate = "games/{GameID}?Brief={maybeYes}")]
-        string gameStatus(string GameID, bool maybeYes);
+		[OperationContract]
+
+		HttpResponseMessage gameStatus(string GameID, bool maybeYes);
                 
 	}
 }

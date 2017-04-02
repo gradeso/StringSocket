@@ -13,7 +13,6 @@ using System.Web.Script.Serialization;
 namespace Boggle
 {
 
-
 	public class Move
 	{
 		public string UserToken { get; set; }
@@ -22,8 +21,10 @@ namespace Boggle
 
 	public class JoinAttempt
 	{
+
 		public string UserToken { get; set; }
-		public string TimeLimit { get; set; }
+
+		public int TimeLimit { get; set; }
 
 	}
 
@@ -31,7 +32,7 @@ namespace Boggle
 	/// <summary>
 	/// response POST users
 	/// </summary>
-    [DataContract]
+
 	public class UserIDInfo
 	{
 		public UserIDInfo()
@@ -43,7 +44,7 @@ namespace Boggle
 			UserToken = id;
 		}
 
-        [DataMember]
+
 		public string UserToken { get; set; }
 	}
 
