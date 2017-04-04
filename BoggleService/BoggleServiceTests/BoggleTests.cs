@@ -305,6 +305,7 @@ namespace Boggle
             r = client.DoPutAsync(wordInput, "games/" + gameID).Result;
             Assert.AreEqual(OK, r.Status);
             /*
+
             string[] myarray = { "" };
             String url = String.Format("games/" + gameID + "?Brief={0}", myarray);
             r = client.DoGetAsync(url).Result;
