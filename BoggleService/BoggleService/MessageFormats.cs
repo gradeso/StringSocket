@@ -172,20 +172,6 @@ namespace Boggle
 	}
 
 	/// <summary>
-	/// accesed using a string with the userid to string and then the gameid tostring.
-	/// </summary>
-	[SqlUserDefinedType(Format.Native,
-	 IsByteOrdered = true)]
-	public struct WrdAndScr
-	{
-		
-		public string Word { get; set; }
-		public int Score { get; set; }
-
-		
-	}
-
-	/// <summary>
 	/// these are for the gamestate object
 	/// </summary>
 	[Serializable]
@@ -206,7 +192,6 @@ namespace Boggle
 		[DataMember]
 		public int gameID { get; set; }
 
-		public int firstPlayerDesiredTimeLimit;
 	}
 	[Serializable]
 [DataContract]
@@ -237,18 +222,16 @@ namespace Boggle
 			boggleBoard = null;
 			MovesMade = new List<WordAndScore>();
 		}
-		public DetailedGameState(SavedGameState sgs, DetailedPlayerInfo p1,DetailedPlayerInfo p2)
+		public DetailedGameState(int gameID)
 		{
-			gameID = sgs.gameID;
-			GameState = sgs.GameState;
-			TimeLeft = sgs.TimeLeft;
-			Player1 = p1;
-			Player2 = p2;
-			boggleBoard = new BoggleBoard();
-			Board = sgs.board;
-			TimeLimit = sgs.TimeLimit;
-			
+			this.gameID = gameID;
+			TimeLimit = 0;
+			Board = null;
+			boggleBoard = null;
+			MovesMade = new List<WordAndScore>();
 		}
+
+
 		[DataMember]
 		public int TimeLimit { get; set; }
 		[DataMember]
@@ -258,18 +241,6 @@ namespace Boggle
 
 		public BoggleBoard boggleBoard { get; set; }
 
-	}
-	[SqlUserDefinedType(Format.Native,
-	 IsByteOrdered = true)]
-	public struct SavedGameState
-	{
-		public string board { get; internal set; }
-		public int gameID { get; internal set; }
-		public string GameState { get; internal set; }
-		public int TimeLeft { get; internal set; }
-		public int TimeLimit { get; internal set; }
-		public string p1ID { get; internal set; }
-		public string p2ID { get; internal set; }
 	}
 
 	public static class ExtensionMethods

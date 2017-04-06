@@ -137,7 +137,7 @@ namespace Boggle
 						SetStatus(Forbidden);
 						return new GameIDInfo("");
 					}
-					getGameWithID(GameIDCounter);
+					var pendingGame = getGameWithID(GameIDCounter);
 					if (UserToken == pendingGame.Player1.userID)
 					{
 					}
@@ -145,70 +145,34 @@ namespace Boggle
 					SetStatus(Forbidden);
 					return new GameIDInfo("");
 				} catch (NullReferenceException) {
-
-					DetailedPlayerInfo firstPlayer;
-					using (SqlConnection conn = new SqlConnection(BoggleDB))
-					{
-						SqlCommand cmd = new SqlCommand("SELECT * FROM Users WHERE id = @ID", conn);
-
-						try
-						{
-							conn.Open();
-							cmd.Parameters.AddWithValue("@ID", UserToken);
-							firstPlayer = (DetailedPlayerInfo)cmd.ExecuteScalar();
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine(ex.Message + "or user was not registerd");
-							SetStatus(Forbidden);
-							return new GameIDInfo("");
-
-						}
-					}
-					
-					pendingGame.Player1 = firstPlayer.DeepClone();
-					pendingGame.firstPlayerDesiredTimeLimit = Convert.ToInt32(TimeLimit);
+					DetailedGameState pendingGame = new DetailedGameState(GameIDCounter++);
+					pendingGame.Player1 = findPlayer(UserToken);
+					pendingGame.TimeLimit = Convert.ToInt32(TimeLimit);
 					addGameToDB(pendingGame);
 					return new GameIDInfo(pendingGame.gameID.ToString());
 				}
-				var savedGame =  getGameWithID(GameIDCounter);
-				if (UserToken == savedGame.p1ID)
-					{
-						SetStatus(Conflict);
-						return new GameIDInfo("");
-					}
-				DetailedPlayerInfo secondPlayer;
-				using (SqlConnection conn = new SqlConnection(BoggleDB))
+				DetailedGameState savedGame = getGameWithID(GameIDCounter);
+				if (UserToken == savedGame.Player1.userID)
 				{
-					SqlCommand cmd = new SqlCommand("SELECT * FROM Users WHERE id = @ID", conn);
-
-					try
-					{
-						conn.Open();
-						cmd.Parameters.AddWithValue("@ID", UserToken);
-						secondPlayer = (DetailedPlayerInfo)cmd.ExecuteScalar();
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine(ex.Message + "or user was not registerd");
-						SetStatus(Forbidden);
-						return new GameIDInfo("");
-
-					}
-				
+						SetStatus(Conflict);
+						return new GameIDInfo("user already in game");
 				}
-				pendingGame.Player2 = secondPlayer.DeepClone();
-				pendingGame.TimeLimit = (pendingGame.firstPlayerDesiredTimeLimit + Convert.ToInt32(TimeLimit))/ 2;
-				pendingGame.TimeLeft = pendingGame.TimeLimit;
-				pendingGame.GameState = "active";
-				pendingGame.boggleBoard = new BoggleBoard();
-				pendingGame.Board = pendingGame.boggleBoard.ToString();
+
+				savedGame.Player2 = findPlayer(UserToken);
+				if (savedGame.Player2 == null)
+				{
+					SetStatus(Forbidden);
+					return new GameIDInfo("bad id for player 2");
+				}
+				savedGame.TimeLimit = (savedGame.TimeLimit + TimeLimit)/ 2;
+				savedGame.TimeLeft = savedGame.TimeLimit;
+				savedGame.GameState = "active";
+				savedGame.boggleBoard = new BoggleBoard();
+			    savedGame.Board = savedGame.boggleBoard.ToString();
 				
-				addGameToDB(pendingGame);
+				addGameToDB(savedGame);
 				SetStatus(Created);
-				
-				string toReturn = pendingGame.gameID.ToString();
-				pendingGame = null;
+				string toReturn = savedGame.gameID.ToString();
 				return new GameIDInfo(toReturn);
 			}
 		}
@@ -218,6 +182,8 @@ namespace Boggle
 			lock (sync)
 			{
 				string UserToken = ut.UserToken;
+				var player = findPlayer(UserToken);
+				var pendingGame = getGameWithID(GameIDCounter);
 				try
 				{
 					if (pendingGame.Player1.userID == UserToken)
