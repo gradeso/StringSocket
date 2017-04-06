@@ -137,7 +137,7 @@ namespace Boggle
 						SetStatus(Forbidden);
 						return new GameIDInfo("");
 					}
-					pendingGame.Equals(1);
+					getGameWithID(GameIDCounter);
 					if (UserToken == pendingGame.Player1.userID)
 					{
 					}
@@ -213,96 +213,6 @@ namespace Boggle
 			}
 		}
 
-		private DetailedGameState getGameWithID(int gameID)
-		{
-			using (SqlConnection conn = new SqlConnection(BoggleDB))
-			{
-				SqlCommand cmd = new SqlCommand("SELECT * FROM Games WHERE ID = @ID", conn);
-
-				try
-				{
-					conn.Open();
-					cmd.Parameters.AddWithValue("@ID", gameID);
-					return (md.ExecuteScalar();
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex.Message);
-					SavedGameState toReturn = new SavedGameState();
-					toReturn.GameState = "bogus";
-					return toReturn;
-				}
-			}
-		}
-
-		private void addGameToDB(DetailedGameState pendingGame)
-		{
-			object[] contents = simplifyGameState(pendingGame);
-			using (SqlConnection conn = new SqlConnection(BoggleDB))
-			{
-
-				SqlCommand cmd = new SqlCommand("IF NOT EXISTS(SELECT 1 from Games WHERE GameID=@GameID)" +
-			   " Insert INTO Games (GameID,Player1,Player2,Board,TimeLimit,StartTime) VALUES(@GameID,@Player1,@Player2,@Board,@TimeLimit,@StartTime)" +
-			   " else" +
-			   " UPDATE  SET GameID=@GameID,Player1=@Player1,Player2=@Player2,Board=@Board,TimeLimit=@TimeLimit,StartTime=@StartTime WHERE GameID=@GameID"
-			   , conn);
-				cmd.Parameters.AddRange(contents);
-				cmd.ExecuteNonQuery();
-			}
-		}
-		private DetailedGameState detailGame(object[] input)
-		{
-			var toReturn = new DetailedGameState();
-			for (int i = 0; i < 6; i++)
-			{
-				toReturn.gameID = (int) input[0];
-				toReturn.Player1 = findPlayer(input[1]);
-				toReturn.Player2 = findPlayer(input[2]);
-				toReturn.Board = (string)input[3];
-				toReturn.TimeLimit = (int)input[4];
-				toReturn.boggleBoard = new BoggleBoard((string)input[3]);
-				toReturn.TimeLeft = (DateTime.Now - (DateTime)input[5]).Seconds > 0 ? (DateTime.Now - (DateTime)input[5]).Seconds : 0;
-				toReturn.GameState = (input[2] == null ? "pending" : toReturn.TimeLeft == 0 ? "completed" : "active");
-			}
-
-		}
-
-		private PlayerInfo findPlayer(object v)
-		{
-			if (v == null) return null;
-			using (SqlConnection conn = new SqlConnection(BoggleDB))
-			{
-				SqlCommand cmd = new SqlCommand("SELECT * FROM Users WHERE id = @ID", conn);
-
-				try
-				{
-					conn.Open();
-					cmd.Parameters.AddWithValue("@ID", UserToken);
-					firstPlayer = (DetailedPlayerInfo)cmd.ExecuteScalar();
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex.Message + "or user was not registerd");
-					SetStatus(Forbidden);
-					return new GameIDInfo("");
-
-				}
-			}
-
-		}
-
-		private object[] simplifyGameState(DetailedGameState pendingGame)
-		{
-			object[] toSave = new object[6];
-			toSave[0]= pendingGame.gameID;
-		toSave[1] = pendingGame.Player1.userID;
-		toSave[2] = pendingGame.Player2.userID;
-			toSave[3] = pendingGame.Board;
-		toSave[4] = pendingGame.TimeLimit;
-			toSave[5] = DateTime.Now;
-			return toSave;
-			
-		}
 		public void CancelJoin(UserIDInfo ut)
 		{
 			lock (sync)
@@ -381,18 +291,6 @@ namespace Boggle
 		}
 		
 
-		private int calculateScore(BoggleBoard boggleBoard, string word)
-		{
-			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
-				word.Length < 3 ?
-				0 : word.Length < 5 ?
-				1 : word.Length < 6 ?
-				2 : word.Length < 7 ?
-				3 : word.Length < 8 ?
-				5 : 11
-				  : 0;
-		}
-
 		public GameStatePending gameStatus(string GameID, bool maybeYes)
 		{
 			lock (sync)
@@ -453,5 +351,125 @@ namespace Boggle
 				}
 			}
 		}
+
+		private DetailedGameState getGameWithID(int gameID)
+		{
+			object[] toChange = new object[6];
+			int i = 0;
+			toChange[0] = gameID;
+			using (SqlConnection conn = new SqlConnection(BoggleDB))
+			{
+				SqlCommand cmd = new SqlCommand("SELECT * FROM Games WHERE ID = @ID", conn);
+
+				try
+				{
+					conn.Open();
+					cmd.Parameters.AddWithValue("@ID", gameID);
+					var rdr = cmd.ExecuteReader();
+					while (rdr.Read())
+					{
+						toChange[++i] = rdr["Player1"];
+						toChange[++i] = rdr["Player2"];
+						toChange[++i] = rdr["Board"];
+						toChange[++i] = rdr["TimeLimit"];
+						toChange[++i] = rdr["StartTime"];
+
+					}
+					return detailGame(toChange);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex.Message);
+					return null;
+				}
+			}
+		}
+
+		private void addGameToDB(DetailedGameState pendingGame)
+		{
+			object[] contents = simplifyGameState(pendingGame);
+			using (SqlConnection conn = new SqlConnection(BoggleDB))
+			{
+
+				SqlCommand cmd = new SqlCommand("IF NOT EXISTS(SELECT 1 from Games WHERE GameID=@GameID)" +
+			   " Insert INTO Games (GameID,Player1,Player2,Board,TimeLimit,StartTime) VALUES(@GameID,@Player1,@Player2,@Board,@TimeLimit,@StartTime)" +
+			   " else" +
+			   " UPDATE  SET GameID=@GameID,Player1=@Player1,Player2=@Player2,Board=@Board,TimeLimit=@TimeLimit,StartTime=@StartTime WHERE GameID=@GameID"
+			   , conn);
+				cmd.Parameters.AddRange(contents);
+				cmd.ExecuteNonQuery();
+			}
+		}
+		private DetailedGameState detailGame(object[] input)
+		{
+			var toReturn = new DetailedGameState();
+
+			toReturn.gameID = (int)input[0];
+			toReturn.Player1 = findPlayer(input[1]);
+			toReturn.Player2 = findPlayer(input[2]);
+			toReturn.Board = (string)input[3];
+			toReturn.TimeLimit = (int)input[4];
+			toReturn.boggleBoard = new BoggleBoard((string)input[3]);
+			toReturn.TimeLeft = (DateTime.Now - (DateTime)input[5]).Seconds > 0 ? (DateTime.Now - (DateTime)input[5]).Seconds : 0;
+			toReturn.GameState = (input[2] == null ? "pending" : toReturn.TimeLeft == 0 ? "completed" : "active");
+
+			return toReturn;
+		}
+
+		private PlayerInfo findPlayer(object v)
+		{
+			if (v == null) return null;
+
+			using (SqlConnection conn = new SqlConnection(BoggleDB))
+			{
+				SqlCommand cmd = new SqlCommand("SELECT * FROM Users WHERE id = @ID", conn);
+
+				try
+				{
+					conn.Open();
+					cmd.Parameters.AddWithValue("@ID", (string)v);
+					SqlDataReader rdr = cmd.ExecuteReader();
+					while (rdr.Read())
+					{
+						return new DetailedPlayerInfo((string)rdr["UserID"], (string)rdr["Nickname"]);
+
+					}
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex.Message + "or user was not registerd");
+					return null;
+
+				}
+			}
+			return null;
+
+		}
+
+		private object[] simplifyGameState(DetailedGameState pendingGame)
+		{
+			object[] toSave = new object[6];
+			toSave[0] = pendingGame.gameID;
+			toSave[1] = pendingGame.Player1.userID;
+			toSave[2] = pendingGame.Player2.userID;
+			toSave[3] = pendingGame.Board;
+			toSave[4] = pendingGame.TimeLimit;
+			toSave[5] = DateTime.Now;
+			return toSave;
+
+		}
+
+		private int calculateScore(BoggleBoard boggleBoard, string word)
+		{
+			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
+				word.Length < 3 ?
+				0 : word.Length < 5 ?
+				1 : word.Length < 6 ?
+				2 : word.Length < 7 ?
+				3 : word.Length < 8 ?
+				5 : 11
+				  : 0;
+		}
+
 	}
 }
