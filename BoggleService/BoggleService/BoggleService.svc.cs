@@ -16,7 +16,7 @@ namespace Boggle
 {
     public class BoggleService : IBoggleService
     {
-        // connection string to db like in todolist
+        // connection string to db like in todolist example
         private static string BoggleDB;
 
         static BoggleService()
