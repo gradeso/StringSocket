@@ -9,11 +9,26 @@ using System.Text;
 using System.Threading;
 using static System.Net.HttpStatusCode;
 // using Newtonsoft.Json;
+using System.Data.SqlClient;
+using System.Configuration;
 
 namespace Boggle
 {
     public class BoggleService // : IBoggleService
     {
+        // connection string to db like in todolist
+        private static string BoggleDB;
+
+        static BoggleService()
+        {
+            BoggleDB = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
+        }
+
+        /// <summary>
+        /// a game object for holding a pending game
+        /// </summary>
+        private static Game pendingGame = null;
+
         /// <summary>
         /// an object to use for locking
         /// </summary>
@@ -35,7 +50,48 @@ namespace Boggle
         /// a token size constant for easy maintainability if we want to change the size of tokens
         /// </summary>
         private const int NEWTOKENSIZE = 40;
-        
+
+        /// <summary>
+        /// The most recent call to SetStatus determines the response code used when
+        /// an http response is sent.
+        /// </summary>
+        /// <param name="status"></param>
+        private static void SetStatus(HttpStatusCode status)
+        {
+            WebOperationContext.Current.OutgoingResponse.StatusCode = status;
+        }
+
+        public UserID CreateUser(UserName username)
+        {
+            // validate user
+            if (username == null)
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+            //if the name is null or nothing after trimming
+            if (string.IsNullOrWhiteSpace(username.Nickname))
+            {
+                SetStatus(Forbidden);
+                return null;
+            }
+
+            // opens connection to database
+            // using guarentees connection will drop after leaving code
+            using (SqlConnection conn = new SqlConnection(BoggleDB))
+            {
+                conn.Open();
+                // transaction that contains all commands
+                using (SqlTransaction trans = conn.BeginTransaction())
+                {
+                    using (SqlCommand command = new SqlCommand("insert into Users (UserID, Nickname) values (@UserID, @Nickname)", conn, trans))
+                    {
+
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// helper method that generates a token string to use for user and
         /// game id's
