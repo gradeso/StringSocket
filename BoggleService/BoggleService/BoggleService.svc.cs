@@ -9,11 +9,21 @@ using System.Text;
 using System.Threading;
 using static System.Net.HttpStatusCode;
 using Newtonsoft.Json;
+using System.Configuration;
+using System.Data.SqlClient;
 
 namespace Boggle
 {
     public class BoggleService : IBoggleService
     {
+        // connection string to db like in todolist
+        private static string BoggleDB;
+
+        static BoggleService()
+        {
+            BoggleDB = ConfigurationManager.ConnectionStrings["BoggleDB"].ConnectionString;
+        }
+
         /// <summary>
         /// a dictionary of users to keep track of all registered users
         /// </summary>
@@ -99,12 +109,28 @@ namespace Boggle
 
             lock (sync)
             {
-                //add the user
-                users.Add(newToken, username.Nickname);
+                // opens connection to database
+                // using guarentees connection will drop after leaving code
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
+                {
+                    conn.Open();
+                    // transaction that contains all commands
+                    using (SqlTransaction trans = conn.BeginTransaction())
+                    {
+                        using (SqlCommand command = new SqlCommand("insert into Users (UserID, Nickname) values (@UserID, @Nickname)", conn, trans))
+                        {
+                            command.Parameters.AddWithValue("@UserID", newToken);
+                            command.Parameters.AddWithValue("@Nickname", username.Nickname);
 
-                //set the status and return
-                SetStatus(Created);
-                return new UserID(newToken);
+                            command.ExecuteNonQuery();
+                            SetStatus(Created);
+
+                            // commit transaction, otherwise abort
+                            trans.Commit();
+                            return new UserID(newToken);
+                        }
+                    }
+                }
             }           
         }
 
