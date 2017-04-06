@@ -7,6 +7,7 @@ namespace Boggle
     /// <summary>
     /// Represents a Boggle board.
     /// </summary>
+	[Serializable]
     public class BoggleBoard
     {
         // The 4x4 Boggle board

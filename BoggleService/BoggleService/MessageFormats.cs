@@ -1,38 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Web;
+using System.Threading.Tasks;
+using System.Timers;
 using System.Web.Script.Serialization;
 
-/// <summary>
-/// 
-/// </summary>
 namespace Boggle
 {
-
+	
+	[DataContract]
 	public class Move
 	{
+		[DataMember]
 		public string UserToken { get; set; }
+		[DataMember]
 		public string Word { get; set; }
 	}
 
+	[DataContract]
 	public class JoinAttempt
 	{
-
+		[DataMember]
 		public string UserToken { get; set; }
-
+		[DataMember]
 		public int TimeLimit { get; set; }
 
+	}
+	[DataContract]
+	public class Name
+	{
+		[DataMember]
+		public string Nickname { get; set; }
 	}
 
 
 	/// <summary>
 	/// response POST users
 	/// </summary>
-
+	[DataContract]
 	public class UserIDInfo
 	{
 		public UserIDInfo()
@@ -44,7 +52,7 @@ namespace Boggle
 			UserToken = id;
 		}
 
-
+		[DataMember]
 		public string UserToken { get; set; }
 	}
 
@@ -54,6 +62,7 @@ namespace Boggle
 	/// <summary>
 	/// response POST games
 	/// </summary>
+	[DataContract]
 	public class GameIDInfo
 	{
 		public GameIDInfo()
@@ -64,24 +73,29 @@ namespace Boggle
 		{
 			GameID = id;
 		}
+		[DataMember]
 		public string GameID { get; set; }
 	}
 
 	/// <summary>
 	/// used in PUT /games/{GameID} response.
 	/// </summary>
+	[DataContract]
 	public class ScoreInfo
 	{
 		public ScoreInfo()
 		{
 			Score = 0;
 		}
+		[DataMember]
 		public int Score { get; set; }
 	}
 
 	/// <summary>
 	/// Holds scores and names of player. Used in game status GET.
 	/// </summary>
+	[Serializable]
+	[DataContract]
 	public class PlayerInfo
 	{
 		public PlayerInfo()
@@ -91,13 +105,15 @@ namespace Boggle
 			Score = 0;
 		}
 		
-		[ScriptIgnore]
+		
 		public string userID { get; set; }
-
+		[DataMember]
 		public string Nicknme { get; set; }
-
+		[DataMember]
 		public int Score { get; set; }
 	}
+	[Serializable]
+[DataContract]
 	public class DetailedPlayerInfo : PlayerInfo
 	{
 		public DetailedPlayerInfo()
@@ -113,10 +129,12 @@ namespace Boggle
 			MovesMade = new List<WordAndScore>();
 
 		}
-
+		[DataMember]
 		public List<WordAndScore> MovesMade;
 		
 	}
+	[Serializable]
+	[DataContract]
 	public class WordAndScore
 	{
 		public WordAndScore()
@@ -137,17 +155,19 @@ namespace Boggle
 		/// <value>
 		/// The owners token.
 		/// </value>
-		[ScriptIgnore]
+
 		public string ownersToken { get; set; }
-
+		[DataMember]
 		public string Word { get; set; }
-
+		[DataMember]
 		public int Score { get; set; }
 	}
 
 	/// <summary>
 	/// these are for the gamestate object
 	/// </summary>
+	[Serializable]
+	[DataContract]
 	public class GameStatePending
 	{
 		/// <summary>
@@ -158,12 +178,14 @@ namespace Boggle
 			GameState = "pending";
 			gameID = -1;
 		}
-		
+		[DataMember]
 		public string GameState { get; set; }
 
-		[ScriptIgnore]
+		[DataMember]
 		public int gameID { get; set; }
 	}
+	[Serializable]
+[DataContract]
 	public class GameStateActive : GameStatePending
 	{
 		public GameStateActive()
@@ -172,15 +194,15 @@ namespace Boggle
 			Player1 = null;
 			Player2 = null;
 		}
-
+		[DataMember]
         public int TimeLeft { get; set; }
-
+		[DataMember]
 		public PlayerInfo Player1 { get; set; }
-
+		[DataMember]
 		public PlayerInfo Player2 { get; set; }
 	}
-
-    
+	[Serializable]
+[DataContract]
 	public class DetailedGameState: GameStateActive
 	{
 		public DetailedGameState()
@@ -190,15 +212,46 @@ namespace Boggle
 			boggleBoard = null;
 			MovesMade = new List<WordAndScore>();
 		}
+		[DataMember]
 		public int TimeLimit { get; set; }
-
+		[DataMember]
 		public string Board { get; set; }
 
-		[ScriptIgnore]
 		public List<WordAndScore> MovesMade { get; set; }
 
-		[ScriptIgnore]
 		public BoggleBoard boggleBoard { get; set; }
+
+		
+		public Timer gameTimer { get; set; }
+
+		internal void startTimer()
+		{
+			gameTimer = new Timer()
+			{
+				Enabled = true,
+				Interval = 1000,
+				AutoReset = true,
+				
+				
+
+			};
+		
+			gameTimer.Elapsed += (sender, e) => HandleTimer();
+			gameTimer.Start();
+		}
+
+		private void HandleTimer()
+		{
+			if (TimeLeft > 0)
+			{
+				TimeLeft = TimeLeft - 1;
+			}
+			else
+			{
+				GameState = "completed";
+				gameTimer.Stop();
+			}
+		}
 	}
 	public static class ExtensionMethods
 	{
@@ -213,6 +266,7 @@ namespace Boggle
 				return (T)formatter.Deserialize(stream);
 			}
 		}
+	
 	}
 
 }

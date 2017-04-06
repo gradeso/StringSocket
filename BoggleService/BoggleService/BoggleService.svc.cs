@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Boggle;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,40 +19,44 @@ namespace Boggle
 	public class BoggleService : IBoggleService
 	{
 
-		private static readonly object sync = new object();
-		private static readonly HashSet<string> bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("dictoionary.txt"), "\n"));
+		private static readonly object sync;
+		private static readonly HashSet<string> bigDict;
 		/// <summary>
 		/// The users that have registered.
 		/// </summary>
-		private static readonly Dictionary<string, DetailedPlayerInfo> users = new Dictionary<string, DetailedPlayerInfo>();
+		private static readonly Dictionary<string, DetailedPlayerInfo> users;
 
 		// <summary>
 		/// represents the game with the key as the game ID
 		/// </summary>
-		private static SortedDictionary<int, DetailedGameState> currentGames =
-			new SortedDictionary<int, DetailedGameState>();
+		private static SortedDictionary<int, DetailedGameState> currentGames;
 
 		/// <summary>
 		/// The pending game to be added to dict. when ready.
 		/// </summary>
-		private static DetailedGameState pendingGame = null;
+		private static DetailedGameState pendingGame; 
 
-		private static int GameIDCounter= 0;
+		private static int GameIDCounter;
 
-		private static int firstPlayersDesiredTimeLimit = 0;
+		private static int firstPlayersDesiredTimeLimit;
 
-		private static Timer counter = new Timer(1000)
+		static BoggleService()
 		{
-			AutoReset = true
-			
-
-		}; 
-
-        public BoggleService() {
-			counter.Elapsed += Counter_Elapsed;
-			counter.Start();
+			try
+			{
+				bigDict = new HashSet<string>(Regex.Split(File.ReadAllText("Boggle.dictionary.txt"), "\n"));
+			}
+			catch
+			{
+				bigDict = null;
+			}
+			sync = new object();
+			users = new Dictionary<string, DetailedPlayerInfo>();
+			currentGames = new SortedDictionary<int, DetailedGameState>();
+			pendingGame = null;
+			GameIDCounter = 0;
+			firstPlayersDesiredTimeLimit = 0;
 		}
-
 		private void Counter_Elapsed(object sender, ElapsedEventArgs e)
 		{
 			foreach (DetailedGameState dgs in currentGames.Values)
@@ -65,7 +71,7 @@ namespace Boggle
 				}
 			}
 		}
-
+		
 		/// <summary>
 		/// The most recent call to SetStatus determines the response code used when
 		/// an http response is sent.
@@ -93,22 +99,22 @@ namespace Boggle
 		/// </summary>
 		/// <param name="Nickname"></param>
 		/// <returns></returns>
-		public HttpResponseMessage SaveUserID(string Nickname)
+		public UserIDInfo SaveUserID(Name Nickname)
 		{
-
+			string n = Nickname.Nickname;
 			lock (sync)
 			{
-				if (Nickname == null || Nickname.Trim() == "")
+				if (n == null || n.Trim() == "")
 				{
 					SetStatus(Forbidden);
-					return turnToCorrectFormat("");
+					return new UserIDInfo();
 				}
 
 				string userID = Guid.NewGuid().ToString();
 				SetStatus(Created);
-				users.Add(userID, new DetailedPlayerInfo(userID, Nickname.Trim()));
+				users.Add(userID, new DetailedPlayerInfo(userID, n.Trim()));
 
-				return turnToCorrectFormat(new UserIDInfo(userID));
+				return new UserIDInfo(userID);
 			}
 		}
 				/// <summary>
@@ -116,8 +122,10 @@ namespace Boggle
 		/// </summary>
 		/// <param name="ja">The join ateempt info.</param>
 		/// <returns></returns>
-		public HttpResponseMessage AttemptJoin(string UserToken, int TimeLimit)
+		public GameIDInfo AttemptJoin(JoinAttempt ja)
 		{
+			int TimeLimit = ja.TimeLimit;
+			string UserToken = ja.UserToken;
 			lock (sync)
 			{
 				try
@@ -126,13 +134,15 @@ namespace Boggle
 					if (TimeLimit > 120 || TimeLimit < 5)
 					{
 						SetStatus(Forbidden);
-						return turnToCorrectFormat("");
+						return new GameIDInfo("");
 					}
 					pendingGame.Equals(1);
-					
-				} catch (FormatException) {
+					if (UserToken == pendingGame.Player1.userID)
+					{
+					}
+					} catch (FormatException) {
 					SetStatus(Forbidden);
-					return turnToCorrectFormat("");
+					return new GameIDInfo("");
 				} catch (NullReferenceException) {
 
 					//triggered when no players in the queue on the line pendingGame.Player1.userID .
@@ -142,22 +152,22 @@ namespace Boggle
 					if (!users.TryGetValue(UserToken, out firstPlayer))
 					{
 						SetStatus(Forbidden);
-						return turnToCorrectFormat("");
+						return new GameIDInfo("");
 					}
 					pendingGame.Player1 = firstPlayer.DeepClone();
 					firstPlayersDesiredTimeLimit = Convert.ToInt32(TimeLimit);
-					return turnToCorrectFormat(pendingGame.gameID.ToString());
+					return new GameIDInfo(pendingGame.gameID.ToString());
 				}
 				if (UserToken == pendingGame.Player1.userID)
 					{
 						SetStatus(Conflict);
-						return turnToCorrectFormat("");
+						return new GameIDInfo("");
 					}
 				DetailedPlayerInfo secondPlayer;
 				if (!users.TryGetValue(UserToken, out secondPlayer))
 				{
 					SetStatus(Forbidden);
-					return turnToCorrectFormat("");
+					return new GameIDInfo("");
 				}
 				pendingGame.Player2 = secondPlayer.DeepClone();
 				pendingGame.TimeLimit = (firstPlayersDesiredTimeLimit + Convert.ToInt32(TimeLimit))/ 2;
@@ -165,19 +175,21 @@ namespace Boggle
 				pendingGame.GameState = "active";
 				pendingGame.boggleBoard = new BoggleBoard();
 				pendingGame.Board = pendingGame.boggleBoard.ToString();
+				pendingGame.startTimer();
 				currentGames.Add(pendingGame.gameID, pendingGame.DeepClone());
 				SetStatus(Created);
-
+				
 				string toReturn = pendingGame.gameID.ToString();
 				pendingGame = null;
-				return turnToCorrectFormat(toReturn);
+				return new GameIDInfo(toReturn);
 			}
 		}
 
-		public void CancelJoin(string UserToken)
+		public void CancelJoin(UserIDInfo ut)
 		{
 			lock (sync)
 			{
+				string UserToken = ut.UserToken;
 				try
 				{
 					if (pendingGame.Player1.userID == UserToken)
@@ -195,10 +207,12 @@ namespace Boggle
 		}
 
 
-		public HttpResponseMessage PlayWordInGame(string GameID, string UserToken, string Word)
+		public ScoreInfo PlayWordInGame(string GameID,Move m)
 		{
 			lock (sync)
 			{
+				string UserToken = m.UserToken;
+				string Word = m.Word;
 				Word = Word.Trim();
 				DetailedGameState gameInQuestion;
 				int tempGameID;
@@ -209,18 +223,18 @@ namespace Boggle
 						|| !(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken) )
 					{
 						SetStatus(Forbidden);
-						return turnToCorrectFormat("");
+						return new ScoreInfo();
 					}
 				}
 				catch (NullReferenceException)
 				{
 					SetStatus(Forbidden);
-					return turnToCorrectFormat("");
+					return new ScoreInfo();
 				}
 				if (gameInQuestion.GameState != "active")
 				{
 					SetStatus(Conflict);
-					return turnToCorrectFormat("");
+					return new ScoreInfo();
 				}
 				int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
 				if (scoreOfWord != 0)
@@ -242,18 +256,12 @@ namespace Boggle
 				}
 				ScoreInfo toReturn = new ScoreInfo();
 				toReturn.Score = scoreOfWord;
-				return turnToCorrectFormat(toReturn);
+				return toReturn;
 
 				
 			}
 		}
-
-		private HttpResponseMessage turnToCorrectFormat(object toReturn)
-		{
-			HttpResponseMessage response= new HttpResponseMessage(WebOperationContext.Current.OutgoingResponse.StatusCode);
-			response.Content = new StringContent(JsonConvert.SerializeObject(toReturn), Encoding.UTF8, "application/json");
-			return response;
-		}
+		
 
 		private int calculateScore(BoggleBoard boggleBoard, string word)
 		{
@@ -267,7 +275,7 @@ namespace Boggle
 				  : 0;
 		}
 
-		public HttpResponseMessage gameStatus(string GameID, bool maybeYes)
+		public GameStatePending gameStatus(string GameID, bool maybeYes)
 		{
 			lock (sync)
 			{
@@ -276,13 +284,13 @@ namespace Boggle
 				if (!int.TryParse(GameID, out gameIdNum) || !currentGames.TryGetValue(gameIdNum, out gameInQuestion))
 				{
 					SetStatus(Forbidden);
-					return turnToCorrectFormat("");
+					return new GameStatePending();
 				}
 				switch (gameInQuestion.GameState)
 				{
 					case "pending":
 
-						return turnToCorrectFormat((GameStatePending)gameInQuestion.DeepClone());
+						return (GameStatePending)gameInQuestion.DeepClone();
 					case "active":
 
 						PlayerInfo tempPlr1 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
@@ -303,7 +311,7 @@ namespace Boggle
 
 						}
 
-						return turnToCorrectFormat(toReturn);
+						return toReturn;
 
 					case "completed":
 						GameStatePending toReturn2;
@@ -320,10 +328,10 @@ namespace Boggle
 						{
 							toReturn2 = gameInQuestion.DeepClone();
 						}
-						return turnToCorrectFormat(toReturn2);
+						return toReturn2;
 					default:
 						SetStatus(Forbidden);
-						return turnToCorrectFormat("");
+						return new GameStatePending() ;
 				}
 			}
 		}

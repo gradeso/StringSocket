@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization;
@@ -14,49 +15,40 @@ namespace Boggle
 		/// <summary>
 		/// Sends back index.html as the response body.
 		/// </summary>
+		
 		[WebGet(UriTemplate = "api")]
-		[OperationContract]
-
 		Stream API();
 
         /// <summary>
         ///if Nickname is null, or is empty when trimmed, responds with status 403 (Forbidden).
         ///Otherwise, creates a new user with a unique UserToken and the trimmed Nickname.The returned UserToken should be used to identify the user in subsequent requests.Responds with status 201 (Created).
         /// </summary>
+		
         [WebInvoke(
             Method = "POST",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
 			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json,
 			UriTemplate = "users")]
-		[OperationContract]
-
-		HttpResponseMessage SaveUserID(string Nickname);
+		UserIDInfo SaveUserID(Name name);
 
 		/// <summary>
 		/// Starts a new game or stops the join request
 		/// </summary>
 		[WebInvoke(Method = "PUT",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "games")]
-		[OperationContract]
 
-		void CancelJoin(string UserToken);
+			UriTemplate = "games")]
+
+		void CancelJoin(UserIDInfo UserToken);
 
 		/// <summary>
 		/// Attempts the join a game.
 		/// </summary>
 		/// <returns></returns>
 		[WebInvoke(Method = "POST",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json,
-			UriTemplate = "games")]
-		[OperationContract]
+								ResponseFormat = WebMessageFormat.Json,
 
-		HttpResponseMessage AttemptJoin(string UserToken, int TimeLimit);
+		UriTemplate = "games")]
+
+		GameIDInfo AttemptJoin(JoinAttempt ja);
 
 		/// <summary>
 		/// Plays the word in game with identifier.
@@ -64,23 +56,20 @@ namespace Boggle
 		/// <param name="GameID">The game identifier.</param>
 		/// <returns></returns>
 		[WebInvoke(Method = "PUT",
-			BodyStyle = WebMessageBodyStyle.Wrapped,
-			RequestFormat = WebMessageFormat.Json,
-			ResponseFormat = WebMessageFormat.Json, UriTemplate = "games/{GameID}")]
-		[OperationContract]
+								ResponseFormat = WebMessageFormat.Json,
 
-		HttpResponseMessage PlayWordInGame(string GameID, string UserToken, string wordPlayed);
+			UriTemplate = "games/{GameID}")]
+
+		ScoreInfo PlayWordInGame(string GameID, Move m);
 
         /// <summary>
-        ///Play a word in a game.
+        ///gets Stats of game.
         /// </summary>
-        [WebGet(BodyStyle = WebMessageBodyStyle.Wrapped,
-            RequestFormat = WebMessageFormat.Json,
-            ResponseFormat = WebMessageFormat.Json,
-            UriTemplate = "games/{GameID}?Brief={maybeYes}")]
-		[OperationContract]
+        [WebGet(
+						ResponseFormat = WebMessageFormat.Json,
 
-		HttpResponseMessage gameStatus(string GameID, bool maybeYes);
+		UriTemplate = "games/{GameID}?Brief={maybeYes}")]
+		GameStatePending gameStatus(string GameID, bool maybeYes);
                 
 	}
 }
