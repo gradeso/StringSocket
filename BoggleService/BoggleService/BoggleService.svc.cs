@@ -15,6 +15,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 using static System.Net.HttpStatusCode;
+using System.Data.SqlTypes;
+using System.Data;
 
 namespace Boggle
 {
@@ -83,19 +85,18 @@ namespace Boggle
 		/// <returns></returns>
 		public UserIDInfo SaveUserID(Name Nickname)
 		{
-			string n = Nickname.Nickname;
-			lock (sync)
+            lock (sync)
 			{
-				if (n == null || n.Trim() == "")
-				{
-					SetStatus(Forbidden);
-					return new UserIDInfo();
-				}
+                string n = Nickname.Nickname;
+                
+                if (n == null || n.Trim() == "")
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
 
-				string userID = Guid.NewGuid().ToString();
-				SetStatus(Created);
-				// using guarentees connection will drop after leaving code
-				using (SqlConnection conn = new SqlConnection(BoggleDB))
+                // using guarentees connection will drop after leaving code
+                using (SqlConnection conn = new SqlConnection(BoggleDB))
 				{
 					conn.Open();
 					// transaction that contains all commands
@@ -103,19 +104,21 @@ namespace Boggle
 					{
 						using (SqlCommand command = new SqlCommand("INSERT INTO Users (UserID, Nickname) values (@UserID, @Nickname)", conn, trans))
 						{
-							command.Parameters.AddWithValue("@UserID", userID);
+                            // todolist generates id within command
+                            string userID = Guid.NewGuid().ToString();
+
+                            command.Parameters.AddWithValue("@UserID", userID);
 							command.Parameters.AddWithValue("@Nickname", n);
 
 							command.ExecuteNonQuery();
-							// commit transaction, otherwise abort
-							trans.Commit();
-							
-						}
-					}
-					conn.Close();
-				}
+                            SetStatus(Created);
 
-				return new UserIDInfo(userID);
+                            // commit transaction, otherwise abort
+                            trans.Commit();
+                            return new UserIDInfo(userID);
+                        }
+					}
+				}
 			}
 		}
 				/// <summary>
@@ -127,30 +130,50 @@ namespace Boggle
 		{
 			int TimeLimit = ja.TimeLimit;
 			string UserToken = ja.UserToken;
+
 			lock (sync)
 			{
-				try
-				{
+                // check if invalid game arguments are given
+                if (TimeLimit < 5 || TimeLimit > 120 || ja == null || ja.UserToken == null)
+                {
+                    SetStatus(Forbidden);
+                    return null;
+                }
 
-					if (TimeLimit > 120 || TimeLimit < 5)
-					{
-						SetStatus(Forbidden);
-						return new GameIDInfo("");
-					}
+                // need to check if user is in the Users sql table, otherwise we can't make a game
+                PlayerInfo foundPlayer = findPlayer(UserToken);
+                if (foundPlayer == null)
+                {
+                    return null;
+                }
+
+                // now we know valid arguments are given
+                // this is like a thing that only works if there are pending games?
+                try
+				{
 					var pendingGame = getGameWithID(GameIDCounter);
 					if (UserToken == pendingGame.Player1.userID)
 					{
 					}
-					} catch (FormatException) {
+                }
+                // this is thrown by the getGameWithID method
+                catch (FormatException)
+                {
 					SetStatus(Forbidden);
-					return new GameIDInfo("");
-				} catch (NullReferenceException) {
+					return null;
+				}
+                // this is if there isnt a pending game and I try to get a userID from it
+                // so if there isnt a new pending game we make one with the player
+                catch (NullReferenceException)
+                {
 					DetailedGameState pendingGame = new DetailedGameState(GameIDCounter++);
-					pendingGame.Player1 = findPlayer(UserToken);
+                    pendingGame.Player1 = foundPlayer;
 					pendingGame.TimeLimit = Convert.ToInt32(TimeLimit);
 					addGameToDB(pendingGame);
+                    SetStatus(Accepted);
 					return new GameIDInfo(pendingGame.gameID.ToString());
 				}
+
 				DetailedGameState savedGame = getGameWithID(GameIDCounter);
 				if (UserToken == savedGame.Player1.userID)
 				{
@@ -158,7 +181,7 @@ namespace Boggle
 						return new GameIDInfo("user already in game");
 				}
 
-				savedGame.Player2 = findPlayer(UserToken);
+				savedGame.Player2 = foundPlayer;
 				if (savedGame.Player2 == null)
 				{
 					SetStatus(Forbidden);
@@ -325,29 +348,37 @@ namespace Boggle
 			}
 		}
 
+        /// <summary>
+        /// helper method for getting game with a certain id
+        /// </summary>
 		private DetailedGameState getGameWithID(int gameID)
 		{
+            // object array that will hold all the parts
+            // of a game from the sql table
+            // if there is an error while 
 			object[] toChange = new object[6];
 			int i = 0;
 			toChange[0] = gameID;
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
 			{
-				SqlCommand cmd = new SqlCommand("SELECT * FROM Games WHERE ID = @ID", conn);
+                conn.Open();
 
-				try
+                SqlCommand cmd = new SqlCommand("SELECT * FROM Games WHERE GameID = @GameID", conn);
+
+                cmd.Parameters.AddWithValue("@GameID", gameID);
+                try
 				{
-					conn.Open();
-					cmd.Parameters.AddWithValue("@ID", gameID);
 					var rdr = cmd.ExecuteReader();
 					while (rdr.Read())
 					{
+                        
 						toChange[++i] = rdr["Player1"];
-						toChange[++i] = rdr["Player2"];
-						toChange[++i] = rdr["Board"];
-						toChange[++i] = rdr["TimeLimit"];
-						toChange[++i] = rdr["StartTime"];
+                        toChange[++i] = rdr["Player2"];
+                        toChange[++i] = rdr["Board"];
+                        toChange[++i] = rdr["TimeLimit"];
+                        toChange[++i] = rdr["StartTime"];
 
-					}
+                    }
 					return detailGame(toChange);
 				}
 				catch (Exception ex)
@@ -363,13 +394,16 @@ namespace Boggle
 			object[] contents = simplifyGameState(pendingGame);
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
 			{
+                conn.Open();
 
-				SqlCommand cmd = new SqlCommand("IF NOT EXISTS(SELECT 1 from Games WHERE GameID=@GameID)" +
-			   " Insert INTO Games (GameID,Player1,Player2,Board,TimeLimit,StartTime) VALUES(@GameID,@Player1,@Player2,@Board,@TimeLimit,@StartTime)" +
+				SqlCommand cmd = new SqlCommand("IF NOT EXISTS(SELECT 1 FROM Games WHERE GameID=@GameID)" +
+			   " Insert INTO Games (Player1,Player2,Board,TimeLimit,StartTime) VALUES(@Player1,@Player2,@Board,@TimeLimit,@StartTime)" +
 			   " else" +
-			   " UPDATE  SET GameID=@GameID,Player1=@Player1,Player2=@Player2,Board=@Board,TimeLimit=@TimeLimit,StartTime=@StartTime WHERE GameID=@GameID"
+			   " UPDATE Games SET Player1=@Player1,Player2=@Player2,Board=@Board,TimeLimit=@TimeLimit,StartTime=@StartTime WHERE GameID=@GameID"
 			   , conn);
+
 				cmd.Parameters.AddRange(contents);
+
 				cmd.ExecuteNonQuery();
 			}
 		}
@@ -381,9 +415,13 @@ namespace Boggle
 			toReturn.Player1 = findPlayer(input[1]);
 			toReturn.Player2 = findPlayer(input[2]);
 			toReturn.Board = (string)input[3];
-			toReturn.TimeLimit = (int)input[4];
-			toReturn.boggleBoard = new BoggleBoard((string)input[3]);
-			toReturn.TimeLeft = (DateTime.Now - (DateTime)input[5]).Seconds > 0 ? (DateTime.Now - (DateTime)input[5]).Seconds : 0;
+			toReturn.TimeLimit = input[4] == null ? 0 : (int)input[4];
+			toReturn.boggleBoard = input[3] == null ? null : new BoggleBoard((string)input[3]);
+            if(input[5] != null)
+            {
+                toReturn.TimeLeft = (DateTime.Now - (DateTime)input[5]).Seconds > 0 ? (DateTime.Now - (DateTime)input[5]).Seconds : 0;
+            }
+			
 			toReturn.GameState = (input[2] == null ? "pending" : toReturn.TimeLeft == 0 ? "completed" : "active");
 
 			return toReturn;
@@ -395,40 +433,58 @@ namespace Boggle
 
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
 			{
-				SqlCommand cmd = new SqlCommand("SELECT * FROM Users WHERE id = @ID", conn);
+                conn.Open();
 
-				try
-				{
-					conn.Open();
-					cmd.Parameters.AddWithValue("@ID", (string)v);
-					SqlDataReader rdr = cmd.ExecuteReader();
-					while (rdr.Read())
-					{
-						return new DetailedPlayerInfo((string)rdr["UserID"], (string)rdr["Nickname"]);
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM Users WHERE UserID = @ID", conn))
+                {
+                    cmd.Parameters.AddWithValue("@ID", (string)v);
 
-					}
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex.Message + "or user was not registerd");
-					return null;
+                    SqlDataReader rdr = cmd.ExecuteReader();
 
-				}
-			}
-			return null;
+                    // checks if the user is there
+                    if (!rdr.HasRows)
+                    {
+                        SetStatus(Forbidden);
+                        return null;
+                    }
 
+                    while (rdr.Read())
+                    {
+                        return new DetailedPlayerInfo((string)rdr["UserID"], (string)rdr["Nickname"]);
+                    }
+
+                    return null;
+                }
+            }
 		}
 
-		private object[] simplifyGameState(DetailedGameState pendingGame)
+		private SqlParameter[] simplifyGameState(DetailedGameState pendingGame)
 		{
-			object[] toSave = new object[6];
-			toSave[0] = pendingGame.gameID;
+            var spcArray = new SqlParameter[6];
+            spcArray[0] = new SqlParameter("@GameID", pendingGame.gameID);
+            spcArray[1] = new SqlParameter("@Player1", pendingGame.Player1.userID);
+
+            // might change later, needed to prevent null reference
+            // player 2 can be null which is why we need this if statement
+            if (pendingGame.Player2 != null) { spcArray[2] = new SqlParameter("@Player2", pendingGame.Player2.userID); }
+            else { spcArray[2] = new SqlParameter("@Player2", SqlChars.Null); }
+
+            // same with the board
+            if (pendingGame.Board != null) { spcArray[3] = new SqlParameter("@Board", pendingGame.Board); }
+            else { spcArray[3] = new SqlParameter("@Board", SqlChars.Null); }
+
+            spcArray[4] = new SqlParameter("@TimeLimit", pendingGame.TimeLimit);
+            spcArray[5] = new SqlParameter("@StartTime", DateTime.Now);
+            /*
+            object[] toSave = new object[6];
+            toSave[0] = pendingGame.gameID;
 			toSave[1] = pendingGame.Player1.userID;
-			toSave[2] = pendingGame.Player2.userID;
+            toSave[2] = pendingGame.Player2.userID;
 			toSave[3] = pendingGame.Board;
 			toSave[4] = pendingGame.TimeLimit;
 			toSave[5] = DateTime.Now;
-			return toSave;
+            */
+			return spcArray;
 
 		}
 
