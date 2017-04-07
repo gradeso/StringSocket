@@ -239,25 +239,25 @@ namespace Boggle
 					return new ScoreInfo();
 				}
 				//needs finnishing
-			//int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
-			ScoreInfo toReturn = new ScoreInfo();
-			
-			//return toReturn;
+				//int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
+				ScoreInfo toReturn = new ScoreInfo();
+				return toReturn;
+				//return toReturn;
 
-			//
-			//if (gameInQuestion.Player1.userID == UserToken)
-			//{
-			//	gameInQuestion.Player1.Score += scoreOfWord;
-			//	((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
-			//}
-			//else
-			//{
+				//
+				//if (gameInQuestion.Player1.userID == UserToken)
+				//{
+				//	gameInQuestion.Player1.Score += scoreOfWord;
+				//	((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
+				//}
+				//else
+				//{
 
-			//	gameInQuestion.Player2.Score += scoreOfWord;
-			//	((DetailedPlayerInfo)gameInQuestion.Player2).MovesMade.Add(wac);
+				//	gameInQuestion.Player2.Score += scoreOfWord;
+				//	((DetailedPlayerInfo)gameInQuestion.Player2).MovesMade.Add(wac);
 
-			//}
-		
+				//}
+			}
 
 	}
 		
