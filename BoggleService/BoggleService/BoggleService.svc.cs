@@ -176,6 +176,7 @@ namespace Boggle
 				return new GameIDInfo(toReturn);
 			}
 		}
+		
 
 		public void CancelJoin(UserIDInfo ut)
 		{
@@ -201,7 +202,7 @@ namespace Boggle
 		}
 
 
-		public ScoreInfo PlayWordInGame(string GameID,Move m)
+		public ScoreInfo PlayWordInGame(string GameID, Move m)
 		{
 			lock (sync)
 			{
@@ -213,13 +214,14 @@ namespace Boggle
 
 				try
 				{
-					if (!int.TryParse(GameID, out tempGameID)){
+					if (!int.TryParse(GameID, out tempGameID))
+					{
 						SetStatus(Forbidden);
 						return new ScoreInfo();
 					}
 					gameInQuestion = getGameWithID(tempGameID);
 
-					if (!(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken) )
+					if (!(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken))
 					{
 						SetStatus(Forbidden);
 						return new ScoreInfo();
@@ -236,27 +238,29 @@ namespace Boggle
 					SetStatus(Conflict);
 					return new ScoreInfo();
 				}
-				int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
-					if (gameInQuestion.Player1.userID == UserToken)
-					{
-						gameInQuestion.Player1.Score += scoreOfWord;
-						((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
-					}
-					else
-					{
+				//needs finnishing
+			//int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
+			ScoreInfo toReturn = new ScoreInfo();
+			
+			//return toReturn;
 
-						gameInQuestion.Player2.Score += scoreOfWord;
-						((DetailedPlayerInfo)gameInQuestion.Player2).MovesMade.Add(wac);
+			//
+			//if (gameInQuestion.Player1.userID == UserToken)
+			//{
+			//	gameInQuestion.Player1.Score += scoreOfWord;
+			//	((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
+			//}
+			//else
+			//{
 
-					}
-				}
-				ScoreInfo toReturn = new ScoreInfo();
-				toReturn.Score = scoreOfWord;
-				return toReturn;
+			//	gameInQuestion.Player2.Score += scoreOfWord;
+			//	((DetailedPlayerInfo)gameInQuestion.Player2).MovesMade.Add(wac);
 
-				
-			}
-		}
+			//}
+		
+
+	}
+		
 		
 
 		public GameStatePending gameStatus(string GameID, bool maybeYes)
@@ -430,6 +434,10 @@ namespace Boggle
 
 		private int calculateScore(BoggleBoard boggleBoard, string word)
 		{
+
+			//here you need to add the word to the database,
+			//if the word is already there set the score to zero.
+			
 			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
 				word.Length < 3 ?
 				0 : word.Length < 5 ?
