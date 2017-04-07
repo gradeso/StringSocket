@@ -213,15 +213,21 @@ namespace Boggle
 
 				try
 				{
-					if (!int.TryParse(GameID, out tempGameID) || !currentGames.TryGetValue(tempGameID, out gameInQuestion)
-						|| !(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken) )
+					if (!int.TryParse(GameID, out tempGameID)){
+						SetStatus(Forbidden);
+						return new ScoreInfo();
+					}
+					gameInQuestion = getGameWithID(tempGameID);
+
+					if (!(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken) )
 					{
 						SetStatus(Forbidden);
 						return new ScoreInfo();
 					}
 				}
-				catch (NullReferenceException)
+				catch (Exception e)
 				{
+					Console.WriteLine(e.Message);
 					SetStatus(Forbidden);
 					return new ScoreInfo();
 				}
@@ -231,10 +237,6 @@ namespace Boggle
 					return new ScoreInfo();
 				}
 				int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
-				if (scoreOfWord != 0)
-				{
-					WordAndScore wac = new WordAndScore(UserToken, Word, scoreOfWord);
-					gameInQuestion.MovesMade.Add(wac);
 					if (gameInQuestion.Player1.userID == UserToken)
 					{
 						gameInQuestion.Player1.Score += scoreOfWord;
@@ -263,11 +265,12 @@ namespace Boggle
 			{
 				DetailedGameState gameInQuestion;
 				int gameIdNum;
-				if (!int.TryParse(GameID, out gameIdNum) || !currentGames.TryGetValue(gameIdNum, out gameInQuestion))
+				if (!int.TryParse(GameID, out gameIdNum))
 				{
 					SetStatus(Forbidden);
 					return new GameStatePending();
 				}
+				gameInQuestion = getGameWithID(gameIdNum);
 				switch (gameInQuestion.GameState)
 				{
 					case "pending":
