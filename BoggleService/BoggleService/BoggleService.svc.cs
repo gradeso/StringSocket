@@ -395,6 +395,18 @@ namespace Boggle
 
 		private void addGameToDB(DetailedGameState pendingGame)
 		{
+			if (pendingGame.Player1 == null)
+			{
+				using (SqlConnection conn = new SqlConnection(BoggleDB))
+				{
+					conn.Open();
+
+					SqlCommand cmd = new SqlCommand(string.Format("DElETE FROM Games WHERE GameID={0}" , pendingGame.gameID)
+				   , conn);
+					cmd.ExecuteNonQuery();
+				}
+				return;
+			}
 			SqlParameter[] contents = simplifyGameState(pendingGame);
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
 			{
