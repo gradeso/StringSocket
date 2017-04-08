@@ -39,21 +39,6 @@ namespace Boggle
 			clearDB();
 		}
 
-		private static void clearDB()
-		{
-			using (SqlConnection conn = new SqlConnection(BoggleDB))
-			{
-				using (var cmd = new SqlCommand())
-				{
-					cmd.CommandText = "DELETE FROM Games";
-					cmd.Connection = conn;
-					conn.Open();
-					cmd.ExecuteNonQuery();  // all rows deleted
-				}
-			}
-		}
-
-		
 
 
 		/// <summary>
@@ -233,62 +218,19 @@ namespace Boggle
 		{
 			lock (sync)
 			{
-				string UserToken = m.UserToken;
-				string Word = m.Word;
-				Word = Word.Trim();
-				DetailedGameState gameInQuestion;
-				int tempGameID;
-
-				try
+				switch (addMove(Convert.ToInt32(GameID), m.Word, m.UserToken))
 				{
-					if (!int.TryParse(GameID, out tempGameID))
-					{
-						SetStatus(Forbidden);
-						return new ScoreInfo();
-					}
-					gameInQuestion = getGameWithID(tempGameID);
 
-					if (!(gameInQuestion.Player1.userID == UserToken || gameInQuestion.Player2.userID == UserToken))
-					{
-						SetStatus(Forbidden);
-						return new ScoreInfo();
-					}
+
 				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e.Message);
-					SetStatus(Forbidden);
-					return new ScoreInfo();
-				}
-				if (gameInQuestion.GameState != "active")
-				{
-					SetStatus(Conflict);
-					return new ScoreInfo();
-				}
-				//needs finnishing
-				//int scoreOfWord = calculateScore(gameInQuestion.boggleBoard, Word);
-				ScoreInfo toReturn = new ScoreInfo();
-				return toReturn;
-				//return toReturn;
-
-				//
-				//if (gameInQuestion.Player1.userID == UserToken)
-				//{
-				//	gameInQuestion.Player1.Score += scoreOfWord;
-				//	((DetailedPlayerInfo)gameInQuestion.Player1).MovesMade.Add(wac);
-				//}
-				//else
-				//{
-
-				//	gameInQuestion.Player2.Score += scoreOfWord;
-				//	((DetailedPlayerInfo)gameInQuestion.Player2).MovesMade.Add(wac);
-
-				//}
 			}
 
 	}
-		
-		
+
+		private int addMove(int gameID, string word, string userToken)
+		{
+			throw new NotImplementedException();
+		}
 
 		public GameStatePending gameStatus(string GameID, bool maybeYes)
 		{
@@ -521,6 +463,21 @@ namespace Boggle
 				5 : 11
 				  : 0;
 		}
+
+		private static void clearDB()
+		{
+			using (SqlConnection conn = new SqlConnection(BoggleDB))
+			{
+				using (var cmd = new SqlCommand())
+				{
+					cmd.CommandText = "DELETE FROM Games";
+					cmd.Connection = conn;
+					conn.Open();
+					cmd.ExecuteNonQuery();  // all rows deleted
+				}
+			}
+		}
+
 
 	}
 }
