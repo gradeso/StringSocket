@@ -84,7 +84,6 @@ namespace Boggle
 	[DataContract]
 	public class ScoreInfo
 	{
-		private int v;
 
 		public ScoreInfo()
 		{
@@ -93,7 +92,7 @@ namespace Boggle
 
 		public ScoreInfo(int v)
 		{
-			this.v = v;
+			Score = v;
 		}
 
 		[DataMember]
@@ -116,7 +115,7 @@ namespace Boggle
 
 
 		public string userID { get; set; }
-		[DataMember]
+		[DataMember(EmitDefaultValue = false)]
 		public string Nicknme { get; set; }
 		[DataMember]
 		public int Score { get; set; }

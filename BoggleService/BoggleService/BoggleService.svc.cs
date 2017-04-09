@@ -282,8 +282,14 @@ namespace Boggle
 				cmd.Parameters.AddWithValue("@Word", word);
 				cmd.Parameters.AddWithValue("@Game_ID", gameID);
 				cmd.Parameters.AddWithValue("@Score", score);
-				return cmd.ExecuteNonQuery() >= 0;
-
+                try
+                {
+                    return cmd.ExecuteNonQuery() >= 0;
+                }
+                catch
+                {
+                    return false;
+                }
 			}
 
 		}
@@ -293,12 +299,15 @@ namespace Boggle
 			{
 
 				conn.Open();
-				var sql = string.Format("SELECT * FROM Words WHERE Game_ID={0} AND Player_ID={1}", game.gameID, userToken);
+                var sql = "SELECT * FROM Words WHERE GameID=@Game_ID AND PlayerID=@Player_ID";
 
 				//get the words where id and game match
 				//divi the scores between players
 				SqlCommand cmd = new SqlCommand(sql, conn);
-				int toReturn = 0;
+                cmd.Parameters.AddWithValue("@Game_ID", game.gameID);
+                cmd.Parameters.AddWithValue("@Player_ID", userToken);
+
+                int toReturn = 0;
 				var rdr = cmd.ExecuteReader();
 				while (rdr.Read())
 				{
@@ -307,7 +316,8 @@ namespace Boggle
 				return toReturn;
 			}
 		}
-		public GameStatePending gameStatus(string GameID, bool maybeYes)
+
+		public GameStatePending gameStatus(string GameID, string yes)
 		{
 			lock (sync)
 			{
@@ -322,19 +332,24 @@ namespace Boggle
 				switch (gameInQuestion.GameState)
 				{
 					case "pending":
-
+                        SetStatus(OK);
                         return (GameStatePending)gameInQuestion;
 					case "active":
 
-						PlayerInfo tempPlr1 = (PlayerInfo)( gameInQuestion.Player1);
-						PlayerInfo tempPlr2 = (PlayerInfo)(gameInQuestion.Player2);
-						GameStatePending toReturn;
-						if (maybeYes)
+						DetailedPlayerInfo tempPlr1 = (DetailedPlayerInfo)(gameInQuestion.Player1);
+						DetailedPlayerInfo tempPlr2 = (DetailedPlayerInfo)(gameInQuestion.Player2);
+						GameStateActive toReturn;
+						if (yes  == null || !yes.Equals("yes"))
 						{
-                            toReturn = (GameStateActive)gameInQuestion;
-                            
-							((GameStateActive)toReturn).Player1 = tempPlr1;
-							((GameStateActive)toReturn).Player2 = tempPlr2;
+                            toReturn = gameInQuestion;
+                            tempPlr1.Nicknme = null;
+                            tempPlr2.Nicknme = null;
+                            tempPlr1.Score = getPlayerScore(gameInQuestion, tempPlr1.userID);
+                            tempPlr2.Score = getPlayerScore(gameInQuestion, tempPlr2.userID);
+
+                            ((GameStateActive)toReturn).Player1 = (PlayerInfo)tempPlr1;
+							((GameStateActive)toReturn).Player2 = (PlayerInfo)tempPlr2;
+                           
                             
 						}
 						else
@@ -344,25 +359,39 @@ namespace Boggle
 							((DetailedGameState)toReturn).Player2 = tempPlr2;
 
 						}
-
+                        SetStatus(OK);
 						return toReturn;
-
+                        
 					case "completed":
-						GameStatePending toReturn2;
-						if (maybeYes)
-						{
-							PlayerInfo tempPlr11 = (PlayerInfo)(gameInQuestion.Player1);
-							PlayerInfo tempPlr22 = (PlayerInfo)(gameInQuestion.Player2);
-							toReturn2 = (GameStateActive)gameInQuestion;
-							((GameStateActive)toReturn2).Player1 = tempPlr11;
-							((GameStateActive)toReturn2).Player2 = tempPlr22;
+						DetailedGameState toReturn2;
+                        DetailedPlayerInfo tempPlr10 = (DetailedPlayerInfo)(gameInQuestion.Player1);
+                        DetailedPlayerInfo tempPlr20 = (DetailedPlayerInfo)(gameInQuestion.Player2);
 
-						}
+
+                        tempPlr10.Score = getPlayerScore(gameInQuestion, tempPlr10.userID);
+                        tempPlr20.Score = getPlayerScore(gameInQuestion, tempPlr20.userID);
+
+                        if (yes == null || !yes.Equals("yes"))
+
+                        {
+                            tempPlr10.Nicknme = null;
+                            tempPlr20.Nicknme = null;
+                            
+                            GameStateActive toReturn20 = (GameStateActive)gameInQuestion;
+							((GameStateActive)toReturn20).Player1 = (PlayerInfo)tempPlr10;
+							((GameStateActive)toReturn20).Player2 = (PlayerInfo)tempPlr20;
+                            SetStatus(OK);
+                            return toReturn20;
+                        }
 						else
 						{
+                            tempPlr10.MovesMade.AddRange(getPlayerMoves(tempPlr10.userID));
+                            tempPlr20.MovesMade.AddRange(getPlayerMoves(tempPlr20.userID));
+
                             toReturn2 = gameInQuestion;
 						}
-						return toReturn2;
+                        SetStatus(OK);
+                        return toReturn2;
 					default:
 						SetStatus(Forbidden);
 						return new GameStatePending();
@@ -370,10 +399,33 @@ namespace Boggle
 			}
 		}
 
-		/// <summary>
-		/// helper method for getting game with a certain id
-		/// </summary>
-		private DetailedGameState getGameWithID(int gameID)
+        private IEnumerable<WordAndScore> getPlayerMoves(string userId)
+        {
+            List<WordAndScore> toReturn = new List<WordAndScore>();
+            using (SqlConnection conn = new SqlConnection(BoggleDB))
+            {
+
+                conn.Open();
+                var sql = "SELECT * FROM Words WHERE PlayerID=@Player_ID";
+
+                //get the words where id and game match
+                //divi the scores between players
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Player_ID",userId );
+                var rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                   toReturn.Add(new WordAndScore(userId, (string)rdr["Word"], (int )rdr["Score"]));
+                }
+                return toReturn;
+            }
+
+        }
+
+        /// <summary>
+        /// helper method for getting game with a certain id
+        /// </summary>
+        private DetailedGameState getGameWithID(int gameID)
 		{
 			// object array that will hold all the parts
 			// of a game from the sql table
@@ -419,8 +471,8 @@ namespace Boggle
 				{
 					conn.Open();
 
-					SqlCommand cmd = new SqlCommand(string.Format("DElETE FROM Games WHERE GameID={0}", pendingGame.gameID)
-				   , conn);
+                    SqlCommand cmd = new SqlCommand("DElETE FROM Games WHERE GameID=@Game_ID", conn);
+                    cmd.Parameters.AddWithValue("@Game_ID", pendingGame.gameID);
 					cmd.ExecuteNonQuery();
 				}
 				return;
@@ -491,7 +543,7 @@ namespace Boggle
 			else { spcArray[3] = new SqlParameter("@Board", SqlChars.Null); }
 
 			spcArray[4] = new SqlParameter("@TimeLimit", pendingGame.TimeLimit);
-			spcArray[5] = new SqlParameter("@StartTime", DateTime.Now);
+            spcArray[5] = new SqlParameter("@StartTime", DateTime.Now);
 
 			return spcArray;
 
@@ -514,7 +566,7 @@ namespace Boggle
 				// gets time left
 				toReturn.TimeLeft = toReturn.TimeLimit - elapsedTime > 0 ? toReturn.TimeLimit - elapsedTime : 0;
 			}
-			toReturn.GameState = (input[2] == null ? "pending" : toReturn.TimeLeft == 0 ? "completed" : "active");
+			toReturn.GameState = (toReturn.Player2 == null ? "pending" : toReturn.TimeLeft == 0 ? "completed" : "active");
 
 			return toReturn;
 		}
@@ -527,7 +579,7 @@ namespace Boggle
 
 			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
 				word.Length < 3 ?
-				0 : word.Length < 5 ?
+				-1 : word.Length < 5 ?
 				1 : word.Length < 6 ?
 				2 : word.Length < 7 ?
 				3 : word.Length < 8 ?

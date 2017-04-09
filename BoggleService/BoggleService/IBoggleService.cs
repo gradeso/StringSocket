@@ -68,8 +68,9 @@ namespace Boggle
         [WebGet(
 						ResponseFormat = WebMessageFormat.Json,
 
-		UriTemplate = "games/{GameID}?Brief={maybeYes}")]
-		GameStatePending gameStatus(string GameID, bool maybeYes);
+		UriTemplate = "games/{GameID}?brief={yes}")]
+		GameStatePending gameStatus(string GameID, string yes);
                 
+        
 	}
 }
