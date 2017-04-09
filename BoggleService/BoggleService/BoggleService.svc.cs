@@ -243,8 +243,7 @@ namespace Boggle
 					return new ScoreInfo();
 				}
 				int toReturn = calculateScore(gameInQuestion.boggleBoard, m.Word);
-                if (toReturn != -1)
-                {
+               
                     if(toReturn == -2)
                     {
                         SetStatus(Conflict);
@@ -252,10 +251,9 @@ namespace Boggle
                     }
                     if (!addMove(tempGameId, m.Word, m.UserToken, toReturn))
                     {
-                        toReturn = 0;
+                        toReturn = -1;
                     }
                     
-                }
                 SetStatus(OK);
                 return new ScoreInfo(toReturn);
 			}
@@ -325,22 +323,23 @@ namespace Boggle
 				{
 					case "pending":
 
-						return (GameStatePending)gameInQuestion.DeepClone();
+                        return (GameStatePending)gameInQuestion;
 					case "active":
 
-						PlayerInfo tempPlr1 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
-						PlayerInfo tempPlr2 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
+						PlayerInfo tempPlr1 = (PlayerInfo)( gameInQuestion.Player1);
+						PlayerInfo tempPlr2 = (PlayerInfo)(gameInQuestion.Player2);
 						GameStatePending toReturn;
 						if (maybeYes)
 						{
-							toReturn = (GameStateActive)gameInQuestion.DeepClone();
+                            toReturn = (GameStateActive)gameInQuestion;
+                            
 							((GameStateActive)toReturn).Player1 = tempPlr1;
 							((GameStateActive)toReturn).Player2 = tempPlr2;
-
+                            
 						}
 						else
 						{
-							toReturn = gameInQuestion.DeepClone();
+							toReturn = gameInQuestion;
 							((DetailedGameState)toReturn).Player1 = tempPlr1;
 							((DetailedGameState)toReturn).Player2 = tempPlr2;
 
@@ -352,16 +351,16 @@ namespace Boggle
 						GameStatePending toReturn2;
 						if (maybeYes)
 						{
-							PlayerInfo tempPlr11 = (PlayerInfo)(gameInQuestion.Player1.DeepClone());
-							PlayerInfo tempPlr22 = (PlayerInfo)(gameInQuestion.Player2.DeepClone());
-							toReturn2 = (GameStateActive)gameInQuestion.DeepClone();
+							PlayerInfo tempPlr11 = (PlayerInfo)(gameInQuestion.Player1);
+							PlayerInfo tempPlr22 = (PlayerInfo)(gameInQuestion.Player2);
+							toReturn2 = (GameStateActive)gameInQuestion;
 							((GameStateActive)toReturn2).Player1 = tempPlr11;
 							((GameStateActive)toReturn2).Player2 = tempPlr22;
 
 						}
 						else
 						{
-							toReturn2 = gameInQuestion.DeepClone();
+                            toReturn2 = gameInQuestion;
 						}
 						return toReturn2;
 					default:
@@ -493,15 +492,7 @@ namespace Boggle
 
 			spcArray[4] = new SqlParameter("@TimeLimit", pendingGame.TimeLimit);
 			spcArray[5] = new SqlParameter("@StartTime", DateTime.Now);
-			/*
-            object[] toSave = new object[6];
-            toSave[0] = pendingGame.gameID;
-			toSave[1] = pendingGame.Player1.userID;
-            toSave[2] = pendingGame.Player2.userID;
-			toSave[3] = pendingGame.Board;
-			toSave[4] = pendingGame.TimeLimit;
-			toSave[5] = DateTime.Now;
-            */
+
 			return spcArray;
 
 		}

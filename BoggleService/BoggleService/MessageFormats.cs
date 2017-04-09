@@ -88,7 +88,7 @@ namespace Boggle
 
 		public ScoreInfo()
 		{
-			Score = 0;
+			Score = -1;
 		}
 
 		public ScoreInfo(int v)
