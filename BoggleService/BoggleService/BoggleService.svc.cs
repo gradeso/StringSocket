@@ -243,9 +243,9 @@ namespace Boggle
 					return new ScoreInfo();
 				}
 				int toReturn = calculateScore(gameInQuestion.boggleBoard, m.Word);
-                if (toReturn != 0)
+                if (toReturn != -1)
                 {
-                    if(toReturn == -1)
+                    if(toReturn == -2)
                     {
                         SetStatus(Conflict);
                         return new ScoreInfo();
@@ -530,7 +530,7 @@ namespace Boggle
 
 		private int calculateScore(BoggleBoard boggleBoard, string word)
 		{
-            if(word == null || boggleBoard == null) { return -1; }
+            if(word == null || boggleBoard == null) { return -2; }
 			//here you need to add the word to the database,
 			//if the word is already there set the score to zero.
 
@@ -541,30 +541,57 @@ namespace Boggle
 				2 : word.Length < 7 ?
 				3 : word.Length < 8 ?
 				5 : 11
-				  : 0;
+				  : -1;
 		}
 
 		private static void clearDB()
 		{
+            bool anyFailed = false;
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
 			{
-				var cmd = new SqlCommand();
+                try
+                {
+                    var cmd = new SqlCommand();
 
-				cmd.CommandText = "DELETE FROM Games";
-				cmd.Connection = conn;
-				conn.Open();
-				cmd.ExecuteNonQuery();  // all rows deleted
+                    cmd.CommandText = "DELETE FROM Words; DELETE FROM Games; DELETE FROM Games";
+                    cmd.Connection = conn;
+                    conn.Open();
+                    cmd.ExecuteNonQuery();  // all rows deleted
+                }
+                catch
+                {
+                    try
+                    {
+                        anyFailed = true;
+                        var cmd = new SqlCommand();
 
-				var cmd2 = new SqlCommand();
+                        cmd.CommandText = "DELETE FROM Users";
+                        cmd.Connection = conn;
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                    }catch
+                    {
+                        try
+                        {
+                            anyFailed = true;
+                            var cmd = new SqlCommand();
 
-				cmd2.CommandText = "DELETE FROM Users";
-				cmd2.Connection = conn;
-
-				cmd2.ExecuteNonQuery();  // all rows deleted
-
+                            cmd.CommandText = "DELETE FROM Games";
+                            cmd.Connection = conn;
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+                        }catch
+                        {
+                            anyFailed = true;
+                        }
+                    }
+                     }
+                   
+                }
+            if (anyFailed) clearDB();
 			}
 		}
 
 
 	}
-}
+
