@@ -243,12 +243,21 @@ namespace Boggle
 					return new ScoreInfo();
 				}
 				int toReturn = calculateScore(gameInQuestion.boggleBoard, m.Word);
-				if (addMove(tempGameId, m.Word, m.UserToken, toReturn))
-				{
-					toReturn = 0;
-				}
-
-				return new ScoreInfo(toReturn);
+                if (toReturn != 0)
+                {
+                    if(toReturn == -1)
+                    {
+                        SetStatus(Conflict);
+                        return new ScoreInfo();
+                    }
+                    if (!addMove(tempGameId, m.Word, m.UserToken, toReturn))
+                    {
+                        toReturn = 0;
+                    }
+                    
+                }
+                SetStatus(OK);
+                return new ScoreInfo(toReturn);
 			}
 
 		}
@@ -504,7 +513,7 @@ namespace Boggle
 			toReturn.Player1 = findPlayer(input[1]);
 			toReturn.Player2 = findPlayer(input[2]);
 			toReturn.Board = input[3] is DBNull ? null : (string)input[3];
-			toReturn.TimeLimit = input[4] == null ? 0 : (int)input[4];
+			toReturn.TimeLimit = input[4] == typeof(DBNull) ? 0 : (int)input[4];
 			toReturn.boggleBoard = toReturn.Board == null ? null : new BoggleBoard((string)input[3]);
 			if (input[5].GetType() != typeof(DBNull))
 			{
@@ -521,7 +530,7 @@ namespace Boggle
 
 		private int calculateScore(BoggleBoard boggleBoard, string word)
 		{
-
+            if(word == null || boggleBoard == null) { return -1; }
 			//here you need to add the word to the database,
 			//if the word is already there set the score to zero.
 
