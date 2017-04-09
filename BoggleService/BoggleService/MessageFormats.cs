@@ -84,10 +84,18 @@ namespace Boggle
 	[DataContract]
 	public class ScoreInfo
 	{
+		private int v;
+
 		public ScoreInfo()
 		{
 			Score = 0;
 		}
+
+		public ScoreInfo(int v)
+		{
+			this.v = v;
+		}
+
 		[DataMember]
 		public int Score { get; set; }
 	}
