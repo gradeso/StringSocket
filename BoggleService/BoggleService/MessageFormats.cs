@@ -183,7 +183,7 @@ namespace Boggle
 	/// </summary>
 	[Serializable]
 	[DataContract]
-	public class GameStatePending
+	public class GameStatePending : IGameState
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="GameStatePending"/> class.
@@ -219,7 +219,6 @@ namespace Boggle
 	}
 	[Serializable]
 	[DataContract]
-
 	public class DetailedGameState : GameStateActive
 	{
 		public DetailedGameState()
@@ -250,20 +249,6 @@ namespace Boggle
 
 	}
 
-	public static class ExtensionMethods
-	{
-		// Deep clone
-		public static T DeepClone<T>(this T a)
-		{
-			using (MemoryStream stream = new MemoryStream())
-			{
-				BinaryFormatter formatter = new BinaryFormatter();
-				formatter.Serialize(stream, a);
-				stream.Position = 0;
-				return (T)formatter.Deserialize(stream);
-			}
-		}
 	
-	}
 
 }

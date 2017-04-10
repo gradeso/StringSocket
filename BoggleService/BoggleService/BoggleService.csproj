@@ -143,6 +143,7 @@
       <DependentUpon>BoggleService.svc</DependentUpon>
     </Compile>
     <Compile Include="IBoggleService.cs" />
+    <Compile Include="IGameState.cs" />
     <Compile Include="MessageFormats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

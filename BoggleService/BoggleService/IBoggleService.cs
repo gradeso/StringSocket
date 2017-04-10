@@ -5,10 +5,11 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.ServiceModel.Web;
+using System.Web.Services;
 
 namespace Boggle
 {
-	[ServiceContract]
+    [ServiceContract]
 	public interface IBoggleService
 	{
 
@@ -62,15 +63,11 @@ namespace Boggle
 
 		ScoreInfo PlayWordInGame(string GameID, Move m);
 
-        /// <summary>
-        ///gets Stats of game.
-        /// </summary>
-        [WebGet(
-						ResponseFormat = WebMessageFormat.Json,
-
-		UriTemplate = "games/{GameID}?brief={yes}")]
-		GameStatePending gameStatus(string GameID, string yes);
-                
         
-	}
+        [WebGet( UriTemplate = "games/{GameID}?brief={b}")]
+        IGameState gameStatus(string GameID, string b);
+
+
+
+    }
 }

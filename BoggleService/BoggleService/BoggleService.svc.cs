@@ -7,7 +7,6 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel.Web;
 using System.Text;
@@ -317,10 +316,11 @@ namespace Boggle
 			}
 		}
 
-		public GameStatePending gameStatus(string GameID, string yes)
+		public IGameState gameStatus(string GameID,string brief)
 		{
 			lock (sync)
 			{
+
 				DetailedGameState gameInQuestion;
 				int gameIdNum;
 				if (!int.TryParse(GameID, out gameIdNum))
@@ -339,7 +339,7 @@ namespace Boggle
 						DetailedPlayerInfo tempPlr1 = (DetailedPlayerInfo)(gameInQuestion.Player1);
 						DetailedPlayerInfo tempPlr2 = (DetailedPlayerInfo)(gameInQuestion.Player2);
 						GameStateActive toReturn;
-						if (yes  == null || !yes.Equals("yes"))
+						if (brief  == null || brief != "yes")
 						{
                             toReturn = gameInQuestion;
                             tempPlr1.Nicknme = null;
@@ -371,7 +371,7 @@ namespace Boggle
                         tempPlr10.Score = getPlayerScore(gameInQuestion, tempPlr10.userID);
                         tempPlr20.Score = getPlayerScore(gameInQuestion, tempPlr20.userID);
 
-                        if (yes == null || !yes.Equals("yes"))
+                        if (brief == null || brief != "yes")
 
                         {
                             tempPlr10.Nicknme = null;
@@ -555,10 +555,10 @@ namespace Boggle
 			toReturn.gameID = (int)input[0];
 			toReturn.Player1 = findPlayer(input[1]);
 			toReturn.Player2 = findPlayer(input[2]);
-			toReturn.Board = input[3] is DBNull ? null : (string)input[3];
-			toReturn.TimeLimit = input[4] == typeof(DBNull) ? 0 : (int)input[4];
+			toReturn.Board = input[3] == null || input[3] is DBNull ? null : (string)input[3];
+			toReturn.TimeLimit = input[4] == null || input[4] is DBNull ? 0 : (int)input[4];
 			toReturn.boggleBoard = toReturn.Board == null ? null : new BoggleBoard((string)input[3]);
-			if (input[5].GetType() != typeof(DBNull))
+			if (input[5] != null && !(input[5] is DBNull))
 			{
 
 				// pulled this out so it's easier to read
@@ -579,7 +579,7 @@ namespace Boggle
 
 			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
 				word.Length < 3 ?
-				-1 : word.Length < 5 ?
+				0 : word.Length < 5 ?
 				1 : word.Length < 6 ?
 				2 : word.Length < 7 ?
 				3 : word.Length < 8 ?
@@ -633,7 +633,8 @@ namespace Boggle
                 }
             if (anyFailed) clearDB();
 			}
-		}
+        
+    }
 
 
 	}
