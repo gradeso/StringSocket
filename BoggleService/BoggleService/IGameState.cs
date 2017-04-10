@@ -1,4 +1,5 @@
-﻿namespace Boggle
+﻿
+namespace Boggle
 {
     public interface IGameState
     {

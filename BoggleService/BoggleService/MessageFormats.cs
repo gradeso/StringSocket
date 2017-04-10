@@ -104,19 +104,20 @@ namespace Boggle
 	/// </summary>
 	[Serializable]
 	[DataContract]
-	public class PlayerInfo
+    [KnownType(typeof(PlayerInfo))]
+    public class PlayerInfo
 	{
 		public PlayerInfo()
 		{
 			userID = "";
-			Nicknme = "";
+			Nickname = "";
 			Score = 0;
 		}
 
 
 		public string userID { get; set; }
 		[DataMember(EmitDefaultValue = false)]
-		public string Nicknme { get; set; }
+		public string Nickname { get; set; }
 		[DataMember]
 		public int Score { get; set; }
 	}
@@ -132,20 +133,20 @@ namespace Boggle
 	{
 		public DetailedPlayerInfo()
 		{
-			MovesMade = new List<WordAndScore>();
+			WordsPlayed = new List<WordAndScore>();
 		}
 
 
 		public DetailedPlayerInfo(string userID, string nn)
 		{
 			this.userID = userID;
-			Nicknme = nn;
-			MovesMade = new List<WordAndScore>();
+			Nickname = nn;
+			WordsPlayed = new List<WordAndScore>();
 
 		}
 
 		[DataMember]
-		public List<WordAndScore> MovesMade;
+		public List<WordAndScore> WordsPlayed;
 
 	}
 	[Serializable]

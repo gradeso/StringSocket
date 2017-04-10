@@ -222,13 +222,13 @@ namespace Boggle
 		public ScoreInfo PlayWordInGame(string GameID, Move m)
 		{
 			m.Word = m.Word.Trim();
+
 			int tempGameId;
 			if (!int.TryParse(GameID, out tempGameId) || m.Word == null || m.Word == "")
 			{
 				SetStatus(Forbidden);
 				return new ScoreInfo();
 			}
-
 			lock (sync)
 			{
 				DetailedGameState gameInQuestion = getGameWithID(tempGameId);
@@ -353,11 +353,11 @@ namespace Boggle
 						DetailedPlayerInfo tempPlr1 = (DetailedPlayerInfo)(gameInQuestion.Player1);
 						DetailedPlayerInfo tempPlr2 = (DetailedPlayerInfo)(gameInQuestion.Player2);
 						GameStateActive toReturn;
-						if (brief  == null || brief != "yes")
+						if (brief  == "yes")
 						{
                             toReturn = gameInQuestion;
-                            tempPlr1.Nicknme = null;
-                            tempPlr2.Nicknme = null;
+                            tempPlr1.Nickname = null;
+                            tempPlr2.Nickname = null;
                             tempPlr1.Score = getPlayerScore(gameInQuestion, tempPlr1.userID);
                             tempPlr2.Score = getPlayerScore(gameInQuestion, tempPlr2.userID);
 
@@ -385,11 +385,11 @@ namespace Boggle
                         tempPlr10.Score = getPlayerScore(gameInQuestion, tempPlr10.userID);
                         tempPlr20.Score = getPlayerScore(gameInQuestion, tempPlr20.userID);
 
-                        if (brief == null || brief != "yes")
+                        if (brief == "yes")
 
                         {
-                            tempPlr10.Nicknme = null;
-                            tempPlr20.Nicknme = null;
+                            tempPlr10.Nickname = null;
+                            tempPlr20.Nickname = null;
                             
                             GameStateActive toReturn20 = (GameStateActive)gameInQuestion;
 							((GameStateActive)toReturn20).Player1 = (PlayerInfo)tempPlr10;
@@ -399,10 +399,13 @@ namespace Boggle
                         }
 						else
 						{
-                            tempPlr10.MovesMade.AddRange(getPlayerMoves(tempPlr10.userID));
-                            tempPlr20.MovesMade.AddRange(getPlayerMoves(tempPlr20.userID));
+                            tempPlr10.WordsPlayed.AddRange(getPlayerMoves(tempPlr10.userID));
+                            tempPlr20.WordsPlayed.AddRange(getPlayerMoves(tempPlr20.userID));
 
                             toReturn2 = gameInQuestion;
+                            toReturn2.Player1 = tempPlr10;
+                            toReturn2.Player2 = tempPlr20;
+
 						}
                         SetStatus(OK);
                         return toReturn2;
@@ -616,7 +619,7 @@ namespace Boggle
 			//here you need to add the word to the database,
 			//if the word is already there set the score to zero.
 
-			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word)) ?
+			return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word.ToUpper())) ?
 				word.Length < 3 ?
 				0 : word.Length < 5 ?
 				1 : word.Length < 6 ?
