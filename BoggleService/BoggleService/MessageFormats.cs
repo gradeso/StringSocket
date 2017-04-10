@@ -201,7 +201,7 @@ namespace Boggle
 
 	}
 	[Serializable]
-[DataContract]
+    [DataContract]
 	public class GameStateActive : GameStatePending
 	{
 		public GameStateActive()

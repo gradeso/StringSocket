@@ -104,12 +104,13 @@ namespace Boggle
 				}
 			}
 		}
-		/// <summary>
-		/// Attempts the join.
-		/// </summary>
-		/// <param name="ja">The join ateempt info.</param>
-		/// <returns></returns>
-		public GameIDInfo AttemptJoin(JoinAttempt ja)
+        /// <summary>
+        /// Attempts the join.
+        /// method that initiates the joining process uses multiple helper methods to get the job done
+        /// </summary>
+        /// <param name="ja">The join ateempt info.</param>
+        /// <returns></returns>
+        public GameIDInfo AttemptJoin(JoinAttempt ja)
 		{
 			int TimeLimit = ja.TimeLimit;
 			string UserToken = ja.UserToken;
@@ -259,14 +260,15 @@ namespace Boggle
 
 		}
 
-		/// <summary>
-		///adds the move to the data base returns true if it succeeded.
-		/// </summary>
-		/// <param name="gameID">The game identifier.</param>
-		/// <param name="word">The word.</param>
-		/// <param name="userToken">The user token.</param>
-		/// <returns></returns>
-		private bool addMove(int gameID, string word, string userToken, int score)
+        /// <summary>
+        ///adds the move to the data base returns true if it succeeded.
+        ///helper method that puts the played move into the database
+        /// </summary>
+        /// <param name="gameID">The game identifier.</param>
+        /// <param name="word">The word.</param>
+        /// <param name="userToken">The user token.</param>
+        /// <returns></returns>
+        private bool addMove(int gameID, string word, string userToken, int score)
 		{
 
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
@@ -290,8 +292,14 @@ namespace Boggle
                     return false;
                 }
 			}
-
 		}
+
+        /// <summary>
+        /// helper method for gameStatus that get's scores
+        /// </summary>
+        /// <param name="game"></param>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
 		private int getPlayerScore(DetailedGameState game, string userToken)
 		{
 			using (SqlConnection conn = new SqlConnection(BoggleDB))
@@ -316,9 +324,15 @@ namespace Boggle
 			}
 		}
 
+        /// <summary>
+        /// gets the detailed game state
+        /// </summary>
+        /// <param name="GameID"></param>
+        /// <param name="brief"></param>
+        /// <returns></returns>
 		public IGameState gameStatus(string GameID,string brief)
 		{
-			lock (sync)
+            lock (sync)
 			{
 
 				DetailedGameState gameInQuestion;
@@ -463,6 +477,10 @@ namespace Boggle
 			}
 		}
 
+        /// <summary>
+        /// helper method that finally adds the pending game to the database
+        /// </summary>
+        /// <param name="pendingGame"></param>
 		private void addGameToDB(DetailedGameState pendingGame)
 		{
 			if (pendingGame.Player1 == null)
@@ -494,8 +512,11 @@ namespace Boggle
 			}
 		}
 
-
-
+        /// <summary>
+        /// usefull helper method that returns player info of a given player id if it exists
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
 		private PlayerInfo findPlayer(object v)
 		{
 			if (v is DBNull || v == null) return null;
@@ -527,6 +548,12 @@ namespace Boggle
 			}
 		}
 
+
+        /// <summary>
+        /// helper method that breaks apart a 
+        /// </summary>
+        /// <param name="pendingGame"></param>
+        /// <returns></returns>
 		private SqlParameter[] simplifyGameState(DetailedGameState pendingGame)
 		{
 			var spcArray = new SqlParameter[6];
@@ -548,6 +575,12 @@ namespace Boggle
 			return spcArray;
 
 		}
+
+        /// <summary>
+        /// helper method that takes an array of objects and turns it into a game state that can be used
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
 		private DetailedGameState detailGame(object[] input)
 		{
 			var toReturn = new DetailedGameState();
@@ -571,6 +604,12 @@ namespace Boggle
 			return toReturn;
 		}
 
+        /// <summary>
+        /// helper method for calculating the score
+        /// </summary>
+        /// <param name="boggleBoard"></param>
+        /// <param name="word"></param>
+        /// <returns></returns>
 		private int calculateScore(BoggleBoard boggleBoard, string word)
 		{
             if(word == null || boggleBoard == null) { return -2; }
@@ -587,6 +626,10 @@ namespace Boggle
 				  : -1;
 		}
 
+        /// <summary>
+        /// helper method that deletes all the rows in each table of the database. Useful for consistent testing
+        /// and runs in the service constructor
+        /// </summary>
 		private static void clearDB()
 		{
             bool anyFailed = false;
