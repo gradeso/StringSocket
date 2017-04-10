@@ -150,7 +150,7 @@ namespace Boggle
 	}
 	[Serializable]
 	[DataContract]
-	public class WordAndScore
+    public class WordAndScore
 	{
 		public WordAndScore()
 		{
@@ -183,7 +183,9 @@ namespace Boggle
 	/// </summary>
 	[Serializable]
 	[DataContract]
-	public class GameStatePending : IGameState
+    [KnownType(typeof(DetailedGameState))]
+    [KnownType(typeof(DetailedPlayerInfo))]
+    public class GameStatePending : IGameState
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="GameStatePending"/> class.
@@ -202,7 +204,10 @@ namespace Boggle
 	}
 	[Serializable]
     [DataContract]
-	public class GameStateActive : GameStatePending
+    [KnownType(typeof(DetailedGameState))]
+    [KnownType(typeof(DetailedPlayerInfo))]
+    [KnownType(typeof(GameStatePending))]
+    public class GameStateActive : GameStatePending
 	{
 		public GameStateActive()
 		{
@@ -219,7 +224,9 @@ namespace Boggle
 	}
 	[Serializable]
 	[DataContract]
-	public class DetailedGameState : GameStateActive
+    [KnownType(typeof(DetailedGameState))]
+    [KnownType(typeof(DetailedPlayerInfo))]
+    public class DetailedGameState : GameStateActive
 	{
 		public DetailedGameState()
 		{
