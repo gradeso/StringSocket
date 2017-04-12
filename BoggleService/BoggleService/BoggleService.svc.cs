@@ -674,14 +674,10 @@ namespace Boggle
                             anyFailed = true;
                         }
                     }
-                     }
-                   
                 }
+            }
             if (anyFailed) clearDB();
-			}
-        
+        }
     }
-
-
-	}
+}
 
