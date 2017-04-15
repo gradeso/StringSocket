@@ -27,6 +27,7 @@ namespace Boggle
 
         static BoggleService()
         {
+            // MSSQLLocalDB or ProjectsV13
             BoggleDB = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = |DataDirectory|\BoggleDB.mdf; Integrated Security = True";
             // might need to change path to just "dictionary.txt"
             bigDict = new HashSet<string>(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"));
@@ -627,7 +628,7 @@ namespace Boggle
                 {
                     var cmd = new SqlCommand();
 
-                    cmd.CommandText = "DELETE FROM Words; DELETE FROM Games; DELETE FROM Games";
+                    cmd.CommandText = "DELETE FROM Words; DELETE FROM Games; DELETE FROM Users";
                     cmd.Connection = conn;
                     conn.Open();
                     cmd.ExecuteNonQuery();  // all rows deleted
