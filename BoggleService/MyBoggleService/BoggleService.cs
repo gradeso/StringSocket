@@ -45,6 +45,11 @@ namespace Boggle
         /// <returns></returns>
         public UserIDInfo SaveUserID(Name Nickname, out HttpStatusCode status)
         {
+            if(Nickname == null)
+            {
+                status = Forbidden;
+                return new UserIDInfo();
+            }
             lock (sync)
             {
                 string n = Nickname.Nickname;
@@ -52,7 +57,7 @@ namespace Boggle
                 if (n == null || n.Trim() == "")
                 {
                     status = Forbidden;
-                    return null;
+                    return new UserIDInfo();
                 }
 
                 // using guarentees connection will drop after leaving code
@@ -91,6 +96,11 @@ namespace Boggle
         /// <returns></returns>
         public GameIDInfo AttemptJoin(JoinAttempt ja, out HttpStatusCode status)
         {
+            if(ja == null || ja.UserToken == null)
+            {
+                status = HttpStatusCode.Forbidden;
+                return null;
+            }
             int TimeLimit = ja.TimeLimit;
             string UserToken = ja.UserToken;
 
@@ -172,6 +182,11 @@ namespace Boggle
         /// <param name="ut"></param>
         public void CancelJoin(UserIDInfo ut, out HttpStatusCode status)
         {
+            if(ut == null)
+            {
+                status = Forbidden;
+                return;
+            }
             lock (sync)
             {
                 string UserToken = ut.UserToken;
@@ -204,6 +219,11 @@ namespace Boggle
         /// <returns></returns>
         public ScoreInfo PlayWordInGame(string GameID, Move m, out HttpStatusCode status)
         {
+            if(m == null)
+            {
+                status = Forbidden;
+                return new ScoreInfo();
+            }
             m.Word = m.Word.Trim();
 
             int tempGameId;
