@@ -67,74 +67,116 @@ namespace Boggle
             {
                 // use service
                 var completeResponse = new StringBuilder();
-                string body = null;
+                
 
                 HttpStatusCode status;
-
+                Dictionary<string, object> Headerlines = new Dictionary<string, object>();
                 // make header
                 int lNum = 0;
-                int start = 0;
-                for (int i = 0; i < currentResponse.Length; i++)
+                int i = 0;
+                int t = 0;
+                while (i < currentResponse.Length)
                 {
                     if (currentResponse[i] == '\n')
                     {
+
                         lNum++;
-                        String line = currentResponse.ToString(start, i + 1 - start);
-
-                        if(lNum == 1)
-                        {
-                            string[] parts = line.Split(' ');
-                            string verb = parts[0];
-                            string url = parts[1];
-                            string ver = parts[2];
-
-                            if(verb == "POST")
-                            {
-                                // Regex r = new Regex(@"^/BoggleService.svc/Games/(\S+)$");
-                                // StringBuilder body = new StringBuilder(s);
-                                if(url == @"/BoggleService.svc/users")
-                                {
-                                    // De means deserialized, Se means serialized
-                                    Name userDe = JsonConvert.DeserializeObject<Name>(s);
-                                    UserIDInfo user = service.SaveUserID(userDe, out status);
-                                    string userSe = JsonConvert.SerializeObject(user);
-                                    body = userSe;
-                                    completeResponse.Append(ver + " ");
-                                    completeResponse.Append((int)status + " ");
-                                    completeResponse.Append(status.ToString());
-                                    completeResponse.Append("\r\n");
-                                }
-                            }
-                        }
-                        if(lNum == 2) // type is always json
-                        {
-                            completeResponse.Append(line);
-                        }
-                        if(lNum == 3) // host
-                        {
-                            completeResponse.Append(line);
-                        }
-                        if (lNum == 4) // content length
-                        {
-                            completeResponse.Append("Content-Length: " + body.Length + "\r\n");
-                        }
-                        if (lNum == 5) // expectation
-                        {
-                            completeResponse.Append(line);
-                        }
-                        if (lNum == 6) // connection attribute
-                        {
-                            completeResponse.Append(line);
-                        }
-                        start = i + 1;
+                        String line = currentResponse.ToString(t, i-t );
+                      
+                        if (!HandleHeaderLine(line, lNum, ref Headerlines)) break;
+                        t = i + 1;
                     }
+                    i++;
                 }
 
+                object len;
+                Headerlines.TryGetValue("length", out len);
+                double lenInt;
+                double.TryParse(len.ToString(), out lenInt);
+                object verb;
+                Headerlines.TryGetValue("verb", out verb);
+                object url;
+                Headerlines.TryGetValue("url", out url);
+                string body = currentResponse.ToString();
+                var f = actionRequested(verb.ToString(), url.ToString(), body, out status);
                 // finishing up
                 completeResponse.Append(body);
                 SendResponse(completeResponse.ToString());
             }
         }
+
+        /// <summary>
+        /// calls the appropriate service method and returns correct object to be serialized and used as body.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        private object actionRequested(string verb, string url, string body, out HttpStatusCode status)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool HandleHeaderLine(string line, int lNum, ref Dictionary<string, object> HeaderLines)
+        {
+            switch (lNum)
+            {
+                case 1:
+                    string[] parts = line.Split(' ');
+                    HeaderLines.Add("verb",  parts[0]);
+                    HeaderLines.Add("url", parts[1]);
+                    HeaderLines.Add("version", parts[2]);
+                    
+                    return true;
+                             
+                case 2:
+                    HeaderLines.Add("line2", line);
+                
+                    return true;
+                case 3:
+                    HeaderLines.Add("line3", line);
+
+                    return true;
+                case 4:
+
+                    HeaderLines.Add("length", line.Substring("Content-Length: ".Length).Trim());
+
+                    return true;
+                case 5:
+                    HeaderLines.Add("line5", line);
+
+                    return true;
+                case 6:
+                    HeaderLines.Add("line6", line);
+
+                    return true;
+                default:
+
+                    return false;
+                    
+            }
+
+            //    if (verb == "POST")
+            //    {
+            //        // Regex r = new Regex(@"^/BoggleService.svc/Games/(\S+)$");
+            //        // StringBuilder body = new StringBuilder(s);
+            //        if (url == @"/BoggleService.svc/users")
+            //        {
+            //            // De means deserialized, Se means serialized
+            //            Name userDe = JsonConvert.DeserializeObject<Name>(s);
+            //            UserIDInfo user = service.SaveUserID(userDe, out status);
+            //            string userSe = JsonConvert.SerializeObject(user);
+            //            body = userSe;
+            //            completeResponse.Append(ver + " ");
+            //            completeResponse.Append((int)status + " ");
+            //            completeResponse.Append(status.ToString());
+            //            completeResponse.Append("\r\n");
+            //        }
+            //    }
+            //}
+        }
+
         /// <summary>
         /// sends the completed response. Currently sends response to all servers
         /// </summary>
@@ -224,14 +266,14 @@ namespace Boggle
             }
             else
             {
-                int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, false);
+                int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, true);
                 incoming.Append(incomingChars, 0, charsRead);
                 Console.WriteLine(incoming);
 
                 // decode here
                 server.BuildResponse(incoming.ToString());
 
-                incoming.Remove(0, incoming.Length);
+                incoming.Clear();
 
                 try
                 {
