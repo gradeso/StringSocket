@@ -25,8 +25,7 @@ namespace Boggle
         private List<ClientConnection> clients = new List<ClientConnection>();
         private readonly ReaderWriterLockSlim sync = new ReaderWriterLockSlim();
         private static BoggleService service = null;
-        private StringBuilder currentResponse = null;
-
+        private static int clientIndexCount = 0;
         /// <summary>
         /// Creates a BoggleServer that listens for incoming reqests
         /// </summary>
@@ -38,264 +37,17 @@ namespace Boggle
             server.BeginAcceptSocket(ConnectionRequested, null);
         }
 
-        /// <summary>
-        /// passed to beginAcceptSocket when a connection request arrives
+            /// <summary>
+        /// adds to the outgoing response, if end of message sends the message
         /// </summary>
-        private void ConnectionRequested(IAsyncResult result)
-        {
-            Socket s = server.EndAcceptSocket(result);
-            server.BeginAcceptSocket(ConnectionRequested, null);
-
-            try
-            {
-                sync.EnterWriteLock();
-                clients.Add(new ClientConnection(s, this));
-            }
-            finally
-            {
-                sync.ExitWriteLock();
-            }
-        }
-
-        public void BuildResponse(string s)
-        {
-            if(currentResponse == null)
-            {
-                currentResponse = new StringBuilder(s);
-            }
-           
-            
-                // use service
-                var completeResponse = new StringBuilder();
-                
-
-                HttpStatusCode status;
-                Dictionary<string, object> Headerlines = new Dictionary<string, object>();
-                // make header
-                int lNum = 0;
-                int i = 0;
-                int t = 0;
-                while (i < currentResponse.Length)
-                {
-                    if (currentResponse[i] == '\n')
-                    {
-
-                        lNum++;
-                        String line = currentResponse.ToString(t, i-t );
-                      
-                        if (!HandleHeaderLine(line, lNum, ref Headerlines)) break;
-                        t = i + 1;
-                    }
-                    i++;
-                }
-
-                object len;
-                Headerlines.TryGetValue("length", out len);
-                double lenInt;
-                double.TryParse(len.ToString(), out lenInt);
-                object verb;
-                Headerlines.TryGetValue("verb", out verb);
-                object url;
-                Headerlines.TryGetValue("url", out url);
-                object version;
-                Headerlines.TryGetValue("version", out version);
-                string body = currentResponse.ToString();
-                body = body.Substring(i);
-                string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
-                // finishing up
-                completeResponse.Append(generateResponseHeader(version.ToString(), status,responseBody.Length, Headerlines));
-                completeResponse.Append(responseBody);
-            Console.WriteLine(completeResponse.ToString());
-                SendResponse(completeResponse.ToString());
-            
-        }
-
-        private string generateResponseHeader(string version, HttpStatusCode status, int length, Dictionary<string, object> headerlines)
-        {
-            StringBuilder toReturn = new StringBuilder();
-
-            toReturn.Append(version.Substring(0, version.Length - 1) + " " + (int)status + " " + status.ToString() + "\n");
-
-            object line2;
-            headerlines.TryGetValue("line2", out line2);
-            toReturn.Append(line2.ToString());
-
-            object line3;
-            headerlines.TryGetValue("line3", out line3);
-            toReturn.Append(line3.ToString());
-
-            object line5;
-            headerlines.TryGetValue("line5", out line5);
-            toReturn.Append(line5.ToString());
-
-            object line6;
-            headerlines.TryGetValue("line6", out line6);
-            toReturn.Append(line6.ToString());
-
-            toReturn.Append("\n");
-            return toReturn.ToString();
-        }
-
-        /// <summary>
-        /// calls the appropriate service method and returns correct object serialized for being used as body.
-        /// </summary>
-        /// <param name="verb"></param>
-        /// <param name="url"></param>
-        /// <param name="body"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        private string actionRequested(string verb, string url, string body, out HttpStatusCode status)
-        {
-            string bassURL = "/BoggleService.svc/";
-
-            if (url.Contains(bassURL + "users"))
-            {
-                //register user
-                if (verb == "POST")
-                {
-                    Name name;
-                    try
-                    {
-                        name = JsonConvert.DeserializeObject<Name>(body);
-                    }
-                    catch
-                    {
-                        name = new Name();
-                    }
-                    UserIDInfo toSerialize = service.SaveUserID(name, out status);
-                    return JsonConvert.SerializeObject(toSerialize);
-                }
-            }
-            if (url.Contains(bassURL + "games"))
-            {
-                //join game
-                if (verb == "POST")
-                {
-                    JoinAttempt ja;
-                    try
-                    {
-                        ja = JsonConvert.DeserializeObject<JoinAttempt>(body);
-                    }
-                    catch
-                    {
-                        ja = new JoinAttempt();
-                    }
-
-                    GameIDInfo toSerialize = service.AttemptJoin(ja, out status);
-                    return JsonConvert.SerializeObject(toSerialize);
-
-                }
-                if (verb == "PUT")
-                {
-                    //play word
-
-                    if (url.Length > (bassURL + "games/").Length)
-                    {
-                        
-                        Move userToken;
-                        try
-                        {
-                            userToken = JsonConvert.DeserializeObject<Move>(body);
-                        }
-                        catch
-                        {
-                            userToken = new Move();
-                        }
-
-                        ScoreInfo toSerialize = service.PlayWordInGame(url.Substring((bassURL + "games/").Length), userToken, out status);
-                            return JsonConvert.SerializeObject(toSerialize);
-                        }
-                    // cancel game
-                    else
-                    {
-                        UserIDInfo userToken;
-                        try
-                        {
-                            userToken = JsonConvert.DeserializeObject<UserIDInfo>(body);
-                        }
-                        catch
-                        {
-                            userToken = new UserIDInfo();
-                        }
-                        service.CancelJoin(userToken, out status);
-                        return "";
-                    }
-                }
-                //game status
-                if (verb == "GET")
-                {
-                    string lastOfURL = url.Substring((bassURL + "games/").Length);
-                    string[] partsOfURL = Regex.Split(lastOfURL, "[/]");
-                   
-                    
-                    IGameState toSerialize = service.gameStatus(partsOfURL[0], partsOfURL[1], out status);
-                    return JsonConvert.SerializeObject(toSerialize);
-                }
-                
-                
-            }
-            status = HttpStatusCode.BadRequest;
-                return "";
-        }
-        
-
-        private bool HandleHeaderLine(string line, int lNum, ref Dictionary<string, object> HeaderLines)
-        {
-            switch (lNum)
-            {
-                case 1:
-                    string[] parts = line.Split(' ');
-                    HeaderLines.Add("verb",  parts[0]);
-                    HeaderLines.Add("url", parts[1]);
-                    HeaderLines.Add("version", parts[2]);
-                    
-                    return true;
-                             
-                case 2:
-                    // type is always json
-                    HeaderLines.Add("line2", line);
-                
-                    return true;
-                case 3:
-                    // host
-                    HeaderLines.Add("line3", line);
-
-                    return true;
-                case 4:
-                    // content length
-                    HeaderLines.Add("length", line.Substring("Content-Length: ".Length).Trim());
-
-                    return true;
-                case 5:
-                    // expectation
-                    HeaderLines.Add("line5", line);
-
-                    return true;
-                case 6:
-                    //connection attribute
-                    HeaderLines.Add("line6", line);
-
-                    return true;
-                default:
-
-                    return false;
-                    
-            }
-            
-        }
-
-        /// <summary>
-        /// sends the completed response. Currently sends response to all servers
-        /// </summary>
-        public void SendResponse(string s)
+        public void SendResponse(string s, int clientIndex)
         {
             try
             {
                 sync.EnterReadLock();
-                foreach (ClientConnection c in clients)
-                {
-                    c.SendMessage(s);
-                }
+                ClientConnection c = clients.ElementAt(clientIndex);
+                c.SendMessage(s);
+                
             }
             finally
             {
@@ -318,6 +70,32 @@ namespace Boggle
                 sync.ExitWriteLock();
             }
         }
+            /// <summary>
+        /// passed to beginAcceptSocket when a connection request arrives
+        /// </summary>
+        private void ConnectionRequested(IAsyncResult result)
+        {
+            Socket s = server.EndAcceptSocket(result);
+            server.BeginAcceptSocket(ConnectionRequested, null);
+
+            try
+            {
+                sync.EnterWriteLock();
+                var clcon = new ClientConnection(s, this);
+                clcon.setClientID(++clientIndexCount);
+                clients.Add(clcon);
+
+            }
+            finally
+            {
+                sync.ExitWriteLock();
+            }
+        }
+
+        internal BoggleService getService()
+        {
+            return service;
+        }
     }
 
     /// <summary>
@@ -338,7 +116,10 @@ namespace Boggle
         private readonly object sendSync = new object();
         private byte[] pendingBytes = new byte[0];
         private int pendingIndex = 0;
-        private StringBuilder re;
+        private string incompleteMessage = "";
+        private int lineBreakCounter = 0;
+        private int clientID = -1;
+        private bool clientIDSet = false;
 
         public ClientConnection(Socket s, BoggleServer server)
         {
@@ -346,7 +127,6 @@ namespace Boggle
             socket = s;
             incoming = new StringBuilder();
             outgoing = new StringBuilder();
-
             try
             {
                 socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
@@ -357,20 +137,22 @@ namespace Boggle
             }
         }
 
+        public void setClientID(int id)
+        {
+            if (clientIDSet) { return; }
+            clientID = id;
+            clientIDSet = true;
+            
+        }
         /// <summary>
         /// Called when message received
         /// </summary>
         private void MessageReceived(IAsyncResult result)
         {
-            int bytesRead;
-            try
-            {
-                bytesRead = socket.EndReceive(result);
-            }
-            catch (SocketException)
-            {
-                bytesRead = 0;
-            }
+          
+           
+             int bytesRead = socket.EndReceive(result);
+          
             // if there are more then 0 bytes decode them
             if (bytesRead == 0)
             {
@@ -380,12 +162,14 @@ namespace Boggle
             }
             else
             {
+                // Convert the bytes into characters and appending to incoming
+
                 int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, true);
                 incoming.Append(incomingChars, 0, charsRead);
                 Console.WriteLine(incoming);
 
                 // decode here
-                server.BuildResponse(incoming.ToString());
+                BuildResponse(incoming.ToString());
 
                 incoming.Clear();
 
@@ -397,10 +181,7 @@ namespace Boggle
                 catch (ObjectDisposedException)
                 {
                 }
-                catch (SocketException)
-                {
-
-                }
+                
                 
             }
             }
@@ -410,6 +191,7 @@ namespace Boggle
         /// </summary>
         public void SendMessage(string lines)
         {
+
             lock (sendSync)
             {
                 // Append the message to the outgoing lines
@@ -436,11 +218,10 @@ namespace Boggle
                 catch (ObjectDisposedException)
                 {
                 }
-                catch (SocketException)
-                {
-
-                }
+                
             }
+            // If we're not currently dealing with a block of bytes, make a new block of bytes
+            // out of outgoing and start sending that.
             else if (outgoing.Length > 0)
             {
                 pendingBytes = encoding.GetBytes(outgoing.ToString());
@@ -485,5 +266,245 @@ namespace Boggle
                 }
             }
         }
+        public void BuildResponse(string s, bool sendNow = false)
+        {
+
+            if (sendNow)
+            {
+                StringBuilder currentResponse = new StringBuilder(s);
+
+                // use service
+                StringBuilder completeResponse = new StringBuilder();
+
+
+
+                HttpStatusCode status = HttpStatusCode.BadRequest;
+                Dictionary<string, object> Headerlines = new Dictionary<string, object>();
+                // make header
+                int lNum = 0;
+                int i = 0;
+                int t = 0;
+                while (i < currentResponse.Length)
+                {
+                    if (currentResponse[i] == '\n')
+                    {
+
+                        lNum++;
+                        String line = currentResponse.ToString(t, i - t);
+
+                        if (!HandleHeaderLine(line, lNum, ref Headerlines)) break;
+                        t = i + 1;
+                    }
+                    i++;
+                }
+
+                object len;
+                Headerlines.TryGetValue("length", out len);
+                double lenInt;
+                double.TryParse(len.ToString(), out lenInt);
+                object verb;
+                Headerlines.TryGetValue("verb", out verb);
+                object url;
+                Headerlines.TryGetValue("url", out url);
+                object version;
+                Headerlines.TryGetValue("version", out version);
+                string body = currentResponse.ToString();
+                body = body.Substring(i);
+
+                string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
+
+                // finishing up
+                completeResponse.Append(generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
+                completeResponse.Append(responseBody);
+                Console.WriteLine(completeResponse.ToString());
+                server.SendResponse(completeResponse.ToString(), clientID);
+            }
+            else
+            {
+
+                incompleteMessage += s;
+                if (incompleteMessage.IndexOf("\r\n") != -1 && (incompleteMessage.LastIndexOf("\r\n") > incompleteMessage.IndexOf("\r\n")))
+                {
+                        BuildResponse(incompleteMessage, true);
+                        return;
+                    
+                }
+            }
+        }
+        private string generateResponseHeader(string version, HttpStatusCode status, int length, Dictionary<string, object> headerlines)
+        {
+            StringBuilder toReturn = new StringBuilder();
+
+            toReturn.Append(version.Substring(0, version.Length - 1) + " " + (int)status + " " + status.ToString() + "\n");
+
+            object line2;
+            headerlines.TryGetValue("line2", out line2);
+            toReturn.Append(line2.ToString());
+
+            object line3;
+            headerlines.TryGetValue("line3", out line3);
+            toReturn.Append(line3.ToString());
+
+            object line5;
+            headerlines.TryGetValue("line5", out line5);
+            toReturn.Append(line5.ToString());
+
+            object line6;
+            headerlines.TryGetValue("line6", out line6);
+            toReturn.Append(line6.ToString());
+
+            toReturn.Append("\r\n");
+            return toReturn.ToString();
+        }
+
+        /// <summary>
+        /// calls the appropriate service method and returns correct object serialized for being used as body.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        private string actionRequested(string verb, string url, string body, out HttpStatusCode status)
+        {
+            string bassURL = "/BoggleService.svc/";
+            BoggleService service = server.getService();
+
+            if (url.Contains(bassURL + "users"))
+            {
+                //register user
+                if (verb == "POST")
+                {
+                    Name name;
+                    try
+                    {
+                        name = JsonConvert.DeserializeObject<Name>(body);
+                    }
+                    catch
+                    {
+                        name = new Name();
+                    }
+                    UserIDInfo toSerialize = service.SaveUserID(name, out status);
+                    return JsonConvert.SerializeObject(toSerialize);
+                }
+            }
+            if (url.Contains(bassURL + "games"))
+            {
+                //join game
+                if (verb == "POST")
+                {
+                    JoinAttempt ja;
+                    try
+                    {
+                        ja = JsonConvert.DeserializeObject<JoinAttempt>(body);
+                    }
+                    catch
+                    {
+                        ja = new JoinAttempt();
+                    }
+
+                    GameIDInfo toSerialize = service.AttemptJoin(ja, out status);
+                    return JsonConvert.SerializeObject(toSerialize);
+
+                }
+                if (verb == "PUT")
+                {
+                    //play word
+
+                    if (url.Length > (bassURL + "games/").Length)
+                    {
+
+                        Move userToken;
+                        try
+                        {
+                            userToken = JsonConvert.DeserializeObject<Move>(body);
+                        }
+                        catch
+                        {
+                            userToken = new Move();
+                        }
+
+                        ScoreInfo toSerialize = service.PlayWordInGame(url.Substring((bassURL + "games/").Length), userToken, out status);
+                        return JsonConvert.SerializeObject(toSerialize);
+                    }
+                    // cancel game
+                    else
+                    {
+                        UserIDInfo userToken;
+                        try
+                        {
+                            userToken = JsonConvert.DeserializeObject<UserIDInfo>(body);
+                        }
+                        catch
+                        {
+                            userToken = new UserIDInfo();
+                        }
+                        service.CancelJoin(userToken, out status);
+                        return "";
+                    }
+                }
+                //game status
+                if (verb == "GET")
+                {
+                    string lastOfURL = url.Substring((bassURL + "games/").Length);
+                    string[] partsOfURL = Regex.Split(lastOfURL, "[/]");
+
+
+                    IGameState toSerialize = service.gameStatus(partsOfURL[0], partsOfURL[1], out status);
+                    return JsonConvert.SerializeObject(toSerialize);
+                }
+
+
+            }
+            status = HttpStatusCode.BadRequest;
+            return "";
+        }
+
+
+        private bool HandleHeaderLine(string line, int lNum, ref Dictionary<string, object> HeaderLines)
+        {
+            switch (lNum)
+            {
+                case 1:
+                    string[] parts = line.Split(' ');
+                    HeaderLines.Add("verb", parts[0]);
+                    HeaderLines.Add("url", parts[1]);
+                    HeaderLines.Add("version", parts[2]);
+
+                    return true;
+
+                case 2:
+                    // type is always json
+                    HeaderLines.Add("line2", line);
+
+                    return true;
+                case 3:
+                    // host
+                    HeaderLines.Add("line3", line);
+
+                    return true;
+                case 4:
+                    // content length
+                    HeaderLines.Add("length", line.Substring("Content-Length: ".Length).Trim());
+
+                    return true;
+                case 5:
+                    // expectation
+                    HeaderLines.Add("line5", line);
+
+                    return true;
+                case 6:
+                    //connection attribute
+                    HeaderLines.Add("line6", line);
+
+                    return true;
+                default:
+
+                    return false;
+
+            }
+
+        }
+
     }
 }
