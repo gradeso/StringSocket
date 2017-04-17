@@ -28,7 +28,7 @@ namespace Boggle
         static BoggleService()
         {
             // MSSQLLocalDB or ProjectsV13
-            BoggleDB = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = |DataDirectory|\BoggleDB.mdf; Integrated Security = True";
+            BoggleDB = @"Data Source = (LocalDB)\ProjectsV13; AttachDbFilename = |DataDirectory|\BoggleDB.mdf; Integrated Security = True";
             // might need to change path to just "dictionary.txt"
             bigDict = new HashSet<string>(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"));
             sync = new object();

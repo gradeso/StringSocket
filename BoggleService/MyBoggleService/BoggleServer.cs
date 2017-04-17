@@ -63,11 +63,11 @@ namespace Boggle
             {
                 currentResponse = new StringBuilder(s);
             }
-           
-            
+            else
+            {
                 // use service
                 var completeResponse = new StringBuilder();
-                
+
 
                 HttpStatusCode status;
                 Dictionary<string, object> Headerlines = new Dictionary<string, object>();
@@ -81,8 +81,8 @@ namespace Boggle
                     {
 
                         lNum++;
-                        String line = currentResponse.ToString(t, i-t );
-                      
+                        String line = currentResponse.ToString(t, i - t);
+
                         if (!HandleHeaderLine(line, lNum, ref Headerlines)) break;
                         t = i + 1;
                     }
@@ -103,10 +103,14 @@ namespace Boggle
                 body = body.Substring(i);
                 string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
                 // finishing up
-                completeResponse.Append(generateResponseHeader(version.ToString(), status,responseBody.Length, Headerlines));
+                completeResponse.Append(generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
                 completeResponse.Append(responseBody);
-            Console.WriteLine(completeResponse.ToString());
-                SendResponse(completeResponse.ToString());
+                Console.WriteLine(completeResponse.ToString());
+                string testRequest = "POST /BoggleService.svc/users HTTP/1.1\r\nContent-Type: application/json; charset=utf-8\r\nHost: localhost:60000\r\nContent-Length: 21\r\nExpect: 100-continue\r\nConnection: Keep-Alive\r\n\r\n";
+                string testResponse = "Created\r\nContent-Type: application/json; charset=utf-8\r\n\r\n{\"UserToken\":\"\"}";
+                string testBody = "{\"UserToken\":\"\"}";
+                SendResponse(testResponse);
+            }
             
         }
 
@@ -114,7 +118,7 @@ namespace Boggle
         {
             StringBuilder toReturn = new StringBuilder();
 
-            toReturn.Append(version.Substring(0, version.Length - 1) + " " + (int)status + " " + status.ToString() + "\n");
+            toReturn.Append(version.Substring(0, version.Length - 1) + " " + (int)status + " " + status.ToString() + "\r\n");
 
             object line2;
             headerlines.TryGetValue("line2", out line2);
