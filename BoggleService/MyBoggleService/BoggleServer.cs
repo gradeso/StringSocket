@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace Boggle
 {
@@ -20,12 +21,13 @@ namespace Boggle
             // exiting while the server is in use
             Console.ReadLine();
         }
-        
+
         private TcpListener server;
-        private List<ClientConnection> clients = new List<ClientConnection>();
         private readonly ReaderWriterLockSlim sync = new ReaderWriterLockSlim();
         private static BoggleService service = null;
-        private static int clientIndexCount = 0;
+        private static int clientIndexCount = -1;
+        private Dictionary<int, ClientConnection> clients = new Dictionary<int, ClientConnection>();
+
         /// <summary>
         /// Creates a BoggleServer that listens for incoming reqests
         /// </summary>
@@ -37,7 +39,7 @@ namespace Boggle
             server.BeginAcceptSocket(ConnectionRequested, null);
         }
 
-            /// <summary>
+        /// <summary>
         /// adds to the outgoing response, if end of message sends the message
         /// </summary>
         public void SendResponse(string s, int clientIndex)
@@ -45,9 +47,16 @@ namespace Boggle
             try
             {
                 sync.EnterReadLock();
-                ClientConnection c = clients.ElementAt(clientIndex);
+
+                ClientConnection c;
+                if (!clients.TryGetValue(clientIndex, out c))
+                {
+                    Console.WriteLine("problem in send response");
+                }
+
+
                 c.SendMessage(s);
-                
+
             }
             finally
             {
@@ -63,14 +72,14 @@ namespace Boggle
             try
             {
                 sync.EnterWriteLock();
-                clients.Remove(c);
+                clients.Remove(c.getClientID());
             }
             finally
             {
                 sync.ExitWriteLock();
             }
         }
-            /// <summary>
+        /// <summary>
         /// passed to beginAcceptSocket when a connection request arrives
         /// </summary>
         private void ConnectionRequested(IAsyncResult result)
@@ -81,9 +90,10 @@ namespace Boggle
             try
             {
                 sync.EnterWriteLock();
-                var clcon = new ClientConnection(s, this);
-                clcon.setClientID(++clientIndexCount);
+                var clcon = new ClientConnection(s, this, ++clientIndexCount);
+                clcon.StartReciving();
                 clients.Add(clcon);
+
 
             }
             finally
@@ -96,6 +106,8 @@ namespace Boggle
         {
             return service;
         }
+
+
     }
 
     /// <summary>
@@ -105,7 +117,7 @@ namespace Boggle
     {
         private static System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
         private const int BUFFER_SIZE = 1024;
-        private Socket socket;
+        private Socket sokit;
         private StringBuilder incoming;
         private StringBuilder outgoing;
         private Decoder decoder = encoding.GetDecoder();
@@ -117,48 +129,58 @@ namespace Boggle
         private byte[] pendingBytes = new byte[0];
         private int pendingIndex = 0;
         private string incompleteMessage = "";
-        private int lineBreakCounter = 0;
         private int clientID = -1;
         private bool clientIDSet = false;
 
-        public ClientConnection(Socket s, BoggleServer server)
+
+        public ClientConnection(Socket s, BoggleServer server, int clientID)
         {
+            this.clientID = clientID;
             this.server = server;
-            socket = s;
+            sokit = s;
             incoming = new StringBuilder();
             outgoing = new StringBuilder();
-            try
-            {
-                socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                                    SocketFlags.None, MessageReceived, null);
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+
+
+
         }
 
+        internal void StartReciving()
+        {
+
+            sokit.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                                SocketFlags.None, MessageReceived, null);
+
+        }
         public void setClientID(int id)
         {
             if (clientIDSet) { return; }
             clientID = id;
             clientIDSet = true;
-            
+
+        }
+        internal int getClientID()
+        {
+            return clientID;
         }
         /// <summary>
         /// Called when message received
         /// </summary>
         private void MessageReceived(IAsyncResult result)
         {
-          
-           
-             int bytesRead = socket.EndReceive(result);
-          
+            int bytesRead = 0;
+
+            bytesRead = sokit.EndReceive(result);
+
+
+
+
             // if there are more then 0 bytes decode them
             if (bytesRead == 0)
             {
                 Console.WriteLine("Socket closed");
                 server.RemoveClient(this);
-                socket.Close();
+                sokit.Close();
             }
             else
             {
@@ -167,24 +189,61 @@ namespace Boggle
                 int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, true);
                 incoming.Append(incomingChars, 0, charsRead);
                 Console.WriteLine(incoming);
+                incompleteMessage += incoming;
+                if (checkIfIncomingReady())
+                {
+                    BuildResponse(incompleteMessage.ToString());
+                    incompleteMessage = "";
+                }
+                else
+                {
+
+                }
+
 
                 // decode here
-                BuildResponse(incoming.ToString());
+
 
                 incoming.Clear();
 
-                try
-                {
-                    socket.BeginReceive(incomingBytes, 0, incomingBytes.Length,
-                        SocketFlags.None, MessageReceived, null);
-                }
-                catch (ObjectDisposedException)
-                {
-                }
-                
-                
+                sokit.BeginReceive(incomingBytes, 0, incomingBytes.Length,
+                            SocketFlags.None, MessageReceived, null);
             }
+        }
+
+        private bool checkIfIncomingReady()
+        {
+            bool isPotentialValidFile = false;
+            int lowest = incompleteMessage.IndexOf("\r\n");
+            int next = incompleteMessage.IndexOf("\r\n", lowest + 1);
+            while (next > lowest)
+            {
+                if (next - lowest == 1 || next - lowest == 2)
+                {
+
+
+                    isPotentialValidFile = true;
+                    break;
+                }
+
+                lowest = next;
+                next = incompleteMessage.IndexOf("\r\n", lowest + 1);
+
             }
+
+
+
+
+            if (next != -1 && !string.IsNullOrWhiteSpace(incompleteMessage.Substring(next)))
+            {
+                return true;
+            }
+            else if (isPotentialValidFile && incompleteMessage.Contains("Content-Length: 0"))
+            {
+                return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// Sends a string to client
@@ -210,15 +269,10 @@ namespace Boggle
         {
             if (pendingIndex < pendingBytes.Length)
             {
-                try
-                {
-                    socket.BeginSend(pendingBytes, pendingIndex, pendingBytes.Length - pendingIndex,
-                                     SocketFlags.None, MessageSent, null);
-                }
-                catch (ObjectDisposedException)
-                {
-                }
-                
+
+                sokit.BeginSend(pendingBytes, pendingIndex, pendingBytes.Length - pendingIndex,
+                                 SocketFlags.None, MessageSent, null);
+
             }
             // If we're not currently dealing with a block of bytes, make a new block of bytes
             // out of outgoing and start sending that.
@@ -227,14 +281,12 @@ namespace Boggle
                 pendingBytes = encoding.GetBytes(outgoing.ToString());
                 pendingIndex = 0;
                 outgoing.Clear();
-                try
-                {
-                    socket.BeginSend(pendingBytes, 0, pendingBytes.Length,
-                                     SocketFlags.None, MessageSent, null);
-                }
-                catch (ObjectDisposedException)
-                {
-                }
+
+
+                sokit.BeginSend(pendingBytes, 0, pendingBytes.Length,
+                                 SocketFlags.None, MessageSent, null);
+
+
             }
 
             // If there's nothing to send, shut down for the time being.
@@ -249,13 +301,14 @@ namespace Boggle
         /// </summary>
         private void MessageSent(IAsyncResult result)
         {
-            int bytesSent = socket.EndSend(result);
+            int bytesSent = 0;
+
+            bytesSent = sokit.EndSend(result);
 
             lock (sendSync)
             {
                 if (bytesSent == 0)
                 {
-                    socket.Close();
                     server.RemoveClient(this);
                     Console.WriteLine("Socket closed");
                 }
@@ -266,71 +319,59 @@ namespace Boggle
                 }
             }
         }
-        public void BuildResponse(string s, bool sendNow = false)
+        public void BuildResponse(string s)
         {
 
-            if (sendNow)
+            StringBuilder currentResponse = new StringBuilder(s);
+
+            // use service
+            StringBuilder completeResponse = new StringBuilder();
+
+
+
+            HttpStatusCode status = HttpStatusCode.BadRequest;
+            Dictionary<string, object> Headerlines = new Dictionary<string, object>();
+            // make header
+            int lNum = 0;
+            int i = 0;
+            int t = 0;
+            while (i < currentResponse.Length)
             {
-                StringBuilder currentResponse = new StringBuilder(s);
-
-                // use service
-                StringBuilder completeResponse = new StringBuilder();
-
-
-
-                HttpStatusCode status = HttpStatusCode.BadRequest;
-                Dictionary<string, object> Headerlines = new Dictionary<string, object>();
-                // make header
-                int lNum = 0;
-                int i = 0;
-                int t = 0;
-                while (i < currentResponse.Length)
+                if (currentResponse[i] == '\n')
                 {
-                    if (currentResponse[i] == '\n')
-                    {
 
-                        lNum++;
-                        String line = currentResponse.ToString(t, i - t);
+                    lNum++;
+                    String line = currentResponse.ToString(t, i - t);
 
-                        if (!HandleHeaderLine(line, lNum, ref Headerlines)) break;
-                        t = i + 1;
-                    }
-                    i++;
+                    if (!HandleHeaderLine(line, lNum, ref Headerlines)) break;
+                    t = i + 1;
                 }
-
-                object len;
-                Headerlines.TryGetValue("length", out len);
-                double lenInt;
-                double.TryParse(len.ToString(), out lenInt);
-                object verb;
-                Headerlines.TryGetValue("verb", out verb);
-                object url;
-                Headerlines.TryGetValue("url", out url);
-                object version;
-                Headerlines.TryGetValue("version", out version);
-                string body = currentResponse.ToString();
-                body = body.Substring(i);
-
-                string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
-
-                // finishing up
-                completeResponse.Append(generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
-                completeResponse.Append(responseBody);
-                Console.WriteLine(completeResponse.ToString());
-                server.SendResponse(completeResponse.ToString(), clientID);
+                i++;
             }
-            else
-            {
 
-                incompleteMessage += s;
-                if (incompleteMessage.IndexOf("\r\n") != -1 && (incompleteMessage.LastIndexOf("\r\n") > incompleteMessage.IndexOf("\r\n")))
-                {
-                        BuildResponse(incompleteMessage, true);
-                        return;
-                    
-                }
-            }
+            object len;
+            Headerlines.TryGetValue("length", out len);
+            double lenInt;
+            double.TryParse(len.ToString(), out lenInt);
+            object verb;
+            Headerlines.TryGetValue("verb", out verb);
+            object url;
+            Headerlines.TryGetValue("url", out url);
+            object version;
+            Headerlines.TryGetValue("version", out version);
+            string body = currentResponse.ToString();
+            body = body.Substring(i);
+
+            string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
+            if (responseBody == null) responseBody = "";
+            // finishing up
+            completeResponse.Append(generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
+            completeResponse.Append(responseBody);
+            Console.WriteLine(completeResponse.ToString());
+            server.SendResponse(completeResponse.ToString(), clientID);
         }
+
+
         private string generateResponseHeader(string version, HttpStatusCode status, int length, Dictionary<string, object> headerlines)
         {
             StringBuilder toReturn = new StringBuilder();
@@ -344,6 +385,8 @@ namespace Boggle
             object line3;
             headerlines.TryGetValue("line3", out line3);
             toReturn.Append(line3.ToString());
+
+            toReturn.Append("Content-Length: " + length + "\n");
 
             object line5;
             headerlines.TryGetValue("line5", out line5);
@@ -506,5 +549,6 @@ namespace Boggle
 
         }
 
+       
     }
 }
