@@ -92,7 +92,7 @@ namespace Boggle
                 sync.EnterWriteLock();
                 var clcon = new ClientConnection(s, this, ++clientIndexCount);
                 clcon.StartReciving();
-                clients.Add(clcon);
+                clients.Add(clientIndexCount, clcon);
 
 
             }
@@ -325,8 +325,7 @@ namespace Boggle
             StringBuilder currentResponse = new StringBuilder(s);
 
             // use service
-            StringBuilder completeResponse = new StringBuilder();
-
+            string completeResponse = "";
 
 
             HttpStatusCode status = HttpStatusCode.BadRequest;
@@ -363,12 +362,12 @@ namespace Boggle
             body = body.Substring(i);
 
             string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
-            if (responseBody == null) responseBody = "";
+            if (responseBody == null || responseBody == "null") responseBody = "";
             // finishing up
-            completeResponse.Append(generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
-            completeResponse.Append(responseBody);
-            Console.WriteLine(completeResponse.ToString());
-            server.SendResponse(completeResponse.ToString(), clientID);
+            completeResponse += (generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
+            completeResponse += (responseBody);
+            Console.WriteLine(completeResponse);
+            server.SendResponse(completeResponse, clientID);
         }
 
 
