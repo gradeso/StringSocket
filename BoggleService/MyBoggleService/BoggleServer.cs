@@ -90,7 +90,7 @@ namespace Boggle
             try
             {
                 sync.EnterWriteLock();
-                var clcon = new ClientConnection(s, this, ++clientIndexCount);
+                var clcon = new ClientConnection(ref s, this, ++clientIndexCount);
                 clcon.StartReciving();
                 clients.Add(clientIndexCount, clcon);
 
@@ -133,7 +133,7 @@ namespace Boggle
         private bool clientIDSet = false;
 
 
-        public ClientConnection(Socket s, BoggleServer server, int clientID)
+        public ClientConnection(ref Socket s, BoggleServer server, int clientID)
         {
             this.clientID = clientID;
             this.server = server;
@@ -170,6 +170,7 @@ namespace Boggle
         {
             int bytesRead = 0;
 
+
             bytesRead = sokit.EndReceive(result);
 
 
@@ -178,9 +179,7 @@ namespace Boggle
             // if there are more then 0 bytes decode them
             if (bytesRead == 0)
             {
-                Console.WriteLine("Socket closed");
-                server.RemoveClient(this);
-                sokit.Close();
+                
             }
             else
             {
@@ -209,6 +208,7 @@ namespace Boggle
                 sokit.BeginReceive(incomingBytes, 0, incomingBytes.Length,
                             SocketFlags.None, MessageReceived, null);
             }
+ 
         }
 
         private bool checkIfIncomingReady()
@@ -364,10 +364,12 @@ namespace Boggle
             string responseBody = actionRequested(verb.ToString(), url.ToString(), body, out status);
             if (responseBody == null || responseBody == "null") responseBody = "";
             // finishing up
-            completeResponse += (generateResponseHeader(version.ToString(), status, responseBody.Length, Headerlines));
+            
+            completeResponse += (generateResponseHeader(version.ToString(), status,encoding.GetByteCount(responseBody), Headerlines));
+            completeResponse += "\r\n";
             completeResponse += (responseBody);
             Console.WriteLine(completeResponse);
-            server.SendResponse(completeResponse, clientID);
+            server.SendResponse(completeResponse + "\r\n", clientID);
         }
 
 
@@ -375,27 +377,26 @@ namespace Boggle
         {
             StringBuilder toReturn = new StringBuilder();
 
-            toReturn.Append(version.Substring(0, version.Length - 1) + " " + (int)status + " " + status.ToString() + "\n");
+            toReturn.Append(version.Substring(0, version.Length - 1) + " " + (int)status + " " + status.ToString() + "\r\n");
 
             object line2;
             headerlines.TryGetValue("line2", out line2);
-            toReturn.Append(line2.ToString());
+            toReturn.Append(line2.ToString() + "\n");
 
             object line3;
             headerlines.TryGetValue("line3", out line3);
-            toReturn.Append(line3.ToString());
+            toReturn.Append(line3.ToString() + "\n");
 
-            toReturn.Append("Content-Length: " + length + "\n");
+            toReturn.Append("Content-Length: " + length + "\r\n");
 
             object line5;
             headerlines.TryGetValue("line5", out line5);
-            toReturn.Append(line5.ToString());
+            toReturn.Append(line5.ToString() + "\n");
 
             object line6;
             headerlines.TryGetValue("line6", out line6);
-            toReturn.Append(line6.ToString());
+            toReturn.Append(line6.ToString()+"\n");
 
-            toReturn.Append("\r\n");
             return toReturn.ToString();
         }
 
@@ -489,7 +490,7 @@ namespace Boggle
                 if (verb == "GET")
                 {
                     string lastOfURL = url.Substring((bassURL + "games/").Length);
-                    string[] partsOfURL = Regex.Split(lastOfURL, "[/]");
+                    string[] partsOfURL = Regex.Split(lastOfURL, "[?breif=]");
 
 
                     IGameState toSerialize = service.gameStatus(partsOfURL[0], partsOfURL[1], out status);
