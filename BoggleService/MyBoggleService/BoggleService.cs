@@ -657,7 +657,7 @@ namespace Boggle
                 {
                     try
                     {
-                        anyFailed = true;
+                       
                         var cmd = new SqlCommand();
 
                         cmd.CommandText = "DELETE FROM Users";
