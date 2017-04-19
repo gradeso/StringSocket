@@ -242,7 +242,8 @@ namespace Boggle
                 }
                 if (gameInQuestion.GameState != "active")
                 {
-                    status = Forbidden;
+                    // WARNING made change in ps11
+                    status = Conflict;
                     return null;
                 }
                 int toReturn = calculateScore(gameInQuestion.boggleBoard, m.Word);

@@ -187,7 +187,9 @@ namespace Boggle
 
                 int charsRead = decoder.GetChars(incomingBytes, 0, bytesRead, incomingChars, 0, true);
                 incoming.Append(incomingChars, 0, charsRead);
+                Console.WriteLine("------------------------------ START");
                 Console.WriteLine(incoming);
+                Console.WriteLine("------------------------------ END");
                 incompleteMessage += incoming;
                 if (checkIfIncomingReady())
                 {
@@ -347,7 +349,6 @@ namespace Boggle
                 }
                 i++;
             }
-
             object len;
             Headerlines.TryGetValue("length", out len);
             double lenInt;
@@ -358,6 +359,7 @@ namespace Boggle
             Headerlines.TryGetValue("url", out url);
             object version;
             Headerlines.TryGetValue("version", out version);
+
             string body = currentResponse.ToString();
             body = body.Substring(i);
 
@@ -395,7 +397,8 @@ namespace Boggle
 
             object line6;
             headerlines.TryGetValue("line6", out line6);
-            toReturn.Append(line6.ToString()+"\n");
+            // only append if line6 isnt null which can happen when multiple test are run
+            if (line6 != null) { toReturn.Append(line6.ToString() + "\n"); }
 
             return toReturn.ToString();
         }
@@ -468,6 +471,7 @@ namespace Boggle
                         }
 
                         ScoreInfo toSerialize = service.PlayWordInGame(url.Substring((bassURL + "games/").Length), userToken, out status);
+                        string test = url.Substring((bassURL + "games/").Length);
                         return JsonConvert.SerializeObject(toSerialize);
                     }
                     // cancel game
@@ -538,6 +542,7 @@ namespace Boggle
                     return true;
                 case 6:
                     //connection attribute
+                    if (line == "\r") { return false; }
                     HeaderLines.Add("line6", line);
 
                     return true;
