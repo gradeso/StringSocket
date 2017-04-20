@@ -28,7 +28,7 @@ namespace Boggle
         static BoggleService()
         {
             // MSSQLLocalDB or ProjectsV13
-            BoggleDB = @"Data Source = (LocalDB)\MSSQLLocalDB; AttachDbFilename = |DataDirectory|\BoggleDB.mdf; Integrated Security = True";
+            BoggleDB = @"Data Source = (LocalDB)\ProjectsV13; AttachDbFilename = |DataDirectory|\BoggleDB.mdf; Integrated Security = True";
             // might need to change path to just "dictionary.txt"
             bigDict = new HashSet<string>(File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory + "dictionary.txt"));
             sync = new object();
@@ -625,8 +625,8 @@ namespace Boggle
             if (word == null || boggleBoard == null) { return -2; }
             //here you need to add the word to the database,
             //if the word is already there set the score to zero.
-
-            return (boggleBoard.CanBeFormed(word) && bigDict.Contains(word.ToUpper())) ?
+            
+            var toReturn = boggleBoard.CanBeFormed(word) && bigDict.Contains(word.ToUpper()) ?
                 word.Length < 3 ?
                 0 : word.Length < 5 ?
                 1 : word.Length < 6 ?
@@ -634,6 +634,7 @@ namespace Boggle
                 3 : word.Length < 8 ?
                 5 : 11
                   : -1;
+            return toReturn;
         }
 
         /// <summary>
