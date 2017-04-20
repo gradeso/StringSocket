@@ -240,7 +240,12 @@ namespace Boggle
             {
                 return true;
             }
+            // risky because it could trigger if this is the users name
             else if (isPotentialValidFile && incompleteMessage.Contains("Content-Length: 0"))
+            {
+                return true;
+            }
+            else if (isPotentialValidFile && incompleteMessage.Substring(0, incompleteMessage.IndexOf(" ")).Contains("GET"))
             {
                 return true;
             }
@@ -352,7 +357,7 @@ namespace Boggle
             object len;
             Headerlines.TryGetValue("length", out len);
             double lenInt;
-            double.TryParse(len.ToString(), out lenInt);
+            if (len != null) { double.TryParse(len.ToString(), out lenInt); }
             object verb;
             Headerlines.TryGetValue("verb", out verb);
             object url;
@@ -387,13 +392,13 @@ namespace Boggle
 
             object line3;
             headerlines.TryGetValue("line3", out line3);
-            toReturn.Append(line3.ToString() + "\n");
+            if (line3 != null) { toReturn.Append(line3.ToString() + "\n"); }
 
             toReturn.Append("Content-Length: " + length + "\r\n");
 
             object line5;
             headerlines.TryGetValue("line5", out line5);
-            toReturn.Append(line5.ToString() + "\n");
+            if (line5 != null) { toReturn.Append(line5.ToString() + "\n"); }
 
             object line6;
             headerlines.TryGetValue("line6", out line6);
@@ -522,22 +527,25 @@ namespace Boggle
 
                 case 2:
                     // type is always json
+                    if (line == "\r") { return false; }
                     HeaderLines.Add("line2", line);
 
                     return true;
                 case 3:
                     // host
+                    if (line == "\r") { return false; }
                     HeaderLines.Add("line3", line);
 
                     return true;
                 case 4:
                     // content length
+                    if (line == "\r") { return false; }
                     HeaderLines.Add("length", line.Substring("Content-Length: ".Length).Trim());
 
                     return true;
                 case 5:
                     // expectation
-                    HeaderLines.Add("line5", line);
+                    if (line == "\r") { HeaderLines.Add("line5", line); }
 
                     return true;
                 case 6:
