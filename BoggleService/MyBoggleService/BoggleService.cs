@@ -48,7 +48,7 @@ namespace Boggle
             if(Nickname == null)
             {
                 status = Forbidden;
-                return new UserIDInfo();
+                return null;
             }
             lock (sync)
             {
@@ -57,7 +57,7 @@ namespace Boggle
                 if (n == null || n.Trim() == "")
                 {
                     status = Forbidden;
-                    return new UserIDInfo();
+                    return null;
                 }
 
                 // using guarentees connection will drop after leaving code
@@ -159,7 +159,7 @@ namespace Boggle
                 if (savedGame.Player2 == null)
                 {
                     status = Forbidden;
-                    return new GameIDInfo("bad id for player 2");
+                    return null;
                 }
                 savedGame.TimeLimit = (savedGame.TimeLimit + TimeLimit) / 2;
                 savedGame.TimeLeft = savedGame.TimeLimit;
@@ -222,7 +222,7 @@ namespace Boggle
             if(m == null)
             {
                 status = Forbidden;
-                return new ScoreInfo();
+                return null;
             }
             m.Word = m.Word.Trim();
 
@@ -230,7 +230,7 @@ namespace Boggle
             if (!int.TryParse(GameID, out tempGameId) || m.Word == null || m.Word == "")
             {
                 status = Forbidden;
-                return new ScoreInfo();
+                return null;
             }
             lock (sync)
             {
@@ -238,12 +238,13 @@ namespace Boggle
                 if (gameInQuestion.Player1.userID != m.UserToken && gameInQuestion.Player2.userID != m.UserToken)
                 {
                     status = Forbidden;
-                    return new ScoreInfo();
+                    return null;
                 }
                 if (gameInQuestion.GameState != "active")
                 {
-                    status = Forbidden;
-                    return new ScoreInfo();
+                    // WARNING made change in ps11
+                    status = Conflict;
+                    return null;
                 }
                 int toReturn = calculateScore(gameInQuestion.boggleBoard, m.Word);
 
@@ -280,7 +281,7 @@ namespace Boggle
                 if (!int.TryParse(GameID, out gameIdNum))
                 {
                     status = Forbidden;
-                    return new GameStatePending();
+                    return null;
                 }
                 gameInQuestion = getGameWithID(gameIdNum);
                 switch (gameInQuestion.GameState)
@@ -351,7 +352,7 @@ namespace Boggle
                         return toReturn2;
                     default:
                         status = Forbidden;
-                        return new GameStatePending();
+                        return null;
                 }
             }
         }
@@ -648,7 +649,7 @@ namespace Boggle
                 {
                     var cmd = new SqlCommand();
 
-                    cmd.CommandText = "DELETE FROM Words; DELETE FROM Games; DELETE FROM Users";
+                    cmd.CommandText = "DELETE FROM Words; DELETE FROM Games; DELETE FROM Users;";
                     cmd.Connection = conn;
                     conn.Open();
                     cmd.ExecuteNonQuery();  // all rows deleted
@@ -657,7 +658,7 @@ namespace Boggle
                 {
                     try
                     {
-                        anyFailed = true;
+                       
                         var cmd = new SqlCommand();
 
                         cmd.CommandText = "DELETE FROM Users";
