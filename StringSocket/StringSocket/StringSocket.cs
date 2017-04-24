@@ -69,8 +69,6 @@ namespace CustomNetworking
         // holds the incoming message
         private string incoming;
 
-        private Stack<string> meme;
-
         // lock for asyncronization
         private readonly object sync;
 
@@ -193,9 +191,45 @@ namespace CustomNetworking
             }
             // TODO: Implement BeginReceive
         }
+
+        /// <summary>
+        /// this is a mothod that will be called when a message is sent
+        /// </summary>
         private void ReceiveAsyncCallback(IAsyncResult result)
         {
-            // this will be called when a message is sent
+            byte[] bytes = (byte[]) result.AsyncState;
+            int totalLength = bytes.Length;
+            int currentLength = socket.EndSend(result);
+
+            // if the full message has been sent
+            /*
+            if(currentLength == totalLength)
+            {
+                lock (sync)
+                {
+                    socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+                }
+            }
+            */
+
+            if(currentLength == 0)
+            {
+                socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+            }
+            else
+            {
+                incoming += encoding.GetString(bytes, 0, currentLength);
+                for(int i = 0; i < incoming.Length; i++)
+                {
+                    if(incoming[i] == '\n')
+                    {
+                        incoming = incoming.Substring(0, i + 1);
+                        break;
+                    }
+                }
+                ThreadPool.QueueUserWorkItem(x => );
+                socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+            }
         }
 
         /// <summary>
@@ -205,6 +239,13 @@ namespace CustomNetworking
         {
             Shutdown(SocketShutdown.Both);
             Close();
+        }
+
+        private class Request
+        {
+            public string Message { get; set; }
+            public object CallBack { get; set; }
+            public object Payload { get; set; }
         }
     }
 }
