@@ -56,11 +56,23 @@ namespace CustomNetworking
 
     public class StringSocket : IDisposable
     {
+        // representation
         // Underlying socket
         private Socket socket;
 
         // Encoding used for sending and receiving
         private Encoding encoding;
+
+        // holds the outgoing message
+        private string outgoing;
+
+        // holds the incoming message
+        private string incoming;
+
+        private Stack<string> meme;
+
+        // lock for asyncronization
+        private readonly object sync;
 
         /// <summary>
         /// Creates a StringSocket from a regular Socket, which should already be connected.  
@@ -72,6 +84,9 @@ namespace CustomNetworking
         {
             socket = s;
             encoding = e;
+            outgoing = "";
+            incoming = "";
+            sync = new object();
             // TODO: Complete implementation of StringSocket
         }
 
@@ -117,7 +132,17 @@ namespace CustomNetworking
         /// </summary>
         public void BeginSend(String s, SendCallback callback, object payload)
         {
+            lock (sync)
+            {
+                byte[] bytes = encoding.GetBytes(s);
+                socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, SendAsyncCallback, bytes);
+            }
             // TODO: Implement BeginSend
+        }
+
+        private void SendAsyncCallback(IAsyncResult result)
+        {
+            // this will be called when a message is sent
         }
 
         /// <summary>
@@ -160,7 +185,17 @@ namespace CustomNetworking
         /// </summary>
         public void BeginReceive(ReceiveCallback callback, object payload, int length = 0)
         {
+            lock (sync)
+            {
+                byte[] bytes = new byte[1024];
+                if (length > 0) { bytes = new byte[length]; }
+                socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+            }
             // TODO: Implement BeginReceive
+        }
+        private void ReceiveAsyncCallback(IAsyncResult result)
+        {
+            // this will be called when a message is sent
         }
 
         /// <summary>
