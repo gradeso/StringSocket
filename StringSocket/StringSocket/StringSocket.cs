@@ -144,15 +144,49 @@ namespace CustomNetworking
         {
             lock (sync)
             {
-                byte[] bytes = encoding.GetBytes(s);
-                socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, SendAsyncCallback, bytes);
+                sRequests.AddLast(new Request { Message = s, Callback = callback, Payload = payload });
+                if (sRequests.Count == 1)
+                {
+                    //more
+                    if(sRequests.Count > 0)
+                    {
+                        byte[] bytes = encoding.GetBytes(sRequests.First().Message);
+                        socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, SendAsyncCallback, bytes);
+                    }
+                }
             }
-            // TODO: Implement BeginSend
         }
 
+        /// <summary>
+        /// this will be called when a message is sent
+        /// </summary>
         private void SendAsyncCallback(IAsyncResult result)
         {
-            // this will be called when a message is sent
+            byte[] bytes = (byte[])result.AsyncState;
+            int totalLength = bytes.Length;
+            int currentLength = socket.EndSend(result);
+
+            if(currentLength == totalLength)
+            {
+                lock (sync)
+                {
+                    Request r = sRequests.First();
+                    sRequests.RemoveFirst();
+                    var c = (SendCallback)r.Callback;
+                    ThreadPool.QueueUserWorkItem(x => c(true, r.Payload));
+
+                    //more
+                    if(sRequests.Count > 0)
+                    {
+                        byte[] moreBytes = encoding.GetBytes(sRequests.First().Message);
+                        socket.BeginSend(moreBytes, 0, moreBytes.Length, SocketFlags.None, SendAsyncCallback, moreBytes);
+                    }
+                }
+            }
+            else
+            {
+                socket.BeginSend(bytes, currentLength, totalLength - currentLength, SocketFlags.None, SendAsyncCallback, bytes);
+            }
         }
 
         /// <summary>
@@ -200,7 +234,17 @@ namespace CustomNetworking
                 rRequests.AddLast(new Request { Message = null, Callback = callback, Payload = payload });
                 if(rRequests.Count == 1)
                 {
-                    while(rRequests.Count > 0)
+                    //more
+                    while (rRequests.Count > 0 && messages.Count > 0)
+                    {
+                        Request r = rRequests.First();
+                        rRequests.RemoveFirst();
+                        string m = messages.First();
+                        messages.RemoveFirst();
+                        var c = (ReceiveCallback)r.Callback;
+                        ThreadPool.QueueUserWorkItem(x => c(m, r.Payload));
+                    }
+                    if(rRequests.Count > 0)
                     {
                         byte[] bytes = new byte[1024];
                         if (length > 0) { bytes = new byte[length]; }
@@ -208,7 +252,6 @@ namespace CustomNetworking
                     }
                 }
             }
-            // TODO: Implement BeginReceive
         }
 
         /// <summary>
@@ -248,6 +291,11 @@ namespace CustomNetworking
                     messages.RemoveFirst();
                     var c = (ReceiveCallback)r.Callback;
                     ThreadPool.QueueUserWorkItem(x => c(m, r.Payload));
+                }
+                if(rRequests.Count > 0)
+                {
+                    byte[] moreBytes = new byte[totalLength];
+                    socket.BeginReceive(moreBytes, 0, moreBytes.Length, SocketFlags.None, ReceiveAsyncCallback, moreBytes);
                 }
             }
         }
