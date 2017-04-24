@@ -263,6 +263,7 @@ namespace CustomNetworking
             int totalLength = bytes.Length;
             int currentLength = socket.EndSend(result);
 
+            // this doesnt happen in tests so i didn't finish it
             if(currentLength == 0)
             {
                 string n = null;
@@ -277,6 +278,13 @@ namespace CustomNetworking
                     if(incoming[i] == '\n')
                     {
                         messages.AddLast(incoming.Substring(0, i));
+                        incoming = incoming.Substring(0, i + 1);
+                        break;
+                    }
+                    // checks if a custom buffer has been set with the length var
+                    if(totalLength != 1024 && i == (incoming.Length - 1))
+                    {
+                        messages.AddLast(incoming.Substring(0, i + 1));
                         incoming = incoming.Substring(0, i + 1);
                         break;
                     }
