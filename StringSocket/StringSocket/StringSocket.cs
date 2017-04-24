@@ -69,6 +69,15 @@ namespace CustomNetworking
         // holds the incoming message
         private string incoming;
 
+        // holds recieved requests
+        private LinkedList<Request> rRequests;
+
+        // holds good to go messages
+        private LinkedList<string> messages;
+
+        // holds send requests
+        private LinkedList<Request> sRequests;
+
         // lock for asyncronization
         private readonly object sync;
 
@@ -84,6 +93,9 @@ namespace CustomNetworking
             encoding = e;
             outgoing = "";
             incoming = "";
+            rRequests = new LinkedList<Request>();
+            messages = new LinkedList<string>();
+            sRequests = new LinkedList<Request>();
             sync = new object();
             // TODO: Complete implementation of StringSocket
         }
@@ -185,9 +197,16 @@ namespace CustomNetworking
         {
             lock (sync)
             {
-                byte[] bytes = new byte[1024];
-                if (length > 0) { bytes = new byte[length]; }
-                socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+                rRequests.AddLast(new Request { Message = null, Callback = callback, Payload = payload });
+                if(rRequests.Count == 1)
+                {
+                    while(rRequests.Count > 0)
+                    {
+                        byte[] bytes = new byte[1024];
+                        if (length > 0) { bytes = new byte[length]; }
+                        socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+                    }
+                }
             }
             // TODO: Implement BeginReceive
         }
@@ -201,20 +220,11 @@ namespace CustomNetworking
             int totalLength = bytes.Length;
             int currentLength = socket.EndSend(result);
 
-            // if the full message has been sent
-            /*
-            if(currentLength == totalLength)
-            {
-                lock (sync)
-                {
-                    socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
-                }
-            }
-            */
-
             if(currentLength == 0)
             {
-                socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+                string n = null;
+                messages.AddLast(n);
+                // socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
             }
             else
             {
@@ -223,12 +233,22 @@ namespace CustomNetworking
                 {
                     if(incoming[i] == '\n')
                     {
+                        messages.AddLast(incoming.Substring(0, i));
                         incoming = incoming.Substring(0, i + 1);
                         break;
                     }
                 }
-                ThreadPool.QueueUserWorkItem(x => );
-                socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
+
+                // more
+                while (rRequests.Count > 0 && messages.Count > 0)
+                {
+                    Request r = rRequests.First();
+                    rRequests.RemoveFirst();
+                    string m = messages.First();
+                    messages.RemoveFirst();
+                    var c = (ReceiveCallback)r.Callback;
+                    ThreadPool.QueueUserWorkItem(x => c(m, r.Payload));
+                }
             }
         }
 
@@ -244,7 +264,7 @@ namespace CustomNetworking
         private class Request
         {
             public string Message { get; set; }
-            public object CallBack { get; set; }
+            public object Callback { get; set; }
             public object Payload { get; set; }
         }
     }
