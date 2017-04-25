@@ -263,8 +263,9 @@ namespace CustomNetworking
             {
                 incoming += encoding.GetString(bytes, 0, currentLength);
                 int i;
-                while ((i = incoming.IndexOf('\n')) >= 0)
+                while (incoming.IndexOf('\n') != -1)
                 {
+                    i = incoming.IndexOf('\n');
                     messages.AddLast(incoming.Substring(0, i));
                     incoming = incoming.Substring(i + 1);
                 }
