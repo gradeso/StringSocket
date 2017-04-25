@@ -261,7 +261,7 @@ namespace CustomNetworking
         {
             byte[] bytes = (byte[]) result.AsyncState;
             int totalLength = bytes.Length;
-            int currentLength = socket.EndSend(result);
+            int currentLength = socket.EndReceive(result);
 
             // this doesnt happen in tests so i didn't finish it
             if(currentLength == 0)
