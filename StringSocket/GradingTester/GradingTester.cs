@@ -694,7 +694,7 @@ namespace GradingTester
         [TestMethod()]
         public void Test15()
         {
-            new Test15Class().run(4015);
+            new Test15Class().run(40150);
         }
 
         public class Test15Class
@@ -721,7 +721,7 @@ namespace GradingTester
                         Task.Run(
                             () => receiver.BeginReceive((s, p) => { Interlocked.Decrement(ref count); while (true) ; }, null));
                     }
-                    if (!SpinWait.SpinUntil(() => count == 0, 5000))
+                    if (!SpinWait.SpinUntil(() => count == 0, -1))
                     {
                         Assert.Fail();
                     }

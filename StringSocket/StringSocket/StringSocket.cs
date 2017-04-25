@@ -273,21 +273,17 @@ namespace CustomNetworking
             else
             {
                 incoming += encoding.GetString(bytes, 0, currentLength);
-                for(int i = 0; i < incoming.Length; i++)
+                int i;
+                while ((i = incoming.IndexOf('\n')) >= 0)
                 {
-                    if(incoming[i] == '\n')
-                    {
-                        messages.AddLast(incoming.Substring(0, i));
-                        incoming = incoming.Substring(0, i + 1);
-                        break;
-                    }
-                    // checks if a custom buffer has been set with the length var
-                    if(totalLength != 1024 && i == (incoming.Length - 1))
-                    {
-                        messages.AddLast(incoming.Substring(0, i + 1));
-                        incoming = incoming.Substring(0, i + 1);
-                        break;
-                    }
+                    messages.AddLast(incoming.Substring(0, i));
+                    incoming = incoming.Substring(i + 1);
+                }
+                // checks if a custom buffer has been set with the length var
+                if (totalLength != 1024)
+                {
+                    messages.AddLast(incoming.Substring(0, incoming.Length));
+                    incoming = incoming.Substring(0, incoming.Length);
                 }
 
                 // more
