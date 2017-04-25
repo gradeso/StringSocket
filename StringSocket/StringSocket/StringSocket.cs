@@ -302,6 +302,9 @@ namespace CustomNetworking
             Close();
         }
 
+        /// <summary>
+        /// way to hold data being sent and received
+        /// </summary>
         private class Request
         {
             public string Message { get; set; }

@@ -694,7 +694,7 @@ namespace GradingTester
         [TestMethod()]
         public void Test15()
         {
-            new Test15Class().run(40150);
+            new Test15Class().run(4015);
         }
 
         public class Test15Class
