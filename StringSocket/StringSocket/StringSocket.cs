@@ -63,9 +63,6 @@ namespace CustomNetworking
         // Encoding used for sending and receiving
         private Encoding encoding;
 
-        // holds the outgoing message
-        private string outgoing;
-
         // holds the incoming message
         private string incoming;
 
@@ -91,7 +88,6 @@ namespace CustomNetworking
         {
             socket = s;
             encoding = e;
-            outgoing = "";
             incoming = "";
             rRequests = new LinkedList<Request>();
             messages = new LinkedList<string>();
@@ -263,14 +259,7 @@ namespace CustomNetworking
             int totalLength = bytes.Length;
             int currentLength = socket.EndReceive(result);
 
-            // this doesnt happen in tests so i didn't finish it
-            if(currentLength == 0)
-            {
-                string n = null;
-                messages.AddLast(n);
-                // socket.BeginReceive(bytes, 0, bytes.Length, SocketFlags.None, ReceiveAsyncCallback, bytes);
-            }
-            else
+            if(currentLength != 0)
             {
                 incoming += encoding.GetString(bytes, 0, currentLength);
                 int i;
